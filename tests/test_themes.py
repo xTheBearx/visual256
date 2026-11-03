@@ -1,3 +1,4 @@
+from visual256.canvas import parse_color
 from visual256.spec import THEME_IDS
 from visual256.themes import THEMES_LIST, luminance
 
@@ -23,10 +24,17 @@ def test_backgrounds_are_distinct():
             assert a.bg != b.bg
 
 
+def _over(bg: str, rgba: str) -> str:
+    fg, a = parse_color(rgba)
+    mix = [int(bg[i:i + 2], 16) * (1 - a) + int(fg[i:i + 2], 16) * a for i in (1, 3, 5)]
+    return "#" + "".join(f"{round(v):02X}" for v in mix)
+
+
 def test_every_palette_color_is_visible_on_its_background_and_gradients():
     for t in THEMES_LIST:
         assert len({c for _, c in t.palette}) == 16, t.id
-        for bg in (t.bg, *(c for _, c in t.gradients)):
+        grounds = [t.bg, *(c for _, c in t.gradients)]
+        for bg in grounds + [_over(g, t.sheen) for g in grounds]:
             for name, c in t.palette:
                 assert contrast(c, bg) >= 2.0, f"{t.id}: {name} {c} is too faint on {bg}"
 

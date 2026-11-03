@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import math
 
-from .canvas import Canvas, LinearGradient, RadialGradient
+from .canvas import Canvas, LinearGradient, RadialGradient, parse_color
 from .spec import STATUS_WORDS, Features
 from .themes import Theme, chip_ink, get as get_theme
 
@@ -224,6 +224,7 @@ def draw_badge(ctx: Canvas, f: Features, theme: Theme | None = None) -> None:
     ctx.fill()
     ctx.save()
     ctx.clip()
+    draw_streak(ctx, t, f.gradient)
     background(ctx, t)
     ctx.restore()
     draw_frame(ctx, f, fr, fcol, glow)
@@ -266,6 +267,32 @@ def background_gradient(t: Theme, kind: int, tint: int):
     if kind == 2:
         return LinearGradient(0, 0, 128, 64, stops)
     return RadialGradient(64, 32, 0, 72, stops)
+
+
+def draw_streak(ctx: Canvas, t: Theme, kind: int) -> None:
+    """A faint highlight band along the gradient direction (a ring for radial gradients)."""
+    color, a = parse_color(t.sheen)
+    r, g, b = int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16)
+    clear = f"rgba({r},{g},{b},0)"
+    band = [(0, clear), (.5, t.sheen), (1, clear)]
+    if kind == 0:
+        ctx.fill_style = LinearGradient(0, 23, 0, 41, band)
+        ctx.fill_rect(0, 23, 128, 18)
+    elif kind == 1:
+        ctx.fill_style = LinearGradient(52, 0, 76, 0, band)
+        ctx.fill_rect(52, 0, 24, 64)
+    elif kind == 2:
+        L = math.hypot(128, 64)
+        dx, dy = 128 / L, 64 / L
+        nx, ny, hw = -dy, dx, 10
+        ctx.fill_style = LinearGradient(64 - hw * nx, 32 - hw * ny, 64 + hw * nx, 32 + hw * ny, band)
+        ctx.begin_path()
+        poly(ctx, [(64 - 100 * dx - hw * nx, 32 - 100 * dy - hw * ny), (64 + 100 * dx - hw * nx, 32 + 100 * dy - hw * ny),
+                   (64 + 100 * dx + hw * nx, 32 + 100 * dy + hw * ny), (64 - 100 * dx + hw * nx, 32 - 100 * dy + hw * ny)])
+        ctx.fill()
+    else:
+        ctx.fill_style = RadialGradient(64, 32, 0, 72, [(0, clear), (.3, clear), (.42, t.sheen), (.54, clear), (1, clear)])
+        ctx.fill_rect(0, 0, 128, 64)
 
 
 def background(ctx: Canvas, t: Theme) -> None:

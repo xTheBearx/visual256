@@ -250,7 +250,9 @@ class Canvas:
             cx, cy = self._tp(g.cx, g.cy)
             k = self._scale_factor()
             r0 = g.r0 / g.r1 if g.r1 else 0
-            stops = "".join(f'<stop offset="{fmt(r0 + (1 - r0) * o)}" stop-color="{parse_color(c)[0]}"/>' for o, c in g.stops)
+            stops = "".join(f'<stop offset="{fmt(r0 + (1 - r0) * o)}" stop-color="{parse_color(c)[0]}"'
+                            + (f' stop-opacity="{fmt(parse_color(c)[1])}"' if parse_color(c)[1] < 0.999 else "") + "/>"
+                            for o, c in g.stops)
             self._defs.append(f'<radialGradient id="{gid}" gradientUnits="userSpaceOnUse" cx="{fmt(cx)}" cy="{fmt(cy)}" '
                               f'r="{fmt(g.r1 * k)}">{stops}</radialGradient>')
         return f"url(#{gid})"

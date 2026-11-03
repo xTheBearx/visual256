@@ -128,8 +128,10 @@ whole byte through color, shape and fill instead of many tiny marks. Every badge
 
 **Themes** set the background, its pattern, the fonts and the 16 colors that every color feature
 indexes into. Each theme also has two partner colors; the card fades from the theme color to one
-of them left to right, top to bottom, diagonally or radially. Every palette color has at least
-2:1 contrast against the background and both partners (checked by the tests).
+of them left to right, top to bottom, diagonally or radially, with a faint highlight streak along
+the same direction (a ring for radial gradients). Partner colors are tuned by
+`tools/tune_gradients.py` to be as strong as each palette allows: every palette color keeps at
+least 2:1 contrast against the background, both partners and the streak (checked by the tests).
 
 **512-bit checksums** (SHA-512) are drawn as two badges in one frame, numbered 1 and 2. Both
 badges depend on the whole checksum. The frame takes its colors from badge 1's theme.
