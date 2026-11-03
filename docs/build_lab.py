@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 
 from visual256 import bip39, icons
+from visual256.fonts import glyph_path
 from visual256.themes import THEMES_LIST
 
 HERE = Path(__file__).parent
@@ -31,8 +32,17 @@ def theme_json() -> str:
     return json.dumps(out, separators=(",", ":"))
 
 
+def _with_glyph(sp: dict) -> dict:
+    """Character and emoji tiles carry their glyph as path data, so the lab draws exactly the
+    bundled font's outline (and never a color-emoji fallback)."""
+    if "text" not in sp:
+        return sp
+    ch, x, y, size, inverted, font = sp["text"]
+    return sp | {"glyph": glyph_path(font, ch, x, y, size)}
+
+
 def icons_json() -> str:
-    out = {kind: {"names": list(names), "specs": {n: icons.icon_spec(kind, n) for n in names}}
+    out = {kind: {"names": list(names), "specs": {n: _with_glyph(icons.icon_spec(kind, n)) for n in names}}
            for kind, (names, _) in icons.KINDS.items()}
     return json.dumps(out, separators=(",", ":"))
 

@@ -1,6 +1,6 @@
 <title>Netrunner ID Lab</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Chakra+Petch:wght@600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Spectral:wght@600&family=Audiowide&family=Silkscreen:wght@700&family=Saira+Stencil+One&family=Noto+Emoji:wght@600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Chakra+Petch:wght@600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Spectral:wght@600&family=Audiowide&family=Silkscreen:wght@700&family=Saira+Stencil+One&display=swap">
 <style>
 /* Layout: one-style workbench. Input, hero badge beside its field readout, bit ruler, layout previews, test bench, spoken backup, notes. */
 :root{
@@ -309,8 +309,8 @@ const GEM_SHAPES=['circle','square','triangle','diamond'], GEM_FILLS=['solid','o
 
 /* ---------- themes: generated from visual256/themes.py by docs/build_lab.py; the hash picks one ---------- */
 const THEMES = __THEMES_JSON__;
-const FONTS = { cyber:'"Chakra Petch", "JetBrains Mono", monospace', mono:'"JetBrains Mono", ui-monospace, monospace', serif:'Spectral, Georgia, serif', retro:'Audiowide, "Chakra Petch", sans-serif', pixel:'Silkscreen, "JetBrains Mono", monospace', stencil:'"Saira Stencil One", "Chakra Petch", sans-serif', emoji:'"Noto Emoji", sans-serif' };
-const FONT_WEIGHT = { cyber:700, mono:600, serif:600, retro:400, pixel:700, stencil:400, emoji:600 };
+const FONTS = { cyber:'"Chakra Petch", "JetBrains Mono", monospace', mono:'"JetBrains Mono", ui-monospace, monospace', serif:'Spectral, Georgia, serif', retro:'Audiowide, "Chakra Petch", sans-serif', pixel:'Silkscreen, "JetBrains Mono", monospace', stencil:'"Saira Stencil One", "Chakra Petch", sans-serif' };
+const FONT_WEIGHT = { cyber:700, mono:600, serif:600, retro:400, pixel:700, stencil:400 };
 const tcol = (t, i) => t.palette[i&15][1], tname = (t, i) => t.palette[i&15][0];
 function lum(h){ const n = parseInt(h.slice(1,7),16); const ch = [n>>16&255, n>>8&255, n&255].map(v => { v /= 255; return v <= 0.03928 ? v/12.92 : ((v+0.055)/1.055)**2.4; }); return 0.2126*ch[0] + 0.7152*ch[1] + 0.0722*ch[2]; }
 const chipInk = (t, c) => lum(c) > 0.3 ? t.inkDark : t.inkLight;
@@ -1141,7 +1141,7 @@ function shiftedIcon(sp, c){
   const ln = ([pts, w]) => [pts.map(([x, y]) => [x+c, y]), w];
   return { body: sp.body.map(([k, a, fab]) => [k, shiftArgs(k, a, c), fab]), solid: sp.solid.map(([k, a]) => [k, shiftArgs(k, a, c)]),
            lines: sp.lines.map(ln), front: sp.front.map(ln), emblem: [sp.emblem[0]+c, sp.emblem[1]],
-           text: sp.text ? [sp.text[0], sp.text[1]+c, sp.text[2], sp.text[3], sp.text[4], sp.text[5]] : null };
+           text: sp.text ? [sp.text[0], sp.text[1]+c, sp.text[2], sp.text[3], sp.text[4], sp.text[5]] : null, glyph: sp.glyph || null };
 }
 function drawIcon(ctx, d, c, kind, glow, noglow, vis, trim, t){
   const sp = shiftedIcon(ICONS[kind].specs[ICONS[kind].names[d.subject - SUBJECT_START[kind]]], c);
@@ -1149,7 +1149,7 @@ function drawIcon(ctx, d, c, kind, glow, noglow, vis, trim, t){
   drawBackdrop(ctx, d.grille, c, vis, trim);
   drawBase(ctx, d.cheek, c, trim, t);
   drawParts(ctx, sp, drawFabric, d.vstyle, d.decal, glow, noglow, vis, trim, t);
-  if(sp.text){ const [ch, x, y, size, inverted, font] = sp.text; ctx.font = `${FONT_WEIGHT[font]} ${size}px ${FONTS[font]}`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = inverted ? t.panel : trim; ctx.fillText(ch, x, y); }
+  if(sp.glyph){ ctx.save(); ctx.translate(c, 0); ctx.fillStyle = sp.text[4] ? t.panel : trim; ctx.fill(new Path2D(sp.glyph)); ctx.restore(); }  // glyph outline exported from the bundled font
   drawEffect(ctx, d.mod, c, vis, trim, glow, noglow);
 }
 function backdropShape(style, c){

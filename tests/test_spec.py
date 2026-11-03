@@ -178,6 +178,14 @@ def test_character_subjects_follow_the_badge_alphabet():
     assert "".join(_rows(subject=start + i)["Subject"][-1] for i in range(32)) == ALPHABET
 
 
+def test_glyph_paths_for_the_lab():
+    from visual256.fonts import glyph_path
+    from visual256.icons import EMOJI
+    for ch in list(EMOJI.values()) + ["A", "8"]:
+        d = glyph_path("emoji" if ord(ch) > 0xFFFF else "mono", ch, 0, 35, 21)
+        assert d.startswith("M") and d.count("Z") >= 1
+
+
 def test_emoji_glyphs_are_in_the_bundled_font():
     from visual256.fonts import face
     from visual256.icons import EMOJI

@@ -78,3 +78,15 @@ class OutlinePen(BasePen):
 
     def _closePath(self):
         self.d.append("Z")
+
+
+def glyph_path(key: str, ch: str, x: float, y: float, size: float) -> str:
+    """SVG path data for one glyph centered on x with its baseline at y (badge units). The browser
+    lab fills these paths instead of drawing text, so it needs no web font and matches exactly."""
+    fc = face(key)
+    k = size / fc.upm
+    x0 = x - fc.advance(ch) * k / 2
+    num = lambda v: f"{round(v, 2):g}"
+    pen = OutlinePen(fc.glyphs, lambda p: (x0 + p[0] * k, y - p[1] * k), num)
+    fc.glyphs[fc.glyph_name(ch)].draw(pen)
+    return "".join(pen.d)
