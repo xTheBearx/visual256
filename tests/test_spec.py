@@ -111,21 +111,32 @@ def test_encode_rejects_out_of_range_values():
         encode(with_changes(f, theme=8))
 
 
-def test_subjects_cover_all_six_kinds():
+def test_subjects_cover_all_seven_kinds():
     from visual256.spec import SUBJECTS, subject_kind
     kinds = [subject_kind(i) for i in range(64)]
-    assert kinds.count("face") == 8 and kinds.count("building") == 12 and kinds.count("animal") == 12
-    assert kinds.count("vehicle") == 12 and kinds.count("plant") == 12 and kinds.count("furniture") == 8
+    assert [kinds.count(k) for k in ("face", "building", "animal", "vehicle", "plant", "furniture", "food")] == [8, 10, 10, 10, 10, 8, 8]
     assert kinds == sorted(kinds, key=kinds.index)  # each kind is one contiguous range
     assert len(set(SUBJECTS)) == 64
 
 
+def _rows(**changes):
+    f = with_changes(decode(bytes(32)), **changes)
+    return dict((label, value) for _, label, value in describe(f, tuple("c" * 16)))
+
+
 def test_furniture_details_are_named():
-    f = with_changes(decode(bytes(32)), subject=63, vstyle=6, grille=3, mod=3, cheek=2)
-    rows = dict((label, value) for _, label, value in describe(f, tuple("c" * 16)))
+    rows = _rows(subject=55, vstyle=6, grille=3, mod=3, cheek=2)
     assert rows["Subject"] == "bathtub"
     assert (rows["Subject detail A"], rows["Subject detail B"]) == ("plaid", "teapot")
     assert (rows["Subject detail C"], rows["Subject detail D"]) == ("bunting", "checker tiles")
+
+
+def test_food_details_are_named():
+    rows = _rows(subject=56, vstyle=0, grille=4, mod=0, cheek=2)
+    assert rows["Subject"] == "pizza slice"
+    assert (rows["Subject detail A"], rows["Subject detail B"]) == ("sprinkles", "cake stand")
+    assert (rows["Subject detail C"], rows["Subject detail D"]) == ("cherry", "chopsticks")
+    assert _rows(subject=63)["Subject"] == "hot dog"
 
 
 def test_animals_wear_nothing_on_top_of_the_head():
@@ -133,12 +144,20 @@ def test_animals_wear_nothing_on_top_of_the_head():
     assert "party hat" not in ACCESSORIES and "bow tie" in ACCESSORIES
 
 
+def test_look_alike_animals_differ_where_others_wear_a_bow_tie():
+    from visual256.spec import ANIMALS, NO_BOW_TIE, SUBJECT_START
+    for name in ANIMALS:
+        accessory = _rows(subject=SUBJECT_START["animal"] + ANIMALS.index(name), mod=2)["Subject detail C"]
+        assert accessory == ("no accessory" if name in NO_BOW_TIE else "bow tie")
+    assert set(NO_BOW_TIE) == {"owl", "panda"}
+
+
 def test_describe_names_subject_details_by_kind():
     f = decode(bytes(32))
     house = dict((label, value) for _, label, value in describe(with_changes(f, subject=8), tuple("c" * 16)))
-    cat = dict((label, value) for _, label, value in describe(with_changes(f, subject=20), tuple("c" * 16)))
-    car = dict((label, value) for _, label, value in describe(with_changes(f, subject=32), tuple("c" * 16)))
-    pine = dict((label, value) for _, label, value in describe(with_changes(f, subject=44), tuple("c" * 16)))
+    cat = dict((label, value) for _, label, value in describe(with_changes(f, subject=18), tuple("c" * 16)))
+    car = dict((label, value) for _, label, value in describe(with_changes(f, subject=28), tuple("c" * 16)))
+    pine = dict((label, value) for _, label, value in describe(with_changes(f, subject=38), tuple("c" * 16)))
     assert house["Subject"] == "house" and house["Subject detail A"] == "square grid"
     assert cat["Subject"] == "cat" and cat["Subject detail B"] == "button nose"
     assert car["Subject"] == "car" and car["Subject detail B"] == "smoke puffs"

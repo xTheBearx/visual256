@@ -153,7 +153,7 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
   <section>
     <div class="sec-head">
       <h2>Sixty-four subjects</h2>
-      <p class="note">Bits 36–41 pick the portrait: 8 android heads, 12 buildings, 12 animals, 12 vehicles, 12 plants or 8 pieces of furniture. The same four detail fields and symbol mean something that fits each kind: a visor, windows, eyes, vehicle windows, blooms or fabric; a mouth, door, nose, exhaust trail, pot or companion object; a head mod, roof add-on, accessory, vehicle add-on, visiting creature or wall item; cheek marks, ground details, markings, a livery stripe, ground extras or floor.</p>
+      <p class="note">Bits 36–41 pick the portrait: 8 android heads, 10 buildings, 10 animals, 10 vehicles, 10 plants, 8 pieces of furniture or 8 foods. The same four detail fields and symbol mean something that fits each kind: a visor, windows, eyes, vehicle windows, blooms, fabric or toppings; a mouth, door, nose, exhaust trail, pot, companion object or serving; a head mod, roof add-on, accessory, vehicle add-on, visiting creature, wall item or topper; cheek marks, ground details, markings, a livery stripe, ground extras, floor or side item. Owl and panda never wear the bow tie, so they stay distinct from cat and fox.</p>
     </div>
     <div class="panel"><div class="layouts" id="subjects"></div></div>
   </section>
@@ -260,25 +260,31 @@ const MIX_TAG = 'visual256/netrunner/0.1';
 const BAR_STYLES=['segmented','solid','lollipops','chevrons'];
 const GRADIENTS=['left to right','top to bottom','diagonal','radial'];
 const GRADIENT_TONES=['theme color into the hue','light to dark'];
-const BUILDINGS=['house','tower','skyscraper','castle','pagoda','observatory','lighthouse','factory','chapel','temple','windmill','needle tower'];
-const ANIMALS=['cat','dog','bear','rabbit','fox','owl','mouse','pig','frog','penguin','lion','panda'];
+const BUILDINGS=['house','skyscraper','castle','pagoda','observatory','lighthouse','factory','temple','windmill','needle tower'];
+const ANIMALS=['cat','dog','rabbit','fox','owl','mouse','frog','penguin','lion','panda'];
 const WINDOWS=['square grid','portholes','arches','bands','strips','picture window','diamonds','checker lights'];
 const DOORS=['plain door','arched door','double door','round door','garage door','gate','glass door','awning door'];
 const ROOFS=['antenna','flag','chimney','satellite dish'], GROUNDS=['steps','fence','bushes','lamp posts'];
 const EYES=['dots','glossy','sleepy','happy','stern','slit','sparkle','hearts'];
 const SNOUTS=['button nose','round nose','heart nose','open mouth','tongue out','buck teeth','cat mouth','fangs'];
 const ACCESSORIES=['collar and tag','bow','bow tie','scarf'], MARKINGS=['whiskers','spots','blush','stripes'];
-const VEHICLES=['car','bus','motorcycle','bicycle','locomotive','sailboat','submarine','airplane','helicopter','hot-air balloon','rocket','flying saucer'];
-const PLANTS=['pine','oak','palm','cactus','tulip','sunflower','mushroom','bonsai','fern','bamboo','cherry blossom','lotus'];
+const VEHICLES=['car','bus','bicycle','locomotive','sailboat','submarine','helicopter','hot-air balloon','rocket','flying saucer'];
+const PLANTS=['pine','oak','palm','cactus','sunflower','bonsai','fern','bamboo','cherry blossom','lotus'];
 const FURNITURE=['armchair','sofa','bed','bookshelf','grandfather clock','floor lamp','piano','bathtub'];
+const FOODS=['pizza slice','burger','ice cream cone','cupcake','donut','popsicle','ramen bowl','hot dog'];
 const TRAILS=['smoke puffs','flames','speed lines','sparks','bubbles','vapor trail','stars','zigzag'], VEHICLE_MODS=['antenna','flag','siren','fin'], LIVERIES=['stripe','double stripe','checker band','zigzag stripe'];
 const BLOOMS=['berries','blossoms','stars','hearts','apples','lemons','sparkles','bells'], POTS=['terracotta pot','square planter','round bowl','tall vase','wooden crate','soil mound','glass jar','teacup'];
 const VISITORS=['butterfly','bee','bird','ladybug'], GROUND_EXTRAS=['grass tufts','pebbles','fallen petals','seedlings'];
 const FABRICS=['stripes','bands','polka dots','checks','diamonds','zigzag','plaid','scales'], COMPANIONS=['cat','book stack','potted plant','teapot','radio','globe','candle','gift box'];
 const WALL_ITEMS=['picture frame','round mirror','window','bunting'], FLOORS=['oval rug','floorboards','checker tiles','fringed rug'];
-const SUBJECT_START = {face:0, building:8, animal:20, vehicle:32, plant:44, furniture:56};
-const kindOf = s => s < 8 ? 'face' : s < 20 ? 'building' : s < 32 ? 'animal' : s < 44 ? 'vehicle' : s < 56 ? 'plant' : 'furniture';
-const pickKind = (d, face, building, animal, vehicle, plant, furniture) => ({face, building, animal, vehicle, plant, furniture})[kindOf(d.subject)];
+const TOPPINGS=['sprinkles','seeds','dots','stars','hearts','drizzle','chips','rings'], SERVINGS=['round plate','wooden board','napkin','tray','cake stand','picnic cloth','leaf','bento box'];
+const TOPPERS=['cherry','candle','flag pick','mint leaf'], SIDES=['fork','spoon','chopsticks','cup'];
+const NO_BOW_TIE=['owl','panda'];  // skip accessory 2 so they differ from their look-alikes (cat, fox)
+const SUBJECT_KINDS = [['face',8],['building',10],['animal',10],['vehicle',10],['plant',10],['furniture',8],['food',8]];
+const SUBJECT_START = {}; SUBJECT_KINDS.reduce((n, [k, len]) => (SUBJECT_START[k] = n, n + len), 0);
+const kindOf = s => SUBJECT_KINDS.filter(([k]) => s >= SUBJECT_START[k]).pop()[0];
+const pickKind = (d, face, building, animal, vehicle, plant, furniture, food) => ({face, building, animal, vehicle, plant, furniture, food})[kindOf(d.subject)];
+const accessoryName = d => d.mod === 2 && NO_BOW_TIE.includes(ANIMALS[d.subject - SUBJECT_START.animal]) ? 'no accessory' : ACCESSORIES[d.mod];
 const SYM = ['circle','square','triangle','diamond','star','plus','saltire','heart','crescent','sun','drop','bolt','hexagon','ring','arrow','clover'];
 const STATUS=['ONLINE','GHOST','ROGUE','SYNCED','ROOTED','DARK','LIVE','BURNED','CLEAN','HOT','ZERO','LOCKED','SPOOFED','MIRROR','IDLE','VOID'];
 const LAYOUTS=['Face left, stacked','Face right, stacked','Face center, bars on top','Face left, grid','Face right, grid','Banner on top, face left','Banner at bottom, face right','Face center, detail on top'];
@@ -287,7 +293,7 @@ const FRAME_STYLES=['single','double','dashed','corner brackets'];
 const DISPLAYS=['tiles','gems','hex pairs','arrows'];
 const ARROW_DIRS=['up','up-right','right','down-right','down','down-left','left','up-left'];
 const HEADSHAPES=['round','angular','boxy','dome','capsule','bucket','shield','skull'];
-const SUBJECTS = [...HEADSHAPES.map(h => `android, ${h} head`), ...BUILDINGS, ...ANIMALS, ...VEHICLES, ...PLANTS, ...FURNITURE];
+const SUBJECTS = [...HEADSHAPES.map(h => `android, ${h} head`), ...BUILDINGS, ...ANIMALS, ...VEHICLES, ...PLANTS, ...FURNITURE, ...FOODS];
 const VISORS=['band','twin-lens','slit','mono-eye','goggles','chevron','triple-lens','grid'];
 const MOUTHS=['vents','teeth','dots','LED','zigzag','speaker','fangs','stitches'];
 const MODS=['antenna','ear discs','cable','fin'];
@@ -314,15 +320,15 @@ const FIELDS = [
   ['framestyle',2,'Frame style','single · double · dashed · brackets', d => FRAME_STYLES[d.framestyle]],
   ['barstyle',2,'Bar style','segmented · solid · lollipops · chevrons', d => BAR_STYLES[d.barstyle]],
   ['frame',4,'Frame color','frame and dividers', (d,t) => tname(t, d.frame)],
-  ['visor',4,'Visor color','visor, lit windows, eyes, blooms or fabric', (d,t) => tname(t, d.visor)],
+  ['visor',4,'Visor color','visor, lit windows, eyes, blooms, fabric or toppings', (d,t) => tname(t, d.visor)],
   ['trim',4,'Trim color','outlines, roofs, doors, mouths, marks, decal', (d,t) => tname(t, d.trim)],
   ['accent',4,'Accent color','signal bars and handle effects', (d,t) => tname(t, d.accent)],
-  ['subject',6,'Subject','8 android heads, 12 buildings, 12 animals, 12 vehicles, 12 plants or 8 furniture', d => SUBJECTS[d.subject]],
-  ['vstyle',3,'Subject detail A','visor, windows, eyes, vehicle windows, blooms or fabric', d => pickKind(d, VISORS, WINDOWS, EYES, WINDOWS, BLOOMS, FABRICS)[d.vstyle]],
-  ['grille',3,'Subject detail B','mouth, door, nose, trail, pot or companion object', d => pickKind(d, MOUTHS, DOORS, SNOUTS, TRAILS, POTS, COMPANIONS)[d.grille]],
-  ['mod',2,'Subject detail C','head mod, roof add-on, accessory, vehicle add-on, visitor or wall item', d => pickKind(d, MODS, ROOFS, ACCESSORIES, VEHICLE_MODS, VISITORS, WALL_ITEMS)[d.mod]],
-  ['decal',4,'Subject symbol','decal, sign, mark, emblem, pot label or plaque', d => SYM[d.decal]],
-  ['cheek',2,'Subject detail D','cheeks, grounds, markings, livery, ground extras or floor', d => pickKind(d, CHEEKS, GROUNDS, MARKINGS, LIVERIES, GROUND_EXTRAS, FLOORS)[d.cheek]],
+  ['subject',6,'Subject','8 android heads; 10 buildings, animals, vehicles or plants; 8 furniture or 8 foods', d => SUBJECTS[d.subject]],
+  ['vstyle',3,'Subject detail A','visor, windows, eyes, vehicle windows, blooms, fabric or toppings', d => pickKind(d, VISORS, WINDOWS, EYES, WINDOWS, BLOOMS, FABRICS, TOPPINGS)[d.vstyle]],
+  ['grille',3,'Subject detail B','mouth, door, nose, trail, pot, companion object or serving', d => pickKind(d, MOUTHS, DOORS, SNOUTS, TRAILS, POTS, COMPANIONS, SERVINGS)[d.grille]],
+  ['mod',2,'Subject detail C','head mod, roof add-on, accessory, vehicle add-on, visitor, wall item or topper', d => kindOf(d.subject) === 'animal' ? accessoryName(d) : pickKind(d, MODS, ROOFS, ACCESSORIES, VEHICLE_MODS, VISITORS, WALL_ITEMS, TOPPERS)[d.mod]],
+  ['decal',4,'Subject symbol','decal, sign, mark, emblem, pot label, plaque or food label', d => SYM[d.decal]],
+  ['cheek',2,'Subject detail D','cheeks, grounds, markings, livery, ground extras, floor or side item', d => pickKind(d, CHEEKS, GROUNDS, MARKINGS, LIVERIES, GROUND_EXTRAS, FLOORS, SIDES)[d.cheek]],
   ['status',4,'Status word','16 words', d => STATUS[d.status]],
   ['scolor',4,'Status color','status chip', (d,t) => tname(t, d.scolor)],
   ['hstyle',3,'Handle style','8 text treatments', d => HSTYLES[d.hstyle]],
@@ -494,7 +500,7 @@ function drawFrame(ctx, d, fr, fcol, glow, noglow){
   noglow();
   if(st === 1){ ctx.beginPath(); poly(ctx, framePoly(d.corners, 1.7)); ctx.lineWidth = .35; ctx.stroke(); }
 }
-/* the portrait (android head, building, animal, vehicle, plant or furniture), then the status chip (mirrors draw.draw_face) */
+/* the portrait (android head, building, animal, vehicle, plant, furniture or food), then the status chip (mirrors draw.draw_face) */
 function drawFace(ctx, d, hx, glow, noglow, vis, trim, t){
   const k = kindOf(d.subject);
   if(k === 'face') drawAndroid(ctx, d, hx, glow, noglow, vis, trim, t);
@@ -502,7 +508,8 @@ function drawFace(ctx, d, hx, glow, noglow, vis, trim, t){
   else if(k === 'animal') drawAnimal(ctx, d, hx, glow, noglow, vis, trim, t);
   else if(k === 'vehicle') drawVehicle(ctx, d, hx, glow, noglow, vis, trim, t);
   else if(k === 'plant') drawPlant(ctx, d, hx, glow, noglow, vis, trim, t);
-  else drawFurniture(ctx, d, hx, glow, noglow, vis, trim, t);
+  else if(k === 'furniture') drawFurniture(ctx, d, hx, glow, noglow, vis, trim, t);
+  else drawFood(ctx, d, hx, glow, noglow, vis, trim, t);
   ctx.lineCap = 'butt'; ctx.lineJoin = 'miter';
   drawStatus(ctx, d, hx, glow, noglow, t);
 }
@@ -531,26 +538,24 @@ function drawAndroid(ctx, d, hx, glow, noglow, vis, trim, t){
   drawCheeks(ctx, d.cheek, hx, trim);
 }
 /* ---------- buildings and animals (mirror visual256/subjects.py) ---------- */
-function buildingSpec(b, c){
-  if(b === 0) return { body:[[[c-11,28],[c+11,28],[c+11,50],[c-11,50]]], roof:[[[c-13.5,28.5],[c,15],[c+13.5,28.5]]], win:[c-9,30.5,c+9,38.5], door:[c,5,8.5], top:[c+6,21], sign:[c-7.5,45] };
-  if(b === 1) return { body:[[[c-6,50],[c-6,12],[c-3.6,12],[c-3.6,14],[c-1.2,14],[c-1.2,12],[c+1.2,12],[c+1.2,14],[c+3.6,14],[c+3.6,12],[c+6,12],[c+6,50]]], roof:[], win:[c-4,17,c+4,33], door:[c,4,6], top:[c,12], sign:[c,38.5] };
-  if(b === 2) return { body:[[[c-9,50],[c-9,20],[c-6,20],[c-6,12],[c+6,12],[c+6,20],[c+9,20],[c+9,50]]], roof:[[[c-1,12],[c+1,12],[c,5]]], win:[c-7,22,c+7,40], door:[c,6,5], top:[c+4,12], sign:[c,16] };
-  if(b === 3) return { body:[[[c-15,50],[c-15,20],[c-13,20],[c-13,22],[c-11,22],[c-11,20],[c-9,20],[c-9,28],[c-6,28],[c-6,30],[c-3,30],[c-3,28],[c+3,28],[c+3,30],[c+6,30],[c+6,28],[c+9,28],[c+9,20],[c+11,20],[c+11,22],[c+13,22],[c+13,20],[c+15,20],[c+15,50]]], roof:[], win:[c-7,32,c+7,38.5], door:[c,6,8], top:[c-12,20], sign:[c+12,30] };
-  if(b === 4) return { body:[[[c-9,40],[c+9,40],[c+9,50],[c-9,50]],[[c-7,31],[c+7,31],[c+7,37],[c-7,37]],[[c-5,22],[c+5,22],[c+5,28],[c-5,28]]], roof:[[[c-13,40],[c+13,40],[c+9,37],[c-9,37]],[[c-11,31],[c+11,31],[c+7,28],[c-7,28]],[[c-9,22],[c+9,22],[c,15]]], win:[c-5,31.8,c+5,36.4], door:[c,4,6.5], top:[c,15], sign:[c,25] };
-  if(b === 5) return { body:[[[c-12,33],[c+12,33],[c+12,50],[c-12,50]]], roof:[], dome:[c,33,10], win:[c-10,35.5,c+10,41], door:[c,5,7], top:[c,23], sign:[c-8.5,45.5] };
-  if(b === 6) return { body:[[[c-5,18],[c+5,18],[c+8,50],[c-8,50]],[[c-4,11],[c+4,11],[c+4,18],[c-4,18]]], roof:[[[c-5.5,11.5],[c+5.5,11.5],[c,6]],[[c-6.2,40],[c+6.2,40],[c+6.6,42.6],[c-6.6,42.6]]], win:[c-2.5,20,c+2.5,28], door:[c,4,5.5], top:[c+4,11], sign:[c,32.5] };
-  if(b === 7) return { body:[[[c-14,50],[c-14,30],[c-9,25],[c-9,30],[c-4,25],[c-4,30],[c+1,25],[c+1,30],[c+12,30],[c+12,50]],[[c+7,14],[c+11,14],[c+11,30],[c+7,30]]], roof:[], win:[c-12,33,c+5,40], door:[c+8,5,8], top:[c-9,25], sign:[c-8,45] };
-  if(b === 8) return { body:[[[c-3,15],[c+3,15],[c+3,26],[c-3,26]],[[c-9,31],[c+9,31],[c+9,50],[c-9,50]]], roof:[[[c-10.5,31.5],[c,23],[c+10.5,31.5]],[[c-3.8,15.5],[c,6],[c+3.8,15.5]]], win:[c-7,33.5,c+7,40], door:[c,5,8], top:[c+6.5,28], sign:[c,19.5] };
-  if(b === 9){
+function buildingSpec(b, c){  // b: building name
+  if(b === 'house') return { body:[[[c-11,28],[c+11,28],[c+11,50],[c-11,50]]], roof:[[[c-13.5,28.5],[c,15],[c+13.5,28.5]]], win:[c-9,30.5,c+9,38.5], door:[c,5,8.5], top:[c+6,21], sign:[c-7.5,45] };
+  if(b === 'skyscraper') return { body:[[[c-9,50],[c-9,20],[c-6,20],[c-6,12],[c+6,12],[c+6,20],[c+9,20],[c+9,50]]], roof:[[[c-1,12],[c+1,12],[c,5]]], win:[c-7,22,c+7,40], door:[c,6,5], top:[c+4,12], sign:[c,16] };
+  if(b === 'castle') return { body:[[[c-15,50],[c-15,20],[c-13,20],[c-13,22],[c-11,22],[c-11,20],[c-9,20],[c-9,28],[c-6,28],[c-6,30],[c-3,30],[c-3,28],[c+3,28],[c+3,30],[c+6,30],[c+6,28],[c+9,28],[c+9,20],[c+11,20],[c+11,22],[c+13,22],[c+13,20],[c+15,20],[c+15,50]]], roof:[], win:[c-7,32,c+7,38.5], door:[c,6,8], top:[c-12,20], sign:[c+12,30] };
+  if(b === 'pagoda') return { body:[[[c-9,40],[c+9,40],[c+9,50],[c-9,50]],[[c-7,31],[c+7,31],[c+7,37],[c-7,37]],[[c-5,22],[c+5,22],[c+5,28],[c-5,28]]], roof:[[[c-13,40],[c+13,40],[c+9,37],[c-9,37]],[[c-11,31],[c+11,31],[c+7,28],[c-7,28]],[[c-9,22],[c+9,22],[c,15]]], win:[c-5,31.8,c+5,36.4], door:[c,4,6.5], top:[c,15], sign:[c,25] };
+  if(b === 'observatory') return { body:[[[c-12,33],[c+12,33],[c+12,50],[c-12,50]]], roof:[], dome:[c,33,10], win:[c-10,35.5,c+10,41], door:[c,5,7], top:[c,23], sign:[c-8.5,45.5] };
+  if(b === 'lighthouse') return { body:[[[c-5,18],[c+5,18],[c+8,50],[c-8,50]],[[c-4,11],[c+4,11],[c+4,18],[c-4,18]]], roof:[[[c-5.5,11.5],[c+5.5,11.5],[c,6]],[[c-6.2,40],[c+6.2,40],[c+6.6,42.6],[c-6.6,42.6]]], win:[c-2.5,20,c+2.5,28], door:[c,4,5.5], top:[c+4,11], sign:[c,32.5] };
+  if(b === 'factory') return { body:[[[c-14,50],[c-14,30],[c-9,25],[c-9,30],[c-4,25],[c-4,30],[c+1,25],[c+1,30],[c+12,30],[c+12,50]],[[c+7,14],[c+11,14],[c+11,30],[c+7,30]]], roof:[], win:[c-12,33,c+5,40], door:[c+8,5,8], top:[c-9,25], sign:[c-8,45] };
+  if(b === 'temple'){
     const body = [[[c-13,24],[c+13,24],[c+13,27],[c-13,27]],[[c-14,46],[c+14,46],[c+14,48],[c-14,48]],[[c-15,48],[c+15,48],[c+15,50],[c-15,50]]];
     for(const x of [c-11,c-7,c+7,c+11]) body.push([[x-1.3,27],[x+1.3,27],[x+1.3,46],[x-1.3,46]]);
     return { body, roof:[[[c-14,24],[c,15],[c+14,24]]], win:[c-5,29,c+5,36], door:[c,5,7.5], top:[c+8,19.5], sign:[c,20.8] };
   }
-  if(b === 10) return { body:[[[c-5,22],[c+5,22],[c+8,50],[c-8,50]]], roof:[], dome:[c,22,5], blades:[c,19], win:[c-3,26,c+3,35], door:[c,4,6], top:[c+4,18], sign:[c,39.5] };
+  if(b === 'windmill') return { body:[[[c-5,22],[c+5,22],[c+8,50],[c-8,50]]], roof:[], dome:[c,22,5], blades:[c,19], win:[c-3,26,c+3,35], door:[c,4,6], top:[c+4,18], sign:[c,39.5] };
   return { body:[[[c-2.5,18],[c+2.5,18],[c+2.5,50],[c-2.5,50]]], roof:[[[c-.5,12],[c+.5,12],[c,4]]], saucer:[c,16,12,4], legs:true, win:[c-9,14.6,c+9,17.4], door:[c,3,5], top:[c+6,15], sign:[c,27] };
 }
 function drawBuilding(ctx, d, c, glow, noglow, vis, trim, t){
-  const sp = buildingSpec(d.subject - 8, c);
+  const sp = buildingSpec(BUILDINGS[d.subject - SUBJECT_START.building], c);
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
   ctx.beginPath(); ctx.moveTo(c-16,50); ctx.lineTo(c+16,50); ctx.lineWidth = .6; ctx.strokeStyle = trim; ctx.stroke();
   if(sp.legs){ ctx.beginPath(); ctx.moveTo(c-8,50); ctx.lineTo(c,34); ctx.lineTo(c+8,50); ctx.lineWidth = .7; ctx.stroke(); }
@@ -632,12 +637,10 @@ function vehicleSpec(v, c){  // v: vehicle name
   const L = [-1, 0];
   if(v === 'car') return { body:[[[c-15,44],[c-15,38],[c-10,37],[c-6,31],[c+5,31],[c+10,37],[c+15,38],[c+15,44]]], wheels:[[c-9,44.5,3],[c+9,44.5,3]], win:[c-5.5,32.5,c+4.5,36.5], band:[c-15,39,c+15,41.5], emblem:[c+12,41.6], top:[c,31], trail:[c-15,41,L] };
   if(v === 'bus') return { body:[[[c-16,45],[c-16,28],[c+15,28],[c+16,31],[c+16,45]]], wheels:[[c-10,45.5,2.8],[c+10,45.5,2.8]], win:[c-14,30,c+14,35.5], band:[c-16,38,c+16,40.5], emblem:[c+12.5,42.4], top:[c-6,28], trail:[c-16,43,L] };
-  if(v === 'motorcycle') return { body:[[[c-6,40],[c-2,35],[c+5,35],[c+8,40],[c+3,42.5],[c-4,42.5]]], wheels:[[c-9.5,44,4.2],[c+9.5,44,4.2]], win:[c+5.5,30.5,c+9.5,35], band:[c-6,38,c+8,40], emblem:[c+.5,39], top:[c+7.5,30.5], trail:[c-14,43,L], bars:[[c+5,35],[c+9.5,44]] };
   if(v === 'bicycle') return { body:[[[c-6,43],[c-1,35.5],[c+5.5,35.5],[c+2.5,43]],[[c+7,31],[c+13,31],[c+12,36],[c+8,36]]], wheels:[[c-9,44,5],[c+9,44,5]], rings:true, win:[c+7.6,31.6,c+12.4,35.4], band:[c-6,38,c+6,40], emblem:[c+1,39.4], top:[c-3,34], trail:[c-15,44,L], bars:[[c-9,44],[c-3.5,34.5],[c+6,33],[c+9,44]] };
   if(v === 'locomotive') return { body:[[[c-16,45],[c-16,30],[c-8,30],[c-8,26],[c-2,26],[c-2,33],[c+10,33],[c+16,40],[c+16,45]],[[c+5,27],[c+8,27],[c+8,33],[c+5,33]]], wheels:[[c-11,45.5,3],[c-4,45.5,3],[c+4,45.5,3],[c+11,45.5,2.4]], win:[c-14.5,31.5,c-9.5,36], band:[c-16,39,c+16,41], emblem:[c+2,36.5], top:[c-12,30], trail:[c+6.5,26,[0,-1]] };
   if(v === 'sailboat') return { body:[[[c-15,40],[c+15,40],[c+11,46],[c-11,46]],[[c+1,13],[c+1,38],[c+13,38]],[[c-1,16],[c-1,38],[c-11,38]]], wheels:[], win:[c-9,41.4,c+9,44.6], band:[c-11,30,c+13,32.4], emblem:[c+5,34.5], top:[c,12], trail:[c-15,44,L], bars:[[c,40],[c,12]], water:true };
   if(v === 'submarine') return { body:[[[c-3,27],[c+5,27],[c+5,33],[c-3,33]]], hull:[c,38,15,6.5], wheels:[], win:[c-9,36,c+9,39.5], band:[c-15,40.5,c+15,42.5], emblem:[c+1,30], top:[c+3,27], trail:[c-15,38,L], bars:[[c-1,27],[c-1,22],[c+2,22]] };
-  if(v === 'airplane') return { body:[[[c-15,33],[c-13,24],[c-9,33]],[[c-3,36],[c+5,36],[c+1,44],[c-5,44]]], fuselage:[c-15,33,30,6], wheels:[], win:[c-7,34.2,c+11,36.4], band:[c-15,37.2,c+15,38.6], emblem:[c-12,29.5], top:[c+4,33], trail:[c-15,36,L] };
   if(v === 'helicopter') return { body:[[[c-6,34],[c-16,33],[c-16,35.5],[c-6,37.5]]], cabin:[c+3,36,9,6], wheels:[], win:[c+4,32,c+10.5,36.5], band:[c-6,38,c+12,40], emblem:[c-1.5,35.6], top:[c+9,30.5], trail:[c-16,38,L], bars:[[c-12,28],[c+16,28],[c+3,28],[c+3,30]], skids:true };
   if(v === 'hot-air balloon') return { body:[[[c-4,42],[c+4,42],[c+4,47],[c-4,47]]], envelope:[c,22,12,13], wheels:[], win:[c-8,17,c+8,25], band:[c-12,26,c+12,29], emblem:[c,12.5], top:[c+5,10.5], trail:[c,48,[0,1]], bars:[[c-9,31],[c-4,42],[c+9,31],[c+4,42]] };
   if(v === 'rocket') return { body:[[[c,6],[c+5,14],[c+5,38],[c-5,38],[c-5,14]],[[c-5,30],[c-10,40],[c-5,38]],[[c+5,30],[c+10,40],[c+5,38]],[[c-3,38],[c+3,38],[c+3,41],[c-3,41]]], wheels:[], win:[c-2.5,15,c+2.5,26], band:[c-5,28,c+5,30.5], emblem:[c,33.6], top:[c+4,14], trail:[c,42,[0,1]] };
@@ -711,9 +714,7 @@ function plantSpec(p, c){  // p: plant name
   else if(p === 'oak'){ fol = [['circle',[c,21,8.5]],['circle',[c-6.5,26,6]],['circle',[c+6.5,26,6]]]; stems = [['rect',[c-1.5,30,3,10]]]; blooms = [[c-4.5,18.5],[c+4,17.5],[c,25],[c+8,26],[c-8,26.5]]; }
   else if(p === 'palm'){ fol = [-2.8,-2.0,-1.2,-.4,.4].map(a => ['ellipse',[c+2+6*Math.cos(a), 17+4*Math.sin(a), 7, 1.8, a]]); stems = [['curve',[[c-1,40],[c-2,30],[c+2,17]],2]]; blooms = [[c+.6,19.6],[c+3.4,19.6],[c+2,21.6]]; }
   else if(p === 'cactus'){ fol = [['rr',[c-3,14,6,26,3]],['rr',[c-9,21,3,9,1.5]],['rr',[c-9,27.5,7,3,1.5]],['rr',[c+6,17,3,11,1.5]],['rr',[c+2,25.5,7,3,1.5]]]; blooms = [[c,14],[c-7.5,21],[c+7.5,17],[c,24.5],[c,33]]; }
-  else if(p === 'tulip'){ fol = [['poly',[[c-4,15],[c-4,21],[c,24],[c+4,21],[c+4,15],[c+2,17.5],[c,14],[c-2,17.5]]],['ellipse',[c-3.4,33,1.8,6,.5]],['ellipse',[c+3.4,31,1.8,6,-.5]]]; stems = [['line',[[c,40],[c,22]],.9]]; blooms = [[c-8,22],[c+8,20],[c-7,30],[c+8,31]]; }
   else if(p === 'sunflower'){ fol = ang(12).map(k => { const a = k*Math.PI/6; return ['ellipse',[c+5.2*Math.cos(a), 16+5.2*Math.sin(a), 2.6, 1.1, a]]; }); fol.push(['ellipse',[c-3.4,32,1.8,5,.6]],['ellipse',[c+3.4,29,1.8,5,-.6]]); stems = [['line',[[c,40],[c,20]],.9]]; blooms = [[c,16],[c-1.2,15],[c+1.2,17]]; extra = [['center',[c,16,3]]]; }
-  else if(p === 'mushroom'){ fol = [['halfellipse',[c,30,12,10]]]; stems = [['rr',[c-3,30,6,10,1.5]]]; blooms = [[c-6,25.5],[c,23],[c+6,26],[c-3,28.4],[c+3,28.4]]; }
   else if(p === 'bonsai'){ fol = [['ellipse',[c-6,24,6,3,0]],['ellipse',[c+5,18,7,3.5,0]],['ellipse',[c+1,30,5,2.5,0]]]; stems = [['curve',[[c,40],[c-4,33],[c+3,26],[c-2,20],[c+4,18]],1.8]]; blooms = [[c-8,23.5],[c-4,23],[c+3,17],[c+8,18],[c+2,29.5]]; }
   else if(p === 'fern'){ fol = [-1.1,-.55,0,.55,1.1].map(a => ['ellipse',[c+10*Math.sin(a), 40-13*Math.cos(a)-2, 2.6, 9, a]]); blooms = [[c-9,33],[c-5,26],[c,25],[c+5,26],[c+9,33]]; }
   else if(p === 'bamboo'){ fol = [['rect',[c-6,12,2.6,28]],['rect',[c-1.3,8,2.6,32]],['rect',[c+4,15,2.6,25]],['ellipse',[c-8,16,3,1,-.5]],['ellipse',[c+3,11,3,1,-.5]],['ellipse',[c+8.5,19,3,1,.5]]]; blooms = [[c-4.7,20],[c,14],[c+5.3,24],[c,30],[c-4.7,34]]; extra = [['nodes',[[c-6,2.6,[20,28,35]],[c-1.3,2.6,[16,24,32]],[c+4,2.6,[22,30,36]]]]]; }
@@ -728,6 +729,7 @@ function plantShape(ctx, kind, a){
   else if(kind === 'rect') ctx.rect(...a);
   else if(kind === 'rr'){ const [x,y,w,h,r] = a; ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y); ctx.arc(x+w-r, y+r, r, -Math.PI/2, 0); ctx.lineTo(x+w, y+h-r); ctx.arc(x+w-r, y+h-r, r, 0, Math.PI/2); ctx.lineTo(x+r, y+h); ctx.arc(x+r, y+h-r, r, Math.PI/2, Math.PI); ctx.lineTo(x, y+r); ctx.arc(x+r, y+r, r, Math.PI, 1.5*Math.PI); ctx.closePath(); }
   else if(kind === 'halfellipse'){ const [x,y,rx,ry] = a; ctx.moveTo(x-rx, y); ctx.ellipse(x, y, rx, ry, 0, Math.PI, TAU); ctx.closePath(); }
+  else if(kind === 'lowerellipse'){ const [x,y,rx,ry] = a; ctx.moveTo(x+rx, y); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI); ctx.closePath(); }
 }
 function drawPlant(ctx, d, c, glow, noglow, vis, trim, t){
   const sp = plantSpec(PLANTS[d.subject - SUBJECT_START.plant], c);
@@ -796,38 +798,35 @@ function drawGroundExtras(ctx, style, c, vis, trim){
   else { for(const s of [-1,1]) for(const x of [11.5,15]){ ctx.moveTo(c+s*x, 50); ctx.lineTo(c+s*x, 47); ctx.moveTo(c+s*x+1.1, 46.6); ctx.ellipse(c+s*x+.6, 46.6, .7, .4, -.5, 0, TAU); ctx.moveTo(c+s*x-.1, 46.6); ctx.ellipse(c+s*x-.6, 46.6, .7, .4, .5, 0, TAU); } ctx.stroke(); ctx.fill(); }
 }
 
-const ANIMAL_SPECS = [[31,13,12,5,29,1,34.5,19],[29,11,12,4.5,27,1,34.5,17],[31,13,12,5,28,1,34.5,19],[32,11,11,4.5,30,1,35.5,21],[30,14,12,5,27,1,38,22],[30,14,13,5.5,28,1.35,38.4,17],[32,10,10,4,30,1,35,22],[31,13,12,5.5,28,1,40,19],[31,14,10,7,20.5,1.1,33,21],[30,12,13,4,29,1,37.5,17],[31,11,11,4.5,28,1,34.5,20],[31,13,12,5,29,1,34.5,19]];
+const ANIMAL_SPECS = {'cat':[31,13,12,5,29,1,34.5,19], 'dog':[29,11,12,4.5,27,1,34.5,17], 'rabbit':[32,11,11,4.5,30,1,35.5,21], 'fox':[30,14,12,5,27,1,38,22], 'owl':[30,14,13,5.5,28,1.35,38.4,17], 'mouse':[32,10,10,4,30,1,35,22], 'frog':[31,14,10,7,20.5,1.1,33,21], 'penguin':[30,12,13,4,29,1,37.5,17], 'lion':[31,11,11,4.5,28,1,34.5,20], 'panda':[31,13,12,5,29,1,34.5,19]};
 function drawAnimal(ctx, d, c, glow, noglow, vis, trim, t){
-  const a = d.subject - 20, [hy, rx, ry, edx, ey, ek, ny, top] = ANIMAL_SPECS[a], panel = t.panel;
+  const a = ANIMALS[d.subject - SUBJECT_START.animal], [hy, rx, ry, edx, ey, ek, ny, top] = ANIMAL_SPECS[a], panel = t.panel;
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
   const outline = (w) => { glow(trim,1); ctx.lineWidth = w || .7; ctx.strokeStyle = trim; ctx.stroke(); noglow(); };
   const fillOut = (color, w) => { ctx.fillStyle = color; ctx.fill(); outline(w); };
   ctx.beginPath();
-  if(a === 0){ for(const s of [-1,1]) poly(ctx, [[c+s*11,22],[c+s*9.5,9.5],[c+s*3,18]]); fillOut(panel); ctx.beginPath(); for(const s of [-1,1]) poly(ctx, [[c+s*9.4,19.5],[c+s*9,13],[c+s*5.6,18]]); ctx.fillStyle = trim; ctx.fill(); }
-  else if(a === 2 || a === 11){ for(const s of [-1,1]){ ctx.moveTo(c+s*9.5+4, 19); ctx.arc(c+s*9.5, 19, 4, 0, TAU); } fillOut(a === 11 ? trim : panel);
-    if(a === 2){ ctx.beginPath(); for(const s of [-1,1]){ ctx.moveTo(c+s*9.5+2, 19); ctx.arc(c+s*9.5, 19, 2, 0, TAU); } ctx.fillStyle = trim; ctx.fill(); } }
-  else if(a === 3){ for(const s of [-1,1]){ ctx.beginPath(); ctx.ellipse(c+s*4.5, 12, 3, 9.5, s*.12, 0, TAU); fillOut(panel); } ctx.fillStyle = trim; for(const s of [-1,1]){ ctx.beginPath(); ctx.ellipse(c+s*4.5, 13, 1.2, 6.5, s*.12, 0, TAU); ctx.fill(); } }
-  else if(a === 4){ for(const s of [-1,1]) poly(ctx, [[c+s*12.5,23],[c+s*11.5,8.5],[c+s*4,17]]); fillOut(panel); ctx.beginPath(); for(const s of [-1,1]) poly(ctx, [[c+s*10.8,20],[c+s*10.6,12],[c+s*6.4,17.4]]); ctx.fillStyle = trim; ctx.fill(); }
-  else if(a === 5){ for(const s of [-1,1]) poly(ctx, [[c+s*12,20],[c+s*13,10],[c+s*6,17.5]]); fillOut(trim); }
-  else if(a === 6){ for(const s of [-1,1]){ ctx.moveTo(c+s*10+6.5, 19); ctx.arc(c+s*10, 19, 6.5, 0, TAU); } fillOut(panel); ctx.beginPath(); for(const s of [-1,1]){ ctx.moveTo(c+s*10+4, 19); ctx.arc(c+s*10, 19, 4, 0, TAU); } ctx.fillStyle = trim; ctx.fill(); }
-  else if(a === 7){ for(const s of [-1,1]) poly(ctx, [[c+s*12,22],[c+s*11,12.5],[c+s*5,19.5]]); fillOut(trim); }
-  else if(a === 8){ for(const s of [-1,1]){ ctx.moveTo(c+s*7+4.6, 21); ctx.arc(c+s*7, 21, 4.6, 0, TAU); } fillOut(panel); }
-  else if(a === 10){ const pts = []; for(let k=0;k<120;k++){ const th = TAU*k/120, r = 16 + 1.6*Math.abs(Math.cos(th*7)); pts.push([c+r*Math.cos(th), hy+r*Math.sin(th)]); } poly(ctx, pts); fillOut(trim); }
+  if(a === 'cat'){ for(const s of [-1,1]) poly(ctx, [[c+s*11,22],[c+s*9.5,9.5],[c+s*3,18]]); fillOut(panel); ctx.beginPath(); for(const s of [-1,1]) poly(ctx, [[c+s*9.4,19.5],[c+s*9,13],[c+s*5.6,18]]); ctx.fillStyle = trim; ctx.fill(); }
+  else if(a === 'panda'){ for(const s of [-1,1]){ ctx.moveTo(c+s*9.5+4, 19); ctx.arc(c+s*9.5, 19, 4, 0, TAU); } fillOut(trim); }
+  else if(a === 'rabbit'){ for(const s of [-1,1]){ ctx.beginPath(); ctx.ellipse(c+s*4.5, 12, 3, 9.5, s*.12, 0, TAU); fillOut(panel); } ctx.fillStyle = trim; for(const s of [-1,1]){ ctx.beginPath(); ctx.ellipse(c+s*4.5, 13, 1.2, 6.5, s*.12, 0, TAU); ctx.fill(); } }
+  else if(a === 'fox'){ for(const s of [-1,1]) poly(ctx, [[c+s*12.5,23],[c+s*11.5,8.5],[c+s*4,17]]); fillOut(panel); ctx.beginPath(); for(const s of [-1,1]) poly(ctx, [[c+s*10.8,20],[c+s*10.6,12],[c+s*6.4,17.4]]); ctx.fillStyle = trim; ctx.fill(); }
+  else if(a === 'owl'){ for(const s of [-1,1]) poly(ctx, [[c+s*12,20],[c+s*13,10],[c+s*6,17.5]]); fillOut(trim); }
+  else if(a === 'mouse'){ for(const s of [-1,1]){ ctx.moveTo(c+s*10+6.5, 19); ctx.arc(c+s*10, 19, 6.5, 0, TAU); } fillOut(panel); ctx.beginPath(); for(const s of [-1,1]){ ctx.moveTo(c+s*10+4, 19); ctx.arc(c+s*10, 19, 4, 0, TAU); } ctx.fillStyle = trim; ctx.fill(); }
+  else if(a === 'frog'){ for(const s of [-1,1]){ ctx.moveTo(c+s*7+4.6, 21); ctx.arc(c+s*7, 21, 4.6, 0, TAU); } fillOut(panel); }
+  else if(a === 'lion'){ const pts = []; for(let k=0;k<120;k++){ const th = TAU*k/120, r = 16 + 1.6*Math.abs(Math.cos(th*7)); pts.push([c+r*Math.cos(th), hy+r*Math.sin(th)]); } poly(ctx, pts); fillOut(trim); }
   ctx.beginPath();
-  if(a === 4) poly(ctx, [[c-14,22],[c+14,22],[c+9,34],[c,42],[c-9,34]]); else ctx.ellipse(c, hy, rx, ry, 0, 0, TAU);
-  fillOut(a === 9 ? trim : panel);
-  if(a === 1){ for(const s of [-1,1]){ ctx.beginPath(); ctx.ellipse(c+s*11.5, 29, 4, 9, -s*.35, 0, TAU); fillOut(trim); } }
-  if(a === 1 || a === 2 || a === 10){ ctx.beginPath(); ctx.ellipse(c, 36, a === 1 ? 5.8 : 5.4, a === 1 ? 4.4 : 3.9, 0, 0, TAU); fillOut(panel, .5); }
-  if(a === 5){ ctx.beginPath(); for(const s of [-1,1]){ ctx.moveTo(c+s*5.5+5.4, 28); ctx.arc(c+s*5.5, 28, 5.4, 0, TAU); } fillOut(panel, .5); }
-  if(a === 7){ ctx.beginPath(); ctx.ellipse(c, 35, 5, 3.5, 0, 0, TAU); fillOut(panel, .5); ctx.fillStyle = trim; for(const s of [-1,1]){ ctx.beginPath(); ctx.ellipse(c+s*1.8, 35, .8, 1.3, 0, 0, TAU); ctx.fill(); } }
-  if(a === 9){ ctx.beginPath(); for(const s of [-1,1]){ ctx.moveTo(c+s*4+6, 30); ctx.arc(c+s*4, 30, 6, 0, TAU); } ctx.moveTo(c+7, 35); ctx.ellipse(c, 35, 7, 6, 0, 0, TAU); ctx.fillStyle = panel; ctx.fill(); }
-  if(a === 11){ ctx.fillStyle = trim; for(const s of [-1,1]){ ctx.beginPath(); ctx.ellipse(c+s*5, 29, 3.6, 4.4, s*.4, 0, TAU); ctx.fill(); } }
-  if(a === 5 || a === 9){ ctx.beginPath(); poly(ctx, [[c-1.6, a === 5 ? 32.5 : 33],[c+1.6, a === 5 ? 32.5 : 33],[c, a === 5 ? 36.5 : 36]]); ctx.fillStyle = trim; ctx.fill(); }
-  drawSymbol(ctx, d.decal, c, top+3.6, 2, a === 9 ? panel : trim);
+  if(a === 'fox') poly(ctx, [[c-14,22],[c+14,22],[c+9,34],[c,42],[c-9,34]]); else ctx.ellipse(c, hy, rx, ry, 0, 0, TAU);
+  fillOut(a === 'penguin' ? trim : panel);
+  if(a === 'dog'){ for(const s of [-1,1]){ ctx.beginPath(); ctx.ellipse(c+s*11.5, 29, 4, 9, -s*.35, 0, TAU); fillOut(trim); } }
+  if(a === 'dog' || a === 'lion'){ ctx.beginPath(); ctx.ellipse(c, 36, a === 'dog' ? 5.8 : 5.4, a === 'dog' ? 4.4 : 3.9, 0, 0, TAU); fillOut(panel, .5); }
+  if(a === 'owl'){ ctx.beginPath(); for(const s of [-1,1]){ ctx.moveTo(c+s*5.5+5.4, 28); ctx.arc(c+s*5.5, 28, 5.4, 0, TAU); } fillOut(panel, .5); }
+  if(a === 'penguin'){ ctx.beginPath(); for(const s of [-1,1]){ ctx.moveTo(c+s*4+6, 30); ctx.arc(c+s*4, 30, 6, 0, TAU); } ctx.moveTo(c+7, 35); ctx.ellipse(c, 35, 7, 6, 0, 0, TAU); ctx.fillStyle = panel; ctx.fill(); }
+  if(a === 'panda'){ ctx.fillStyle = trim; for(const s of [-1,1]){ ctx.beginPath(); ctx.ellipse(c+s*5, 29, 3.6, 4.4, s*.4, 0, TAU); ctx.fill(); } }
+  if(a === 'owl' || a === 'penguin'){ ctx.beginPath(); poly(ctx, [[c-1.6, a === 'owl' ? 32.5 : 33],[c+1.6, a === 'owl' ? 32.5 : 33],[c, a === 'owl' ? 36.5 : 36]]); ctx.fillStyle = trim; ctx.fill(); }
+  drawSymbol(ctx, d.decal, c, top+3.6, 2, a === 'penguin' ? panel : trim);
   drawMarkings(ctx, d.cheek, c, ny, rx, trim);
   for(const s of [-1,1]) drawEye(ctx, d.vstyle, c+s*edx, ey, ek, -s, vis, trim, glow, noglow);
   drawSnout(ctx, d.grille, c, ny, vis, trim, panel, glow, noglow);
-  drawAccessory(ctx, d.mod, c, top, vis, trim, glow, noglow);
+  if(!(d.mod === 2 && NO_BOW_TIE.includes(a))) drawAccessory(ctx, d.mod, c, top, vis, trim, glow, noglow);
 }
 function drawEye(ctx, style, x, y, k, side, vis, trim, glow, noglow){
   glow(vis,.8); ctx.fillStyle = vis; ctx.strokeStyle = vis; ctx.beginPath();
@@ -904,22 +903,30 @@ function shapeBox(kind, a){
   if(kind === 'poly'){ const xs = a.map(p => p[0]), ys = a.map(p => p[1]); return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]; }
   if(kind === 'circle') return [a[0]-a[2], a[1]-a[2], a[0]+a[2], a[1]+a[2]];
   if(kind === 'ellipse'){ const r = Math.max(a[2], a[3]); return [a[0]-r, a[1]-r, a[0]+r, a[1]+r]; }
+  if(kind === 'halfellipse') return [a[0]-a[2], a[1]-a[3], a[0]+a[2], a[1]];
+  if(kind === 'lowerellipse') return [a[0]-a[2], a[1], a[0]+a[2], a[1]+a[3]];
   return [a[0], a[1], a[0]+a[2], a[1]+a[3]];
+}
+function strokes(ctx, lines, trim){ for(const [pts, w] of lines){ ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p)); ctx.lineWidth = w; ctx.strokeStyle = trim; ctx.stroke(); } }
+/* shared by furniture and food: back lines, body parts (pattern-filled when flagged), solid parts, front lines, symbol plaque */
+function drawParts(ctx, sp, pattern, style, decal, glow, noglow, vis, trim, t){
+  strokes(ctx, sp.lines, trim);
+  for(const [kind, a, fab] of sp.body){
+    ctx.beginPath(); plantShape(ctx, kind, a); ctx.fillStyle = t.panel; ctx.fill();
+    if(fab){ ctx.save(); ctx.clip(); pattern(ctx, style, ...shapeBox(kind, a), vis); ctx.restore(); ctx.beginPath(); plantShape(ctx, kind, a); }
+    glow(trim,1); ctx.lineWidth = .7; ctx.strokeStyle = trim; ctx.stroke(); noglow();
+  }
+  ctx.beginPath(); for(const [kind, a] of sp.solid) plantShape(ctx, kind, a); ctx.fillStyle = trim; ctx.fill();
+  strokes(ctx, sp.front || [], trim);
+  const [ex, ey] = sp.emblem;
+  ctx.beginPath(); ctx.arc(ex, ey, 2.2, 0, TAU); ctx.fillStyle = t.panel; ctx.fill(); ctx.lineWidth = .45; ctx.strokeStyle = trim; ctx.stroke();
+  drawSymbol(ctx, decal, ex, ey, 1.5, trim);
 }
 function drawFurniture(ctx, d, c, glow, noglow, vis, trim, t){
   const sp = furnitureSpec(FURNITURE[d.subject - SUBJECT_START.furniture], c);
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
   drawFloor(ctx, d.cheek, c, vis, trim);
-  for(const [pts, w] of sp.lines){ ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p)); ctx.lineWidth = w; ctx.strokeStyle = trim; ctx.stroke(); }
-  for(const [kind, a, fab] of sp.body){
-    ctx.beginPath(); plantShape(ctx, kind, a); ctx.fillStyle = t.panel; ctx.fill();
-    if(fab){ ctx.save(); ctx.clip(); drawFabric(ctx, d.vstyle, ...shapeBox(kind, a), vis); ctx.restore(); ctx.beginPath(); plantShape(ctx, kind, a); }
-    glow(trim,1); ctx.lineWidth = .7; ctx.strokeStyle = trim; ctx.stroke(); noglow();
-  }
-  ctx.beginPath(); for(const [kind, a] of sp.solid) plantShape(ctx, kind, a); ctx.fillStyle = trim; ctx.fill();
-  const [ex, ey] = sp.emblem;
-  ctx.beginPath(); ctx.arc(ex, ey, 2.2, 0, TAU); ctx.fillStyle = t.panel; ctx.fill(); ctx.lineWidth = .45; ctx.strokeStyle = trim; ctx.stroke();
-  drawSymbol(ctx, d.decal, ex, ey, 1.5, trim);
+  drawParts(ctx, sp, drawFabric, d.vstyle, d.decal, glow, noglow, vis, trim, t);
   drawWallItem(ctx, d.mod, ...sp.wall, vis, trim, glow, noglow, t);
   drawCompanion(ctx, d.grille, ...sp.obj, vis, trim, glow, noglow, t);
 }
@@ -987,6 +994,80 @@ function drawCompanion(ctx, style, x, y, vis, trim, glow, noglow, t){
   else { ctx.rect(x-3, y-5, 6, 5); ctx.fillStyle = vis; ctx.fill();
     ctx.beginPath(); ctx.rect(x-.6, y-5, 1.2, 5); ctx.rect(x-3, y-3, 6, 1.1); ctx.moveTo(x, y-5); ctx.ellipse(x-1.2, y-5.8, 1.3, .8, .4, 0, TAU);
     ctx.moveTo(x+2.5, y-5.8); ctx.ellipse(x+1.2, y-5.8, 1.3, .8, -.4, 0, TAU); ctx.fillStyle = trim; ctx.fill(); }
+}
+/* ---------- food (mirror visual256/subjects.py) ---------- */
+function foodSpec(name, c){
+  const F = c+2; let lines = [], solid = [], front = [], body, emblem, top;
+  if(name === 'pizza slice'){ body = [['poly',[[F-10,19],[F+10,19],[F,43]],true],['rr',[F-11,16,22,4,2],false]]; emblem = [F,28.5]; top = [F+5,16]; }
+  else if(name === 'burger'){ body = [['halfellipse',[F,28,12,9],true],['rr',[F-12,35.5,24,5,2.5],false]]; solid = [['rr',[F-12.5,30.8,25,4.2,2]]];
+    front = [[Array.from({length:13}, (_, k) => [F-12+k*2, 29.4 + (k % 2 ? .9 : -.9)]), .9]]; emblem = [F,38]; top = [F,19]; }
+  else if(name === 'ice cream cone'){ body = [['poly',[[F-6,29],[F+6,29],[F,45]],false],['circle',[F,15.5,5],true],['circle',[F,23.5,6.5],true]];
+    front = [[[[F-4.6,31.5],[F+1.2,41]],.4],[[[F+4.6,31.5],[F-1.2,41]],.4]]; emblem = [F,34]; top = [F,10.5]; }
+  else if(name === 'cupcake'){ body = [['poly',[[F-7,33],[F+7,33],[F+5.5,45],[F-5.5,45]],false],['halfellipse',[F,33,8.5,6],true],['circle',[F,25.5,4.5],true]];
+    front = [[[[F-4.4,34],[F-3.6,44.5]],.4],[[[F+4.4,34],[F+3.6,44.5]],.4]]; emblem = [F,39.4]; top = [F,21]; }
+  else if(name === 'donut'){ body = [['ellipse',[F,37,11.5,6.5,0],false],['ellipse',[F,36,10,5,0],true]]; solid = [['ellipse',[F,36,3,1.5,0]]]; emblem = [F,41]; top = [F+5.5,33.4]; }
+  else if(name === 'popsicle'){ body = [['rr',[F-1.3,34,2.6,10.5,1.3],false],['rr',[F-6,12,12,24,6],true]]; front = [[[[F-3,33],[F+3,33]],.5]]; emblem = [F,27]; top = [F,12]; }
+  else if(name === 'ramen bowl'){ lines = [[[[F+2,32],[F+10,17]],.9],[[[F+4.5,32],[F+12.5,18.4]],.9]];
+    body = [['lowerellipse',[F,32,13,11],false],['ellipse',[F,32,13,2.6,0],true],['ellipse',[F-5,31.4,3,1.5,0],false]]; solid = [['rect',[F-4,42.6,8,1.6]]]; emblem = [F,38]; top = [F+1,31]; }
+  else { body = [['rr',[F-12,28.5,24,4.5,2.2],false],['rr',[F-14.5,30.2,29,4.4,2.2],true],['rr',[F-13,33,26,7,3.5],false]]; emblem = [F,36.6]; top = [F,30.2]; }  // hot dog
+  return { body, lines, solid, front, emblem, top };
+}
+function drawFood(ctx, d, c, glow, noglow, vis, trim, t){
+  const sp = foodSpec(FOODS[d.subject - SUBJECT_START.food], c);
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.lineWidth = .5; ctx.strokeStyle = trim; ctx.beginPath(); ctx.moveTo(c-17, 50); ctx.lineTo(c+17, 50); ctx.stroke();
+  drawServing(ctx, d.grille, c+2, vis, trim, t);
+  drawSide(ctx, d.cheek, c-14, 46, vis, trim, t);
+  drawParts(ctx, sp, drawTopping, d.vstyle, d.decal, glow, noglow, vis, trim, t);
+  drawTopper(ctx, d.mod, ...sp.top, vis, trim, glow, noglow, t);
+}
+function drawTopping(ctx, style, x0, y0, x1, y1, vis){
+  ctx.fillStyle = vis; ctx.strokeStyle = vis; ctx.beginPath();
+  const step = style === 3 || style === 4 ? 3.2 : 2.8;
+  for(let row = 0, y = y0+1.4; y < y1+1; row++, y += style === 5 ? 3.2 : 2.6){
+    for(let x = x0 + (row % 2 ? step/2 : 0), k = row; x < x1+1; x += step, k++){
+      if(style === 0){ const a = k % 2 ? .7 : -.7; ctx.moveTo(x-.7*Math.cos(a), y-.7*Math.sin(a)); ctx.lineTo(x+.7*Math.cos(a), y+.7*Math.sin(a)); }
+      else if(style === 1){ ctx.moveTo(x+.4, y); ctx.ellipse(x, y, .4, .75, 0, 0, TAU); }
+      else if(style === 2){ ctx.moveTo(x+.75, y); ctx.arc(x, y, .75, 0, TAU); }
+      else if(style === 3 || style === 4) drawSymbol(ctx, style === 3 ? 4 : 7, x, y, .95, vis);
+      else if(style === 6) ctx.rect(x-.55, y-.45, 1.1, .9);
+      else if(style === 7){ ctx.moveTo(x+.8, y); ctx.arc(x, y, .8, 0, TAU); }
+    }
+  }
+  if(style === 5) for(let y = y0+1.4; y < y1+1; y += 3.2) for(let x = x0-1, k = 0; x < x1+1.6; x += 1.6, k++){ const p = [x, y + (k % 2 ? 1.1 : -1.1)]; k ? ctx.lineTo(...p) : ctx.moveTo(...p); }
+  if(style === 0 || style === 5 || style === 7){ ctx.lineWidth = style === 0 ? .55 : style === 5 ? .6 : .4; ctx.stroke(); }
+  else if(style !== 3 && style !== 4) ctx.fill();
+}
+function drawServing(ctx, style, x, vis, trim, t){
+  ctx.lineWidth = .6; ctx.strokeStyle = trim; ctx.fillStyle = t.panel; ctx.beginPath();
+  if(style === 0){ ctx.moveTo(x+13.5, 45.6); ctx.ellipse(x, 45.6, 13.5, 2.2, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x+9, 45.4); ctx.ellipse(x, 45.4, 9, 1.2, 0, 0, TAU); ctx.lineWidth = .35; ctx.stroke(); }
+  else if(style === 1){ plantShape(ctx, 'rr', [x-13, 44.4, 26, 2.6, 1]); ctx.fill(); ctx.stroke(); ctx.beginPath(); plantShape(ctx, 'rr', [x+13, 44.9, 3.5, 1.6, .8]); ctx.fillStyle = trim; ctx.fill();
+    ctx.beginPath(); for(const [a, b] of [[-10,-4],[-1,6],[8,11]]){ ctx.moveTo(x+a, 45.7); ctx.lineTo(x+b, 45.7); } ctx.lineWidth = .3; ctx.stroke(); }
+  else if(style === 2){ poly(ctx, [[x-11,44.2],[x+13,44.2],[x+11,47.6],[x-13,47.6]]); ctx.fillStyle = vis; ctx.globalAlpha = .5; ctx.fill(); ctx.globalAlpha = 1; ctx.lineWidth = .4; ctx.stroke(); }
+  else if(style === 3){ ctx.moveTo(x-13, 44.4); ctx.lineTo(x-15, 42.6); ctx.moveTo(x+13, 44.4); ctx.lineTo(x+15, 42.6); ctx.lineWidth = .8; ctx.stroke(); ctx.beginPath(); ctx.rect(x-13, 44.2, 26, 1.8); ctx.fill(); ctx.lineWidth = .6; ctx.stroke(); }
+  else if(style === 4){ ctx.rect(x-1, 46, 2, 2.6); ctx.moveTo(x+4.5, 49.2); ctx.ellipse(x, 49.2, 4.5, .8, 0, 0, TAU); ctx.fillStyle = trim; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x+12.5, 45); ctx.ellipse(x, 45, 12.5, 1.5, 0, 0, TAU); ctx.fillStyle = t.panel; ctx.fill(); ctx.stroke(); }
+  else if(style === 5){ for(let k=0;k<15;k++) ctx.rect(x-15+k*2, 45+(k%2)*2, 2, 2); ctx.fillStyle = trim; ctx.globalAlpha = .6; ctx.fill(); ctx.globalAlpha = 1; }
+  else if(style === 6){ ctx.moveTo(x+14, 45.8); ctx.ellipse(x, 45.8, 14, 2.2, 0, 0, TAU); ctx.fillStyle = vis; ctx.globalAlpha = .7; ctx.fill(); ctx.globalAlpha = 1; ctx.beginPath(); ctx.moveTo(x-13, 45.8); ctx.lineTo(x+13, 45.8); ctx.lineWidth = .4; ctx.stroke(); }
+  else { ctx.rect(x-13.5, 43.8, 27, 3.6); ctx.fill(); ctx.stroke(); ctx.beginPath(); for(const dx of [-4.5,4.5]){ ctx.moveTo(x+dx, 43.8); ctx.lineTo(x+dx, 47.4); } ctx.lineWidth = .4; ctx.stroke(); }
+}
+function drawSide(ctx, style, x, y, vis, trim, t){
+  ctx.lineWidth = .7; ctx.strokeStyle = trim; ctx.fillStyle = trim; ctx.beginPath();
+  if(style === 0){ ctx.moveTo(x, y); ctx.lineTo(x, y-6); ctx.stroke(); ctx.beginPath(); ctx.rect(x-1.3, y-8.4, 2.6, 1); ctx.fill();
+    ctx.beginPath(); for(const dx of [-1.2,0,1.2]){ ctx.moveTo(x+dx, y-8.4); ctx.lineTo(x+dx, y-11.2); } ctx.lineWidth = .45; ctx.stroke(); }
+  else if(style === 1){ ctx.moveTo(x, y); ctx.lineTo(x, y-6.4); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x+1.4, y-8.6); ctx.ellipse(x, y-8.6, 1.4, 2.2, 0, 0, TAU); ctx.fill(); }
+  else if(style === 2){ ctx.moveTo(x-1.5, y); ctx.lineTo(x+.5, y-13); ctx.moveTo(x+.2, y); ctx.lineTo(x+2, y-12.7); ctx.lineWidth = .6; ctx.stroke(); }
+  else { ctx.moveTo(x+.6, y-6); ctx.lineTo(x+1.8, y-10.4); ctx.lineWidth = .5; ctx.stroke();
+    ctx.beginPath(); ctx.arc(x-2.6, y-3.6, 1.5, Math.PI*.5, Math.PI*1.5); ctx.stroke();
+    ctx.beginPath(); plantShape(ctx, 'rr', [x-2.6, y-7, 5.2, 7, 1]); ctx.fillStyle = t.panel; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.rect(x-2, y-6, 4, 1.2); ctx.fillStyle = vis; ctx.fill(); }
+}
+function drawTopper(ctx, style, x, y, vis, trim, glow, noglow, t){
+  ctx.lineWidth = .45; ctx.strokeStyle = trim; ctx.beginPath();
+  if(style === 0){ ctx.moveTo(x, y-3.4); ctx.quadraticCurveTo(x+.4, y-5.6, x+1.8, y-6.4); ctx.stroke(); ctx.beginPath(); ctx.arc(x, y-1.8, 1.8, 0, TAU); glow(vis,1); ctx.fillStyle = vis; ctx.fill(); noglow(); }
+  else if(style === 1){ ctx.rect(x-.7, y-5.5, 1.4, 5.5); ctx.fillStyle = t.panel; ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x+.7, y-6.8); ctx.ellipse(x, y-6.8, .7, 1.2, 0, 0, TAU); glow(vis,1.4); ctx.fillStyle = vis; ctx.fill(); noglow(); }
+  else if(style === 2){ ctx.moveTo(x, y); ctx.lineTo(x, y-8); ctx.lineWidth = .5; ctx.stroke(); ctx.beginPath(); poly(ctx, [[x,y-8],[x+3.6,y-7],[x,y-6]]); ctx.fillStyle = vis; ctx.fill(); }
+  else { for(const s of [-1,1]){ ctx.moveTo(x+s*1.3+1.6*Math.cos(s*.6), y-1.4+1.6*Math.sin(s*.6)); ctx.ellipse(x+s*1.3, y-1.4, 1.6, .8, s*.6, 0, TAU); } ctx.fillStyle = vis; ctx.fill(); }
 }
 function drawAccessory(ctx, style, c, top, vis, trim, glow, noglow){
   glow(vis,.8); ctx.fillStyle = vis; ctx.beginPath();

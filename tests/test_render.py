@@ -115,8 +115,19 @@ def test_every_subject_detail_draws(subject):
             ET.fromstring(c.to_svg())
 
 
+def test_owl_and_panda_skip_the_bow_tie():
+    from visual256.spec import ANIMALS, SUBJECT_START
+
+    def svg(name, mod):
+        c = Canvas(W, H)
+        draw_badge(c, with_changes(BASE, subject=SUBJECT_START["animal"] + ANIMALS.index(name), mod=mod))
+        return c.to_svg()
+    assert len({svg("panda", m) for m in range(4)}) == 4  # "no accessory" is still its own picture
+    assert svg("panda", 2) != svg("cat", 2)
+
+
 def test_subject_details_change_the_picture():
-    for subject in (0, 8, 20, 32, 44, 56):
+    for subject in (0, 8, 18, 28, 38, 48, 56):
         for field, count in (("vstyle", 8), ("grille", 8), ("mod", 4), ("cheek", 4)):
             svgs = set()
             for v in range(count):
