@@ -18,7 +18,9 @@ from __future__ import annotations
 import math
 
 from .canvas import Canvas
-from .spec import ANIMALS, BUILDINGS, FOODS, FURNITURE, NO_BOW_TIE, PLANTS, SPORTS, SUBJECT_START, VEHICLES
+from .icons import icon_spec, shifted
+from .spec import (ANIMALS, BUILDINGS, FOODS, FURNITURE, NO_BOW_TIE, PLANTS, SPORTS, SUBJECT_KINDS, SUBJECT_START,
+                   VEHICLES)
 from .themes import Theme
 
 TAU = math.tau
@@ -1062,6 +1064,9 @@ def plant_spec(p: str, c: float) -> dict:
 def _shape(ctx: Canvas, kind, a) -> None:
     if kind == "poly":
         _poly(ctx, a)
+    elif kind == "multi":  # several polygons in one path (a reversed inner one cuts a hole)
+        for pts in a:
+            _poly(ctx, pts)
     elif kind == "circle":
         x, y, r = a
         ctx.move_to(x + r, y)
@@ -1425,8 +1430,9 @@ def furniture_spec(name: str, c: float) -> dict:
 
 
 def _bbox(kind, a):
-    if kind == "poly":
-        xs, ys = [p[0] for p in a], [p[1] for p in a]
+    if kind in ("poly", "multi"):
+        pts = a if kind == "poly" else [p for ring in a for p in ring]
+        xs, ys = [p[0] for p in pts], [p[1] for p in pts]
         return min(xs), min(ys), max(xs), max(ys)
     if kind == "circle":
         return a[0] - a[2], a[1] - a[2], a[0] + a[2], a[1] + a[2]
@@ -2277,3 +2283,123 @@ def draw_gear(ctx: Canvas, style, x, y, vis, trim, glow, t: Theme) -> None:
         _poly(ctx, [(x, y - 9), (x + 4, y - 7.6), (x, y - 6.2)])
         ctx.fill_style = vis
         ctx.fill()
+
+
+# ---------- icon kinds: instruments, computer symbols, large shapes, insignia ----------
+
+def draw_icon(ctx: Canvas, f, c: float, kind: str, glow, vis: str, trim: str, t: Theme) -> None:
+    """Backdrop (grille), base (cheek), the icon with its fill pattern (vstyle) and badge symbol
+    (decal), then an effect (mod)."""
+    names = dict(SUBJECT_KINDS)[kind]
+    sp = shifted(icon_spec(kind, names[f.subject - SUBJECT_START[kind]]), c)
+    ctx.line_join, ctx.line_cap = "round", "round"
+    draw_backdrop(ctx, f.grille, c, vis, trim)
+    draw_base(ctx, f.cheek, c, trim, t)
+    _draw_parts(ctx, sp, draw_fabric, f.vstyle, f.decal, glow, vis, trim, t)
+    draw_effect(ctx, f.mod, c, vis, trim, glow)
+
+
+def backdrop_shape(style, c):
+    if style == 0:
+        return "circle", (c, 28, 16.5)
+    if style == 1:
+        return "rr", (c - 15.5, 12.5, 31, 31, 3)
+    if style == 2:
+        return "poly", [(c, 9.6), (c + 18, 28), (c, 46.4), (c - 18, 28)]
+    if style == 3:
+        return "poly", [(c + 17.5 * math.cos(k * TAU / 6), 28 + 17.5 * math.sin(k * TAU / 6)) for k in range(6)]
+    if style == 4:
+        return "poly", [(c - 15, 11), (c + 15, 11), (c + 15, 30), (c, 46.6), (c - 15, 30)]
+    if style == 5:
+        return "poly", [(c + (18 if k % 2 == 0 else 14) * math.cos(k * math.pi / 12), 28 + (18 if k % 2 == 0 else 14) * math.sin(k * math.pi / 12))
+                        for k in range(24)]
+    if style == 6:
+        return "multi", [[(c + 18 * math.cos(k * TAU / 40), 28 + 18 * math.sin(k * TAU / 40)) for k in range(40)],
+                         [(c + 14.6 * math.cos(-k * TAU / 40), 28 + 14.6 * math.sin(-k * TAU / 40)) for k in range(40)]]
+    return "poly", [(c - 17.5, 21), (c + 17.5, 21), (c + 14, 28), (c + 17.5, 35), (c - 17.5, 35), (c - 14, 28)]
+
+
+def draw_backdrop(ctx: Canvas, style, c, vis, trim) -> None:
+    kind, a = backdrop_shape(style, c)
+    ctx.begin_path()
+    _shape(ctx, kind, a)
+    ctx.fill_style = vis
+    ctx.global_alpha = .24
+    ctx.fill()
+    ctx.global_alpha = .6
+    ctx.line_width, ctx.stroke_style = .5, trim
+    ctx.stroke()
+    ctx.global_alpha = 1
+
+
+def draw_base(ctx: Canvas, style, c, trim, t: Theme) -> None:
+    ctx.line_width, ctx.stroke_style, ctx.fill_style = 1.2, trim, trim
+    ctx.begin_path()
+    if style == 0:  # underline
+        ctx.move_to(c - 12, 48.4)
+        ctx.line_to(c + 12, 48.4)
+        ctx.stroke()
+    elif style == 1:  # corner brackets
+        for sx in (-1, 1):
+            for y0, dy in ((8, 1), (49, -1)):
+                ctx.move_to(c + sx * 13, y0)
+                ctx.line_to(c + sx * 17, y0)
+                ctx.line_to(c + sx * 17, y0 + dy * 4)
+        ctx.line_width = .8
+        ctx.stroke()
+    elif style == 2:  # dotted line
+        for k in range(9):
+            x = c - 12 + k * 3
+            ctx.move_to(x + .7, 48.4)
+            ctx.arc(x, 48.4, .7, 0, TAU)
+        ctx.fill()
+    else:  # pedestal
+        _shape(ctx, "rr", (c - 8, 45.6, 16, 2.6, 1))
+        ctx.fill_style = t.panel
+        ctx.fill()
+        ctx.line_width = .5
+        ctx.stroke()
+        ctx.begin_path()
+        ctx.rect(c - 11, 48.2, 22, 1.6)
+        ctx.fill_style = trim
+        ctx.fill()
+
+
+def draw_effect(ctx: Canvas, style, c, vis, trim, glow) -> None:
+    glow(vis, .8)
+    ctx.fill_style, ctx.stroke_style = vis, vis
+    ctx.begin_path()
+    if style == 0:  # music notes
+        for x, y in ((c + 13.4, 13), (c - 14.6, 9.6)):
+            ctx.move_to(x + 1.2, y)
+            ctx.ellipse(x, y, 1.2, .9, -.4, 0, TAU)
+        ctx.fill()
+        ctx.begin_path()
+        for x, y in ((c + 13.4, 13), (c - 14.6, 9.6)):
+            ctx.move_to(x + 1.1, y)
+            ctx.line_to(x + 1.1, y - 4.4)
+            ctx.line_to(x + 2.8, y - 3.2)
+        ctx.line_width = .5
+        ctx.stroke()
+    elif style == 1:  # sparkles
+        for x, y, r in ((c + 13.6, 11, 2.2), (c - 14, 14, 1.6), (c + 15.4, 18.6, 1.3)):
+            _poly(ctx, [(x, y - r), (x + r * .3, y - r * .3), (x + r, y), (x + r * .3, y + r * .3), (x, y + r),
+                        (x - r * .3, y + r * .3), (x - r, y), (x - r * .3, y - r * .3)])
+        ctx.fill()
+    elif style == 2:  # rays from the top corners
+        for sx in (-1, 1):
+            for a in (-.5, -.95, -1.4):
+                ax, ay = math.cos(a) * sx, math.sin(a)
+                ctx.move_to(c + sx * 12 + ax * 1.5, 12 + ay * 1.5)
+                ctx.line_to(c + sx * 12 + ax * 4.5, 12 + ay * 4.5)
+        ctx.line_width = .6
+        ctx.stroke()
+    else:  # orbit dots along an arc over the top
+        for k in range(7):
+            a = math.pi * (1.15 + k * .7 / 6)
+            x, y = c + 16 * math.cos(a), 26 + 16 * math.sin(a)
+            r = .5 + .12 * k
+            ctx.move_to(x + r, y)
+            ctx.arc(x, y, r, 0, TAU)
+        ctx.fill()
+    glow.off()

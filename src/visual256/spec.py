@@ -27,6 +27,7 @@ from dataclasses import dataclass, fields as dc_fields
 
 from . import bip39
 from .bits import BitReader, BitWriter, to_alphabet
+from .icons import COMPUTER, INSIGNIA, INSTRUMENTS, SHAPES
 
 SPEC_VERSION = "0.1"
 MIX_TAG = b"visual256/netrunner/0.1"
@@ -43,16 +44,16 @@ HEADLINE_FIELDS: tuple[tuple[str, int, str, str], ...] = (
     ("framestyle", 2, "Frame style", "single, double, dashed or corner brackets"),
     ("barstyle", 2, "Bar style", "segmented, solid, lollipops or chevrons"),
     ("frame", 4, "Frame color", "frame and dividers"),
-    ("visor", 4, "Visor color", "visor, lit windows, eyes, blooms, fabric, toppings or print"),
+    ("visor", 4, "Visor color", "visor, lit windows, eyes, blooms and fill patterns"),
     ("trim", 4, "Trim color", "outlines, roofs, doors, mouths, marks and decal"),
     ("accent", 4, "Accent color", "signal bars and handle effects"),
-    ("subject", 6, "Subject", "3 android heads; 10 buildings, animals, vehicles or plants; 8 furniture, 8 foods or 5 sports gear"),
-    ("vstyle", 3, "Subject detail A", "visor, windows, eyes, vehicle windows, blooms, fabric, toppings or print (8 each)"),
-    ("grille", 3, "Subject detail B", "mouth, door, nose, trail, pot, companion object, serving or gear (8 each)"),
-    ("mod", 2, "Subject detail C", "head mod, roof add-on, accessory, vehicle add-on, visitor, wall item, topper or motion (4 each)"),
-    ("decal", 4, "Subject symbol", "decal, sign, forehead mark, emblem, pot label, plaque, food label or team badge (16 symbols)"),
-    ("cheek", 2, "Subject detail D", "cheeks, grounds, markings, livery, ground extras, floor, side item or pitch (4 each)"),
-    ("status", 4, "Status word", "one of 16 words"),
+    ("subject", 7, "Subject", "128 subjects in 12 kinds (listed below)"),
+    ("vstyle", 3, "Subject detail A", "visor, windows, eyes, blooms, or a fill pattern (8 each)"),
+    ("grille", 3, "Subject detail B", "mouth, door, nose, trail, pot, companion, serving, gear or backdrop (8 each)"),
+    ("mod", 2, "Subject detail C", "head mod, roof add-on, accessory, visitor, wall item, topper, motion or effect (4 each)"),
+    ("decal", 4, "Subject symbol", "decal, sign, mark, emblem, label or badge (16 symbols)"),
+    ("cheek", 2, "Subject detail D", "cheeks, grounds, markings, livery, ground extras, floor, side item, pitch or base (4 each)"),
+    ("status", 3, "Status word", "one of 8 words"),
     ("scolor", 4, "Status color", "status chip"),
     ("hstyle", 3, "Handle style", "clean, split, vertical split, slice, inverted, underline, boxed or shadow"),
     ("word1", 11, "Handle word 1", "BIP-39 word, 1 of 2048"),
@@ -91,14 +92,17 @@ FURNITURE = ("armchair", "sofa", "bed", "bookshelf", "grandfather clock", "floor
 FOODS = ("pizza slice", "burger", "ice cream cone", "cupcake", "donut", "popsicle", "ramen bowl", "hot dog")
 SPORTS = ("soccer ball", "tennis racket", "skateboard", "bowling pin", "boxing glove")
 SUBJECT_KINDS = (("face", HEAD_SHAPES), ("building", BUILDINGS), ("animal", ANIMALS), ("vehicle", VEHICLES),
-                 ("plant", PLANTS), ("furniture", FURNITURE), ("food", FOODS), ("sports", SPORTS))
+                 ("plant", PLANTS), ("furniture", FURNITURE), ("food", FOODS), ("sports", SPORTS),
+                 ("instrument", INSTRUMENTS), ("computer", COMPUTER), ("shape", SHAPES), ("insignia", INSIGNIA))
+ICON_KINDS = ("instrument", "computer", "shape", "insignia")
 SUBJECT_START: dict[str, int] = {}
 _n = 0
 for _kind, _names in SUBJECT_KINDS:
     SUBJECT_START[_kind] = _n
     _n += len(_names)
 SUBJECTS = tuple(f"android, {s} head" for s in HEAD_SHAPES) + BUILDINGS + ANIMALS + VEHICLES + PLANTS + FURNITURE + FOODS + SPORTS
-assert len(SUBJECTS) == _n == 64
+SUBJECTS += tuple(f"large {s}" if k == "shape" else s for k in ICON_KINDS for s in dict(SUBJECT_KINDS)[k])
+assert len(SUBJECTS) == _n == 128
 WINDOWS = ("square grid", "portholes", "arches", "bands", "strips", "picture window", "diamonds", "checker lights")
 DOORS = ("plain door", "arched door", "double door", "round door", "garage door", "gate", "glass door", "awning door")
 ROOFS = ("antenna", "flag", "chimney", "satellite dish")
@@ -128,6 +132,10 @@ SIDES = ("fork", "spoon", "chopsticks", "cup")
 GEAR = ("whistle", "water bottle", "trophy", "medal", "stopwatch", "cone", "cap", "corner flag")
 MOTIONS = ("speed lines", "sparks", "stars", "dust puffs")
 PITCHES = ("grass", "court lines", "wood floor", "ice")
+# shared by the four icon kinds (instruments, computer symbols, shapes, insignia)
+BACKDROPS = ("circle", "square", "diamond", "hexagon", "shield", "starburst", "ring", "banner")
+EFFECTS = ("music notes", "sparkles", "rays", "orbit dots")
+BASES = ("underline", "brackets", "dotted line", "pedestal")
 
 
 def subject_kind(subject: int) -> str:
@@ -142,8 +150,8 @@ CHEEKS = ("stripes", "dots", "circuit", "bolts")
 HANDLE_STYLES = ("clean", "horizontal split", "vertical split", "slice shift", "inverted", "underline", "boxed", "shadow")
 SYMBOLS = ("circle", "square", "triangle", "diamond", "star", "plus", "saltire", "heart",
            "crescent", "sun", "drop", "bolt", "hexagon", "ring", "arrow", "clover")
-STATUS_WORDS = ("ONLINE", "GHOST", "ROGUE", "SYNCED", "ROOTED", "DARK", "LIVE", "BURNED",
-                "CLEAN", "HOT", "ZERO", "LOCKED", "SPOOFED", "MIRROR", "IDLE", "VOID")
+# 8 words with 8 different first letters, so the status chip reads at a glance
+STATUS_WORDS = ("ONLINE", "GHOST", "ROGUE", "HOT", "LOCKED", "BURNED", "ZERO", "SPOOFED")
 GEM_SHAPES = ("circle", "square", "triangle", "diamond")
 GEM_FILLS = ("solid", "outline", "dotted", "half")
 
@@ -262,6 +270,8 @@ def _subject_values(f: Features) -> dict:
         return {"vstyle": TOPPINGS[f.vstyle], "grille": SERVINGS[f.grille], "mod": TOPPERS[f.mod], "cheek": SIDES[f.cheek]}
     if kind == "sports":
         return {"vstyle": FABRICS[f.vstyle], "grille": GEAR[f.grille], "mod": MOTIONS[f.mod], "cheek": PITCHES[f.cheek]}
+    if kind in ICON_KINDS:
+        return {"vstyle": FABRICS[f.vstyle], "grille": BACKDROPS[f.grille], "mod": EFFECTS[f.mod], "cheek": BASES[f.cheek]}
     animal = ANIMALS[f.subject - SUBJECT_START["animal"]]
     accessory = "no accessory" if f.mod == 2 and animal in NO_BOW_TIE else ACCESSORIES[f.mod]
     return {"vstyle": EYES[f.vstyle], "grille": SNOUTS[f.grille], "mod": accessory, "cheek": MARKINGS[f.cheek]}

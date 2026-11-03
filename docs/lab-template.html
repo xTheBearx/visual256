@@ -152,8 +152,8 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
 
   <section>
     <div class="sec-head">
-      <h2>Sixty-four subjects</h2>
-      <p class="note">Bits 36–41 pick the portrait: 3 android heads, 10 buildings, 10 animals, 10 vehicles, 10 plants, 8 pieces of furniture, 8 foods or 5 pieces of sports equipment. The same four detail fields and symbol mean something that fits each kind: a visor, windows, eyes, vehicle windows, blooms, fabric, toppings or print; a mouth, door, nose, exhaust trail, pot, companion object, serving or gear; a head mod, roof add-on, accessory, vehicle add-on, visiting creature, wall item, topper or motion marks; cheek marks, ground details, markings, a livery stripe, ground extras, floor, side item or pitch. Owl and panda never wear the bow tie, so they stay distinct from cat and fox.</p>
+      <h2>128 subjects</h2>
+      <p class="note">Bits 36–42 pick the portrait from 128 subjects in 12 kinds: 3 android heads, 10 buildings, 10 animals, 10 vehicles, 10 plants, 8 pieces of furniture, 8 foods, 5 pieces of sports equipment, and 16 each of musical instruments, computer symbols, large basic shapes and sci-fi insignia (an original set). The same four detail fields and symbol mean something that fits each kind; the four icon kinds share a fill pattern, a backdrop, an effect and a base. Owl and panda never wear the bow tie, so they stay distinct from cat and fox.</p>
     </div>
     <div class="panel"><div class="layouts" id="subjects"></div></div>
   </section>
@@ -273,6 +273,10 @@ const PLANTS=['pine','oak','palm','cactus','sunflower','bonsai','fern','bamboo',
 const FURNITURE=['armchair','sofa','bed','bookshelf','grandfather clock','floor lamp','piano','bathtub'];
 const FOODS=['pizza slice','burger','ice cream cone','cupcake','donut','popsicle','ramen bowl','hot dog'];
 const SPORTS=['soccer ball','tennis racket','skateboard','bowling pin','boxing glove'];
+/* icon kinds: geometry generated from visual256/icons.py by docs/build_lab.py */
+const ICONS = __ICONS_JSON__;
+const ICON_KINDS = ['instrument','computer','shape','insignia'];
+const BACKDROPS=['circle','square','diamond','hexagon','shield','starburst','ring','banner'], EFFECTS=['music notes','sparkles','rays','orbit dots'], BASES=['underline','brackets','dotted line','pedestal'];
 const TRAILS=['smoke puffs','flames','speed lines','sparks','bubbles','vapor trail','stars','zigzag'], VEHICLE_MODS=['antenna','flag','siren','fin'], LIVERIES=['stripe','double stripe','checker band','zigzag stripe'];
 const BLOOMS=['berries','blossoms','stars','hearts','apples','lemons','sparkles','bells'], POTS=['terracotta pot','square planter','round bowl','tall vase','wooden crate','soil mound','glass jar','teacup'];
 const VISITORS=['butterfly','bee','bird','ladybug'], GROUND_EXTRAS=['grass tufts','pebbles','fallen petals','seedlings'];
@@ -282,20 +286,20 @@ const TOPPINGS=['sprinkles','seeds','dots','stars','hearts','drizzle','chips','r
 const TOPPERS=['cherry','candle','flag pick','mint leaf'], SIDES=['fork','spoon','chopsticks','cup'];
 const GEAR=['whistle','water bottle','trophy','medal','stopwatch','cone','cap','corner flag'], MOTIONS=['speed lines','sparks','stars','dust puffs'], PITCHES=['grass','court lines','wood floor','ice'];
 const NO_BOW_TIE=['owl','panda'];  // skip accessory 2 so they differ from their look-alikes (cat, fox)
-const SUBJECT_KINDS = [['face',3],['building',10],['animal',10],['vehicle',10],['plant',10],['furniture',8],['food',8],['sports',5]];
+const SUBJECT_KINDS = [['face',3],['building',10],['animal',10],['vehicle',10],['plant',10],['furniture',8],['food',8],['sports',5],['instrument',16],['computer',16],['shape',16],['insignia',16]];
 const SUBJECT_START = {}; SUBJECT_KINDS.reduce((n, [k, len]) => (SUBJECT_START[k] = n, n + len), 0);
 const kindOf = s => SUBJECT_KINDS.filter(([k]) => s >= SUBJECT_START[k]).pop()[0];
-const pickKind = (d, face, building, animal, vehicle, plant, furniture, food, sports) => ({face, building, animal, vehicle, plant, furniture, food, sports})[kindOf(d.subject)];
+const pickKind = (d, face, building, animal, vehicle, plant, furniture, food, sports, icon) => ({face, building, animal, vehicle, plant, furniture, food, sports})[kindOf(d.subject)] || icon;
 const accessoryName = d => d.mod === 2 && NO_BOW_TIE.includes(ANIMALS[d.subject - SUBJECT_START.animal]) ? 'no accessory' : ACCESSORIES[d.mod];
 const SYM = ['circle','square','triangle','diamond','star','plus','saltire','heart','crescent','sun','drop','bolt','hexagon','ring','arrow','clover'];
-const STATUS=['ONLINE','GHOST','ROGUE','SYNCED','ROOTED','DARK','LIVE','BURNED','CLEAN','HOT','ZERO','LOCKED','SPOOFED','MIRROR','IDLE','VOID'];
+const STATUS=['ONLINE','GHOST','ROGUE','HOT','LOCKED','BURNED','ZERO','SPOOFED'];
 const LAYOUTS=['Face left, stacked','Face right, stacked','Face center, bars on top','Face left, grid','Face right, grid','Banner on top, face left','Banner at bottom, face right','Face center, detail on top'];
 const CORNERS=['top-left and bottom-right cut','top-right and bottom-left cut','all four cut','both top corners cut'];
 const FRAME_STYLES=['single','double','dashed','corner brackets'];
 const DISPLAYS=['tiles','gems','hex pairs','arrows'];
 const ARROW_DIRS=['up','up-right','right','down-right','down','down-left','left','up-left'];
 const HEADSHAPES=['dome','bucket','skull'];
-const SUBJECTS = [...HEADSHAPES.map(h => `android, ${h} head`), ...BUILDINGS, ...ANIMALS, ...VEHICLES, ...PLANTS, ...FURNITURE, ...FOODS, ...SPORTS];
+const SUBJECTS = [...HEADSHAPES.map(h => `android, ${h} head`), ...BUILDINGS, ...ANIMALS, ...VEHICLES, ...PLANTS, ...FURNITURE, ...FOODS, ...SPORTS, ...ICON_KINDS.flatMap(k => ICONS[k].names.map(n => k === 'shape' ? `large ${n}` : n))];
 const VISORS=['band','twin-lens','slit','mono-eye','goggles','chevron','triple-lens','grid'];
 const MOUTHS=['vents','teeth','dots','LED','zigzag','speaker','fangs','stitches'];
 const MODS=['antenna','ear discs','cable','fin'];
@@ -322,16 +326,16 @@ const FIELDS = [
   ['framestyle',2,'Frame style','single · double · dashed · brackets', d => FRAME_STYLES[d.framestyle]],
   ['barstyle',2,'Bar style','segmented · solid · lollipops · chevrons', d => BAR_STYLES[d.barstyle]],
   ['frame',4,'Frame color','frame and dividers', (d,t) => tname(t, d.frame)],
-  ['visor',4,'Visor color','visor, lit windows, eyes, blooms, fabric, toppings or print', (d,t) => tname(t, d.visor)],
+  ['visor',4,'Visor color','visor, lit windows, eyes, blooms and fill patterns', (d,t) => tname(t, d.visor)],
   ['trim',4,'Trim color','outlines, roofs, doors, mouths, marks, decal', (d,t) => tname(t, d.trim)],
   ['accent',4,'Accent color','signal bars and handle effects', (d,t) => tname(t, d.accent)],
-  ['subject',6,'Subject','3 android heads; 10 buildings, animals, vehicles or plants; 8 furniture, 8 foods or 5 sports gear', d => SUBJECTS[d.subject]],
-  ['vstyle',3,'Subject detail A','visor, windows, eyes, vehicle windows, blooms, fabric, toppings or print', d => pickKind(d, VISORS, WINDOWS, EYES, WINDOWS, BLOOMS, FABRICS, TOPPINGS, FABRICS)[d.vstyle]],
-  ['grille',3,'Subject detail B','mouth, door, nose, trail, pot, companion object, serving or gear', d => pickKind(d, MOUTHS, DOORS, SNOUTS, TRAILS, POTS, COMPANIONS, SERVINGS, GEAR)[d.grille]],
-  ['mod',2,'Subject detail C','head mod, roof add-on, accessory, vehicle add-on, visitor, wall item, topper or motion', d => kindOf(d.subject) === 'animal' ? accessoryName(d) : pickKind(d, MODS, ROOFS, ACCESSORIES, VEHICLE_MODS, VISITORS, WALL_ITEMS, TOPPERS, MOTIONS)[d.mod]],
-  ['decal',4,'Subject symbol','decal, sign, mark, emblem, pot label, plaque, food label or team badge', d => SYM[d.decal]],
-  ['cheek',2,'Subject detail D','cheeks, grounds, markings, livery, ground extras, floor, side item or pitch', d => pickKind(d, CHEEKS, GROUNDS, MARKINGS, LIVERIES, GROUND_EXTRAS, FLOORS, SIDES, PITCHES)[d.cheek]],
-  ['status',4,'Status word','16 words', d => STATUS[d.status]],
+  ['subject',7,'Subject','128 subjects in 12 kinds', d => SUBJECTS[d.subject]],
+  ['vstyle',3,'Subject detail A','visor, windows, eyes, blooms, or a fill pattern', d => pickKind(d, VISORS, WINDOWS, EYES, WINDOWS, BLOOMS, FABRICS, TOPPINGS, FABRICS, FABRICS)[d.vstyle]],
+  ['grille',3,'Subject detail B','mouth, door, nose, trail, pot, companion, serving, gear or backdrop', d => pickKind(d, MOUTHS, DOORS, SNOUTS, TRAILS, POTS, COMPANIONS, SERVINGS, GEAR, BACKDROPS)[d.grille]],
+  ['mod',2,'Subject detail C','head mod, roof add-on, accessory, visitor, wall item, topper, motion or effect', d => kindOf(d.subject) === 'animal' ? accessoryName(d) : pickKind(d, MODS, ROOFS, ACCESSORIES, VEHICLE_MODS, VISITORS, WALL_ITEMS, TOPPERS, MOTIONS, EFFECTS)[d.mod]],
+  ['decal',4,'Subject symbol','decal, sign, mark, emblem, label or badge', d => SYM[d.decal]],
+  ['cheek',2,'Subject detail D','cheeks, grounds, markings, livery, ground extras, floor, side item, pitch or base', d => pickKind(d, CHEEKS, GROUNDS, MARKINGS, LIVERIES, GROUND_EXTRAS, FLOORS, SIDES, PITCHES, BASES)[d.cheek]],
+  ['status',3,'Status word','8 words', d => STATUS[d.status]],
   ['scolor',4,'Status color','status chip', (d,t) => tname(t, d.scolor)],
   ['hstyle',3,'Handle style','8 text treatments', d => HSTYLES[d.hstyle]],
   ['word1',11,'Handle word 1','BIP-39 word, 1 of 2,048', d => `${BIP39[d.word1]} (#${d.word1+1})`],
@@ -502,7 +506,7 @@ function drawFrame(ctx, d, fr, fcol, glow, noglow){
   noglow();
   if(st === 1){ ctx.beginPath(); poly(ctx, framePoly(d.corners, 1.7)); ctx.lineWidth = .35; ctx.stroke(); }
 }
-/* the portrait (android head, building, animal, vehicle, plant, furniture, food or sports gear), then the status chip (mirrors draw.draw_face) */
+/* the portrait (one of 128 subjects in 12 kinds), then the status chip (mirrors draw.draw_face) */
 function drawFace(ctx, d, hx, glow, noglow, vis, trim, t){
   const k = kindOf(d.subject);
   if(k === 'face') drawAndroid(ctx, d, hx, glow, noglow, vis, trim, t);
@@ -512,7 +516,8 @@ function drawFace(ctx, d, hx, glow, noglow, vis, trim, t){
   else if(k === 'plant') drawPlant(ctx, d, hx, glow, noglow, vis, trim, t);
   else if(k === 'furniture') drawFurniture(ctx, d, hx, glow, noglow, vis, trim, t);
   else if(k === 'food') drawFood(ctx, d, hx, glow, noglow, vis, trim, t);
-  else drawSport(ctx, d, hx, glow, noglow, vis, trim, t);
+  else if(k === 'sports') drawSport(ctx, d, hx, glow, noglow, vis, trim, t);
+  else drawIcon(ctx, d, hx, k, glow, noglow, vis, trim, t);
   ctx.lineCap = 'butt'; ctx.lineJoin = 'miter';
   drawStatus(ctx, d, hx, glow, noglow, t);
 }
@@ -722,6 +727,7 @@ function plantSpec(p, c){  // p: plant name
 }
 function plantShape(ctx, kind, a){
   if(kind === 'poly') poly(ctx, a);
+  else if(kind === 'multi') for(const pts of a) poly(ctx, pts);
   else if(kind === 'circle'){ const [x,y,r] = a; ctx.moveTo(x+r, y); ctx.arc(x, y, r, 0, TAU); }
   else if(kind === 'ellipse'){ const [x,y,rx,ry,rot] = a; ctx.moveTo(x+rx*Math.cos(rot), y+rx*Math.sin(rot)); ctx.ellipse(x, y, rx, ry, rot, 0, TAU); }
   else if(kind === 'rect') ctx.rect(...a);
@@ -898,7 +904,7 @@ function furnitureSpec(name, c){
   return { body, lines, solid, emblem, wall, obj };
 }
 function shapeBox(kind, a){
-  if(kind === 'poly'){ const xs = a.map(p => p[0]), ys = a.map(p => p[1]); return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]; }
+  if(kind === 'poly' || kind === 'multi'){ const pts = kind === 'poly' ? a : a.flat(), xs = pts.map(p => p[0]), ys = pts.map(p => p[1]); return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]; }
   if(kind === 'circle') return [a[0]-a[2], a[1]-a[2], a[0]+a[2], a[1]+a[2]];
   if(kind === 'ellipse'){ const r = Math.max(a[2], a[3]); return [a[0]-r, a[1]-r, a[0]+r, a[1]+r]; }
   if(kind === 'halfellipse') return [a[0]-a[2], a[1]-a[3], a[0]+a[2], a[1]];
@@ -1125,6 +1131,58 @@ function drawGear(ctx, style, x, y, vis, trim, glow, noglow, t){
   else if(style === 5){ poly(ctx, [[x-3,y],[x+3,y],[x+.8,y-7],[x-.8,y-7]]); ctx.fillStyle = vis; ctx.fill(); ctx.beginPath(); ctx.rect(x-1.9, y-4, 3.8, 1.2); ctx.fillStyle = trim; ctx.fill(); }
   else if(style === 6){ plantShape(ctx, 'halfellipse', [x-.6, y-1.2, 3, 3.2]); ctx.rect(x-.6, y-1.8, 4.4, .8); ctx.fill(); ctx.beginPath(); ctx.arc(x-.6, y-4.6, .6, 0, TAU); ctx.fillStyle = vis; ctx.fill(); }
   else { ctx.moveTo(x, y); ctx.lineTo(x, y-9); ctx.stroke(); ctx.beginPath(); poly(ctx, [[x,y-9],[x+4,y-7.6],[x,y-6.2]]); ctx.fillStyle = vis; ctx.fill(); }
+}
+/* ---------- icon kinds (mirror visual256/subjects.py draw_icon; shapes come from ICONS) ---------- */
+function shiftArgs(kind, a, c){
+  if(kind === 'poly') return a.map(([x, y]) => [x+c, y]);
+  if(kind === 'multi') return a.map(pts => pts.map(([x, y]) => [x+c, y]));
+  return [a[0]+c, ...a.slice(1)];
+}
+function shiftedIcon(sp, c){
+  const ln = ([pts, w]) => [pts.map(([x, y]) => [x+c, y]), w];
+  return { body: sp.body.map(([k, a, fab]) => [k, shiftArgs(k, a, c), fab]), solid: sp.solid.map(([k, a]) => [k, shiftArgs(k, a, c)]),
+           lines: sp.lines.map(ln), front: sp.front.map(ln), emblem: [sp.emblem[0]+c, sp.emblem[1]] };
+}
+function drawIcon(ctx, d, c, kind, glow, noglow, vis, trim, t){
+  const sp = shiftedIcon(ICONS[kind].specs[ICONS[kind].names[d.subject - SUBJECT_START[kind]]], c);
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  drawBackdrop(ctx, d.grille, c, vis, trim);
+  drawBase(ctx, d.cheek, c, trim, t);
+  drawParts(ctx, sp, drawFabric, d.vstyle, d.decal, glow, noglow, vis, trim, t);
+  drawEffect(ctx, d.mod, c, vis, trim, glow, noglow);
+}
+function backdropShape(style, c){
+  const pts = (n, f) => Array.from({length:n}, (_, k) => f(k));
+  if(style === 0) return ['circle', [c, 28, 16.5]];
+  if(style === 1) return ['rr', [c-15.5, 12.5, 31, 31, 3]];
+  if(style === 2) return ['poly', [[c,9.6],[c+18,28],[c,46.4],[c-18,28]]];
+  if(style === 3) return ['poly', pts(6, k => [c + 17.5*Math.cos(k*TAU/6), 28 + 17.5*Math.sin(k*TAU/6)])];
+  if(style === 4) return ['poly', [[c-15,11],[c+15,11],[c+15,30],[c,46.6],[c-15,30]]];
+  if(style === 5) return ['poly', pts(24, k => { const r = k % 2 === 0 ? 18 : 14; return [c + r*Math.cos(k*Math.PI/12), 28 + r*Math.sin(k*Math.PI/12)]; })];
+  if(style === 6) return ['multi', [pts(40, k => [c + 18*Math.cos(k*TAU/40), 28 + 18*Math.sin(k*TAU/40)]), pts(40, k => [c + 14.6*Math.cos(-k*TAU/40), 28 + 14.6*Math.sin(-k*TAU/40)])]];
+  return ['poly', [[c-17.5,21],[c+17.5,21],[c+14,28],[c+17.5,35],[c-17.5,35],[c-14,28]]];
+}
+function drawBackdrop(ctx, style, c, vis, trim){
+  const [kind, a] = backdropShape(style, c);
+  ctx.beginPath(); plantShape(ctx, kind, a); ctx.fillStyle = vis; ctx.globalAlpha = .24; ctx.fill();
+  ctx.globalAlpha = .6; ctx.lineWidth = .5; ctx.strokeStyle = trim; ctx.stroke(); ctx.globalAlpha = 1;
+}
+function drawBase(ctx, style, c, trim, t){
+  ctx.lineWidth = 1.2; ctx.strokeStyle = trim; ctx.fillStyle = trim; ctx.beginPath();
+  if(style === 0){ ctx.moveTo(c-12, 48.4); ctx.lineTo(c+12, 48.4); ctx.stroke(); }
+  else if(style === 1){ for(const sx of [-1,1]) for(const [y0, dy] of [[8,1],[49,-1]]){ ctx.moveTo(c+sx*13, y0); ctx.lineTo(c+sx*17, y0); ctx.lineTo(c+sx*17, y0+dy*4); } ctx.lineWidth = .8; ctx.stroke(); }
+  else if(style === 2){ for(let k=0;k<9;k++){ const x = c-12+k*3; ctx.moveTo(x+.7, 48.4); ctx.arc(x, 48.4, .7, 0, TAU); } ctx.fill(); }
+  else { plantShape(ctx, 'rr', [c-8, 45.6, 16, 2.6, 1]); ctx.fillStyle = t.panel; ctx.fill(); ctx.lineWidth = .5; ctx.stroke(); ctx.beginPath(); ctx.rect(c-11, 48.2, 22, 1.6); ctx.fillStyle = trim; ctx.fill(); }
+}
+function drawEffect(ctx, style, c, vis, trim, glow, noglow){
+  glow(vis,.8); ctx.fillStyle = vis; ctx.strokeStyle = vis; ctx.beginPath();
+  if(style === 0){ const notes = [[c+13.4,13],[c-14.6,9.6]];
+    for(const [x, y] of notes){ ctx.moveTo(x+1.2, y); ctx.ellipse(x, y, 1.2, .9, -.4, 0, TAU); } ctx.fill();
+    ctx.beginPath(); for(const [x, y] of notes){ ctx.moveTo(x+1.1, y); ctx.lineTo(x+1.1, y-4.4); ctx.lineTo(x+2.8, y-3.2); } ctx.lineWidth = .5; ctx.stroke(); }
+  else if(style === 1){ for(const [x, y, r] of [[c+13.6,11,2.2],[c-14,14,1.6],[c+15.4,18.6,1.3]]) poly(ctx, [[x,y-r],[x+r*.3,y-r*.3],[x+r,y],[x+r*.3,y+r*.3],[x,y+r],[x-r*.3,y+r*.3],[x-r,y],[x-r*.3,y-r*.3]]); ctx.fill(); }
+  else if(style === 2){ for(const sx of [-1,1]) for(const a of [-.5,-.95,-1.4]){ const ax = Math.cos(a)*sx, ay = Math.sin(a); ctx.moveTo(c+sx*12+ax*1.5, 12+ay*1.5); ctx.lineTo(c+sx*12+ax*4.5, 12+ay*4.5); } ctx.lineWidth = .6; ctx.stroke(); }
+  else { for(let k=0;k<7;k++){ const a = Math.PI*(1.15 + k*.7/6), x = c + 16*Math.cos(a), y = 26 + 16*Math.sin(a), r = .5 + .12*k; ctx.moveTo(x+r, y); ctx.arc(x, y, r, 0, TAU); } ctx.fill(); }
+  noglow();
 }
 function drawAccessory(ctx, style, c, top, vis, trim, glow, noglow){
   glow(vis,.8); ctx.fillStyle = vis; ctx.beginPath();

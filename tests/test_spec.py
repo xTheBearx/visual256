@@ -111,13 +111,14 @@ def test_encode_rejects_out_of_range_values():
         encode(with_changes(f, theme=8))
 
 
-def test_subjects_cover_all_eight_kinds():
+def test_subjects_cover_all_twelve_kinds():
     from visual256.spec import SUBJECTS, subject_kind
-    kinds = [subject_kind(i) for i in range(64)]
-    counts = [kinds.count(k) for k in ("face", "building", "animal", "vehicle", "plant", "furniture", "food", "sports")]
-    assert counts == [3, 10, 10, 10, 10, 8, 8, 5]
+    kinds = [subject_kind(i) for i in range(128)]
+    counts = [kinds.count(k) for k in ("face", "building", "animal", "vehicle", "plant", "furniture", "food", "sports",
+                                       "instrument", "computer", "shape", "insignia")]
+    assert counts == [3, 10, 10, 10, 10, 8, 8, 5, 16, 16, 16, 16]
     assert kinds == sorted(kinds, key=kinds.index)  # each kind is one contiguous range
-    assert len(set(SUBJECTS)) == 64
+    assert len(set(SUBJECTS)) == 128
 
 
 def _rows(**changes):
@@ -146,6 +147,14 @@ def test_sports_details_are_named():
     assert (rows["Subject detail A"], rows["Subject detail B"]) == ("polka dots", "trophy")
     assert (rows["Subject detail C"], rows["Subject detail D"]) == ("sparks", "ice")
     assert _rows(subject=63)["Subject"] == "boxing glove"
+
+
+def test_icon_kind_details_are_named():
+    rows = _rows(subject=64, vstyle=1, grille=5, mod=0, cheek=3)
+    assert rows["Subject"] == "guitar"
+    assert (rows["Subject detail A"], rows["Subject detail B"]) == ("bands", "starburst")
+    assert (rows["Subject detail C"], rows["Subject detail D"]) == ("music notes", "pedestal")
+    assert [_rows(subject=i)["Subject"] for i in (80, 96, 112, 127)] == ["floppy disk", "large circle", "winged orb", "laurel"]
 
 
 def test_three_android_heads_remain():
