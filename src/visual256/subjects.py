@@ -370,7 +370,7 @@ def draw_ground(ctx: Canvas, style, c, door, vis, trim, glow, t: Theme) -> None:
 # ---------------------------------------------------------------- animals
 # (head center y, head rx, ry, eye dx, eye y, eye scale, nose y, top of head)
 ANIMAL_SPECS = {  # head y, head rx, ry, eye dx, eye y, eye scale, nose y, head top
-    "cat": (31, 13, 12, 5, 29, 1, 34.5, 19),
+    "cat": (31, 11.4, 12.4, 4.6, 29, 1, 34.5, 18.6),
     "dog": (29, 11, 12, 4.5, 27, 1, 34.5, 17),
     "rabbit": (32, 11, 11, 4.5, 30, 1, 35.5, 21),
     "fox": (30, 14, 12, 5, 27, 1, 38, 22),
@@ -379,7 +379,7 @@ ANIMAL_SPECS = {  # head y, head rx, ry, eye dx, eye y, eye scale, nose y, head 
     "frog": (31, 14, 10, 7, 20.5, 1.1, 33, 21),
     "penguin": (30, 12, 13, 4, 29, 1, 37.5, 17),
     "lion": (31, 11, 11, 4.5, 28, 1, 34.5, 20),
-    "panda": (31, 13, 12, 5, 29, 1, 34.5, 19),
+    "panda": (31.6, 14.8, 11.2, 5.6, 29.6, 1, 35, 20.4),
 }
 
 
@@ -404,17 +404,17 @@ def draw_animal(ctx: Canvas, f, c: float, glow, vis: str, trim: str, t: Theme) -
     ctx.begin_path()
     if a == "cat":
         for s in (-1, 1):
-            _poly(ctx, [(c + s * 11, 22), (c + s * 9.5, 9.5), (c + s * 3, 18)])
+            _poly(ctx, [(c + s * 10.6, 23), (c + s * 10.4, 6.6), (c + s * 3, 18.4)])
         fill_out(panel)
         ctx.begin_path()
         for s in (-1, 1):
-            _poly(ctx, [(c + s * 9.4, 19.5), (c + s * 9, 13), (c + s * 5.6, 18)])
+            _poly(ctx, [(c + s * 9.2, 20.4), (c + s * 9.1, 10.8), (c + s * 5.4, 18.4)])
         ctx.fill_style = trim
         ctx.fill()
     elif a == "panda":
         for s in (-1, 1):
-            ctx.move_to(c + s * 9.5 + 4, 19)
-            ctx.arc(c + s * 9.5, 19, 4, 0, TAU)
+            ctx.move_to(c + s * 11.6 + 5, 20.4)
+            ctx.arc(c + s * 11.6, 20.4, 5, 0, TAU)
         fill_out(trim)
     elif a == "rabbit":
         for s in (-1, 1):
@@ -502,7 +502,7 @@ def draw_animal(ctx: Canvas, f, c: float, glow, vis: str, trim: str, t: Theme) -
         ctx.fill_style = trim
         for s in (-1, 1):
             ctx.begin_path()
-            ctx.ellipse(c + s * 5, 29, 3.6, 4.4, s * .4, 0, TAU)
+            ctx.ellipse(c + s * 5.6, 29.8, 4.4, 5.2, s * .45, 0, TAU)
             ctx.fill()
     if a in ("owl", "penguin"):
         ctx.begin_path()
@@ -2297,10 +2297,10 @@ def draw_icon(ctx: Canvas, f, c: float, kind: str, glow, vis: str, trim: str, t:
     draw_base(ctx, f.cheek, c, trim, t)
     _draw_parts(ctx, sp, draw_fabric, f.vstyle, f.decal, glow, vis, trim, t)
     if "text" in sp:
-        ch, x, y, size = sp["text"]
+        ch, x, y, size, inverted = sp["text"]
         ctx.set_font("mono", size)
         ctx.text_align, ctx.text_baseline = "center", "alphabetic"
-        ctx.fill_style = trim
+        ctx.fill_style = t.panel if inverted else trim
         ctx.fill_text(ch, x, y)
     draw_effect(ctx, f.mod, c, vis, trim, glow)
 

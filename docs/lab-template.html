@@ -291,14 +291,14 @@ const SUBJECT_START = {}; SUBJECT_KINDS.reduce((n, [k, len]) => (SUBJECT_START[k
 const kindOf = s => SUBJECT_KINDS.filter(([k]) => s >= SUBJECT_START[k]).pop()[0];
 const pickKind = (d, face, building, animal, vehicle, plant, furniture, food, sports, icon) => ({face, building, animal, vehicle, plant, furniture, food, sports})[kindOf(d.subject)] || icon;
 const accessoryName = d => d.mod === 2 && NO_BOW_TIE.includes(ANIMALS[d.subject - SUBJECT_START.animal]) ? 'no accessory' : ACCESSORIES[d.mod];
-const SYM = ['circle','square','triangle','diamond','star','plus','saltire','heart','crescent','sun','drop','bolt','hexagon','ring','arrow','clover'];
+const SYM = ['circle','square','triangle','diamond','star','plus','saltire','heart','crescent','sun','drop','bolt','hourglass','ring','arrow','clover'];
 const STATUS=['ONLINE','GHOST','ROGUE','HOT','LOCKED','BURNED','ZERO','SPOOFED'];
 const LAYOUTS=['Face left, stacked','Face right, stacked','Face center, bars on top','Face left, grid','Face right, grid','Banner on top, face left','Banner at bottom, face right','Face center, detail on top'];
 const CORNERS=['top-left and bottom-right cut','top-right and bottom-left cut','all four cut','both top corners cut'];
 const FRAME_STYLES=['single','double','dashed','corner brackets'];
 const DISPLAYS=['tiles','gems','hex pairs','arrows'];
 const ARROW_DIRS=['up','up-right','right','down-right','down','down-left','left','up-left'];
-const HEADSHAPES=['dome','bucket','skull'];
+const HEADSHAPES=['wide','bucket','skull'];
 const SUBJECTS = [...HEADSHAPES.map(h => `android, ${h} head`), ...BUILDINGS, ...ANIMALS, ...VEHICLES, ...PLANTS, ...FURNITURE, ...FOODS, ...SPORTS, ...ICON_KINDS.flatMap(k => ICONS[k].names.map(n => k === 'shape' ? `large ${n}` : n))];
 const VISORS=['band','twin-lens','slit','mono-eye','goggles','chevron','triple-lens','grid'];
 const MOUTHS=['vents','teeth','dots','LED','zigzag','speaker','fangs','stitches'];
@@ -414,10 +414,10 @@ function symPath(ctx, id){
     case 6: poly(ctx,SALT); break;
     case 7: ctx.moveTo(0,.95); ctx.bezierCurveTo(-1.35,.05,-.8,-1.1,0,-.42); ctx.bezierCurveTo(.8,-1.1,1.35,.05,0,.95); ctx.closePath(); break;
     case 8: { const phi=Math.atan2(.8496,.5275), psi=Math.atan2(.8496,.0275); ctx.arc(.1,0,1,phi,TAU-phi,false); ctx.arc(.6,0,.85,-psi,psi,true); ctx.closePath(); break; }
-    case 9: poly(ctx,starPts(12,1.02,.74)); break;
+    case 9: poly(ctx,starPts(12,1.04,.6)); break;
     case 10: ctx.moveTo(0,-1.05); ctx.bezierCurveTo(.2,-.6,.72,-.15,.72,.3); ctx.arc(0,.3,.72,0,Math.PI,false); ctx.bezierCurveTo(-.72,-.15,-.2,-.6,0,-1.05); ctx.closePath(); break;
     case 11: poly(ctx,[[.2,-1.05],[-.62,.14],[-.04,.14],[-.24,1.05],[.62,-.2],[.06,-.2]]); break;
-    case 12: { const p=[]; for(let k=0;k<6;k++){ const a=-Math.PI/2+k*Math.PI/3; p.push([Math.cos(a)*.98,Math.sin(a)*.98]); } poly(ctx,p); break; }
+    case 12: poly(ctx,[[-.86,-.98],[.86,-.98],[.14,0],[.86,.98],[-.86,.98],[-.14,0]]); break;  // hourglass
     case 13: ctx.arc(0,0,.95,0,TAU); ctx.moveTo(.5,0); ctx.arc(0,0,.5,0,TAU,true); break;
     case 14: poly(ctx,[[0,-1.05],[.88,-.08],[.34,-.08],[.34,1],[-.34,1],[-.34,-.08],[-.88,-.08]]); break;
     case 15: for(const [x,y] of [[0,-.5],[.5,0],[0,.5],[-.5,0]]){ ctx.moveTo(x+.46,y); ctx.arc(x,y,.46,0,TAU); } ctx.moveTo(.4,0); ctx.arc(0,0,.4,0,TAU); break;
@@ -524,7 +524,7 @@ function drawFace(ctx, d, hx, glow, noglow, vis, trim, t){
 function drawAndroid(ctx, d, hx, glow, noglow, vis, trim, t){
   const shape = HEADSHAPES[d.subject - SUBJECT_START.face];
   const headPath = () => { ctx.beginPath();
-    if(shape === 'dome'){ ctx.moveTo(hx-13,27); ctx.arc(hx,27,13,Math.PI,TAU); ctx.lineTo(hx+13,38); ctx.lineTo(hx+6,48); ctx.lineTo(hx-6,48); ctx.lineTo(hx-13,38); ctx.closePath(); }
+    if(shape === 'wide') rr(ctx,hx-15.6,16,31.2,29,6);  // landscape head, wider than it is tall
     else if(shape === 'bucket') poly(ctx,[[hx-9,13],[hx+9,13],[hx+14,46],[hx-14,46]]);
     else { ctx.arc(hx,25,14,Math.PI*.72,Math.PI*2.28); ctx.lineTo(hx+7.5,43); ctx.lineTo(hx+6.5,49); ctx.lineTo(hx-6.5,49); ctx.lineTo(hx-7.5,43); ctx.closePath(); } };  // skull
   ctx.lineCap = 'round';
@@ -802,15 +802,15 @@ function drawGroundExtras(ctx, style, c, vis, trim){
   else { for(const s of [-1,1]) for(const x of [11.5,15]){ ctx.moveTo(c+s*x, 50); ctx.lineTo(c+s*x, 47); ctx.moveTo(c+s*x+1.1, 46.6); ctx.ellipse(c+s*x+.6, 46.6, .7, .4, -.5, 0, TAU); ctx.moveTo(c+s*x-.1, 46.6); ctx.ellipse(c+s*x-.6, 46.6, .7, .4, .5, 0, TAU); } ctx.stroke(); ctx.fill(); }
 }
 
-const ANIMAL_SPECS = {'cat':[31,13,12,5,29,1,34.5,19], 'dog':[29,11,12,4.5,27,1,34.5,17], 'rabbit':[32,11,11,4.5,30,1,35.5,21], 'fox':[30,14,12,5,27,1,38,22], 'owl':[30,14,13,5.5,28,1.35,38.4,17], 'mouse':[32,10,10,4,30,1,35,22], 'frog':[31,14,10,7,20.5,1.1,33,21], 'penguin':[30,12,13,4,29,1,37.5,17], 'lion':[31,11,11,4.5,28,1,34.5,20], 'panda':[31,13,12,5,29,1,34.5,19]};
+const ANIMAL_SPECS = {'cat':[31,11.4,12.4,4.6,29,1,34.5,18.6], 'dog':[29,11,12,4.5,27,1,34.5,17], 'rabbit':[32,11,11,4.5,30,1,35.5,21], 'fox':[30,14,12,5,27,1,38,22], 'owl':[30,14,13,5.5,28,1.35,38.4,17], 'mouse':[32,10,10,4,30,1,35,22], 'frog':[31,14,10,7,20.5,1.1,33,21], 'penguin':[30,12,13,4,29,1,37.5,17], 'lion':[31,11,11,4.5,28,1,34.5,20], 'panda':[31.6,14.8,11.2,5.6,29.6,1,35,20.4]};
 function drawAnimal(ctx, d, c, glow, noglow, vis, trim, t){
   const a = ANIMALS[d.subject - SUBJECT_START.animal], [hy, rx, ry, edx, ey, ek, ny, top] = ANIMAL_SPECS[a], panel = t.panel;
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
   const outline = (w) => { glow(trim,1); ctx.lineWidth = w || .7; ctx.strokeStyle = trim; ctx.stroke(); noglow(); };
   const fillOut = (color, w) => { ctx.fillStyle = color; ctx.fill(); outline(w); };
   ctx.beginPath();
-  if(a === 'cat'){ for(const s of [-1,1]) poly(ctx, [[c+s*11,22],[c+s*9.5,9.5],[c+s*3,18]]); fillOut(panel); ctx.beginPath(); for(const s of [-1,1]) poly(ctx, [[c+s*9.4,19.5],[c+s*9,13],[c+s*5.6,18]]); ctx.fillStyle = trim; ctx.fill(); }
-  else if(a === 'panda'){ for(const s of [-1,1]){ ctx.moveTo(c+s*9.5+4, 19); ctx.arc(c+s*9.5, 19, 4, 0, TAU); } fillOut(trim); }
+  if(a === 'cat'){ for(const s of [-1,1]) poly(ctx, [[c+s*10.6,23],[c+s*10.4,6.6],[c+s*3,18.4]]); fillOut(panel); ctx.beginPath(); for(const s of [-1,1]) poly(ctx, [[c+s*9.2,20.4],[c+s*9.1,10.8],[c+s*5.4,18.4]]); ctx.fillStyle = trim; ctx.fill(); }
+  else if(a === 'panda'){ for(const s of [-1,1]){ ctx.moveTo(c+s*11.6+5, 20.4); ctx.arc(c+s*11.6, 20.4, 5, 0, TAU); } fillOut(trim); }
   else if(a === 'rabbit'){ for(const s of [-1,1]){ ctx.beginPath(); ctx.ellipse(c+s*4.5, 12, 3, 9.5, s*.12, 0, TAU); fillOut(panel); } ctx.fillStyle = trim; for(const s of [-1,1]){ ctx.beginPath(); ctx.ellipse(c+s*4.5, 13, 1.2, 6.5, s*.12, 0, TAU); ctx.fill(); } }
   else if(a === 'fox'){ for(const s of [-1,1]) poly(ctx, [[c+s*12.5,23],[c+s*11.5,8.5],[c+s*4,17]]); fillOut(panel); ctx.beginPath(); for(const s of [-1,1]) poly(ctx, [[c+s*10.8,20],[c+s*10.6,12],[c+s*6.4,17.4]]); ctx.fillStyle = trim; ctx.fill(); }
   else if(a === 'owl'){ for(const s of [-1,1]) poly(ctx, [[c+s*12,20],[c+s*13,10],[c+s*6,17.5]]); fillOut(trim); }
@@ -824,7 +824,7 @@ function drawAnimal(ctx, d, c, glow, noglow, vis, trim, t){
   if(a === 'dog' || a === 'lion'){ ctx.beginPath(); ctx.ellipse(c, 36, a === 'dog' ? 5.8 : 5.4, a === 'dog' ? 4.4 : 3.9, 0, 0, TAU); fillOut(panel, .5); }
   if(a === 'owl'){ ctx.beginPath(); for(const s of [-1,1]){ ctx.moveTo(c+s*5.5+5.4, 28); ctx.arc(c+s*5.5, 28, 5.4, 0, TAU); } fillOut(panel, .5); }
   if(a === 'penguin'){ ctx.beginPath(); for(const s of [-1,1]){ ctx.moveTo(c+s*4+6, 30); ctx.arc(c+s*4, 30, 6, 0, TAU); } ctx.moveTo(c+7, 35); ctx.ellipse(c, 35, 7, 6, 0, 0, TAU); ctx.fillStyle = panel; ctx.fill(); }
-  if(a === 'panda'){ ctx.fillStyle = trim; for(const s of [-1,1]){ ctx.beginPath(); ctx.ellipse(c+s*5, 29, 3.6, 4.4, s*.4, 0, TAU); ctx.fill(); } }
+  if(a === 'panda'){ ctx.fillStyle = trim; for(const s of [-1,1]){ ctx.beginPath(); ctx.ellipse(c+s*5.6, 29.8, 4.4, 5.2, s*.45, 0, TAU); ctx.fill(); } }
   if(a === 'owl' || a === 'penguin'){ ctx.beginPath(); poly(ctx, [[c-1.6, a === 'owl' ? 32.5 : 33],[c+1.6, a === 'owl' ? 32.5 : 33],[c, a === 'owl' ? 36.5 : 36]]); ctx.fillStyle = trim; ctx.fill(); }
   drawSymbol(ctx, d.decal, c, top+3.6, 2, a === 'penguin' ? panel : trim);
   drawMarkings(ctx, d.cheek, c, ny, rx, trim);
@@ -1142,7 +1142,7 @@ function shiftedIcon(sp, c){
   const ln = ([pts, w]) => [pts.map(([x, y]) => [x+c, y]), w];
   return { body: sp.body.map(([k, a, fab]) => [k, shiftArgs(k, a, c), fab]), solid: sp.solid.map(([k, a]) => [k, shiftArgs(k, a, c)]),
            lines: sp.lines.map(ln), front: sp.front.map(ln), emblem: [sp.emblem[0]+c, sp.emblem[1]],
-           text: sp.text ? [sp.text[0], sp.text[1]+c, sp.text[2], sp.text[3]] : null };
+           text: sp.text ? [sp.text[0], sp.text[1]+c, sp.text[2], sp.text[3], sp.text[4]] : null };
 }
 function drawIcon(ctx, d, c, kind, glow, noglow, vis, trim, t){
   const sp = shiftedIcon(ICONS[kind].specs[ICONS[kind].names[d.subject - SUBJECT_START[kind]]], c);
@@ -1150,7 +1150,7 @@ function drawIcon(ctx, d, c, kind, glow, noglow, vis, trim, t){
   drawBackdrop(ctx, d.grille, c, vis, trim);
   drawBase(ctx, d.cheek, c, trim, t);
   drawParts(ctx, sp, drawFabric, d.vstyle, d.decal, glow, noglow, vis, trim, t);
-  if(sp.text){ const [ch, x, y, size] = sp.text; ctx.font = `${FONT_WEIGHT.mono} ${size}px ${FONTS.mono}`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = trim; ctx.fillText(ch, x, y); }
+  if(sp.text){ const [ch, x, y, size, inverted] = sp.text; ctx.font = `${FONT_WEIGHT.mono} ${size}px ${FONTS.mono}`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = inverted ? t.panel : trim; ctx.fillText(ch, x, y); }
   drawEffect(ctx, d.mod, c, vis, trim, glow, noglow);
 }
 function backdropShape(style, c){

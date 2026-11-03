@@ -81,7 +81,7 @@ def sym_path(ctx: Canvas, i: int) -> None:
         ctx.arc(.6, 0, .85, -psi, psi, True)
         ctx.close_path()
     elif i == 9:
-        poly(ctx, star_pts(12, 1.02, .74))
+        poly(ctx, star_pts(12, 1.04, .6))
     elif i == 10:
         ctx.move_to(0, -1.05)
         ctx.bezier_curve_to(.2, -.6, .72, -.15, .72, .3)
@@ -90,8 +90,8 @@ def sym_path(ctx: Canvas, i: int) -> None:
         ctx.close_path()
     elif i == 11:
         poly(ctx, [(.2, -1.05), (-.62, .14), (-.04, .14), (-.24, 1.05), (.62, -.2), (.06, -.2)])
-    elif i == 12:
-        poly(ctx, [(math.cos(-math.pi / 2 + k * math.pi / 3) * .98, math.sin(-math.pi / 2 + k * math.pi / 3) * .98) for k in range(6)])
+    elif i == 12:  # hourglass
+        poly(ctx, [(-.86, -.98), (.86, -.98), (.14, 0), (.86, .98), (-.86, .98), (-.14, 0)])
     elif i == 13:
         ctx.arc(0, 0, .95, 0, TAU)
         ctx.move_to(.5, 0)
@@ -484,14 +484,8 @@ def draw_android(ctx: Canvas, f: Features, hx: float, glow: Glow, vis: str, trim
 
     def head_path():
         ctx.begin_path()
-        if shape == "dome":
-            ctx.move_to(hx - 13, 27)
-            ctx.arc(hx, 27, 13, math.pi, TAU)
-            ctx.line_to(hx + 13, 38)
-            ctx.line_to(hx + 6, 48)
-            ctx.line_to(hx - 6, 48)
-            ctx.line_to(hx - 13, 38)
-            ctx.close_path()
+        if shape == "wide":  # landscape head, wider than it is tall
+            rr(ctx, hx - 15.6, 16, 31.2, 29, 6)
         elif shape == "bucket":
             poly(ctx, [(hx - 9, 13), (hx + 9, 13), (hx + 14, 46), (hx - 14, 46)])
         else:  # skull

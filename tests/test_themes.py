@@ -85,3 +85,13 @@ def test_themes_look_different():
             hb, lb, _ = colorsys.rgb_to_hls(*(int(b.bg[k:k + 2], 16) / 255 for k in (1, 3, 5)))
             hue_gap = min(abs(ha - hb), 1 - abs(ha - hb))
             assert hue_gap > 0.06 or abs(la - lb) > 0.04, (a.id, b.id)
+
+
+def test_palette_colors_are_far_apart():
+    """No two palette colors of a theme may look alike: CIEDE2000 at least 15 (tools/spread_palettes.py)."""
+    import itertools
+    from visual256.themes import delta_e, lab
+    for t in THEMES_LIST:
+        labs = [lab(c) for _, c in t.palette]
+        worst = min((delta_e(labs[i], labs[j]), t.palette[i][0], t.palette[j][0]) for i, j in itertools.combinations(range(16), 2))
+        assert worst[0] >= 15, (t.name, worst)

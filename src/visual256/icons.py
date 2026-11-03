@@ -320,12 +320,11 @@ def _weather(name):
                 for a in [k * TAU / 8 + math.pi / 8 for k in range(8)]]
         return icon([B("circle", (0, CY, 8.4), True)], lines=rays)
     if name == "rain cloud":
-        return icon([B("poly", _cloud(), True)], solid=[("poly", drop(x, y, 1.7)) for x, y in ((-6, 39), (0, 43), (6, 39))],
-                    emblem=(1, 25.4))
-    if name == "thunderstorm":
-        return icon([B("poly", _cloud(), True)],
-                    solid=[("poly", [(1.4, 31), (-4.4, 39.4), (-.6, 39.4), (-2.6, 46.6), (4.6, 36.6), (1, 36.6), (3.8, 31)])],
-                    emblem=(1, 25.4))
+        return icon([B("poly", _cloud(-1), True)], lines=[([(x, 33.6), (x - 2.6, 42)], 1.1) for x in (-8.4, -3.6, 1.2, 6, 10.8)],
+                    emblem=(1, 24.4))
+    if name == "thunderstorm":  # a big bolt striking across the cloud
+        return icon([B("poly", _cloud(-3.4), True)],
+                    solid=[("poly", [(4, 12), (-6.6, 31), (-.4, 31), (-4.4, 47), (10, 24.4), (3.2, 24.4), (9, 12)])], emblem=(-7.6, 22.4))
     if name == "snowflake":
         arms = []
         for k in range(6):
@@ -446,9 +445,9 @@ def _shift_args(kind, a, c):
 
 def shifted(sp: dict, c: float) -> dict:
     out = {}
-    if "text" in sp:  # a character subject: (char, x, baseline y, font size)
-        ch, x, y, size = sp["text"]
-        out["text"] = (ch, x + c, y, size)
+    if "text" in sp:  # a character subject: (char, x, baseline y, font size, inverted)
+        ch, x, y, size, inverted = sp["text"]
+        out["text"] = (ch, x + c, y, size, inverted)
     return out | dict(body=[(k, _shift_args(k, a, c), fab) for k, a, fab in sp["body"]],
                 solid=[(k, _shift_args(k, a, c)) for k, a in sp["solid"]],
                 lines=[([(x + c, y) for x, y in pts], w) for pts, w in sp["lines"]],
@@ -465,7 +464,7 @@ FLAGS = ("waving flag", "pennant", "swallowtail", "checkered flag", "pirate flag
 HOLIDAYS = ("decorated tree", "jack-o-lantern", "gift", "easter egg", "candy cane", "ornament", "menorah", "fireworks",
             "birthday cake", "valentine heart", "shamrock", "paper lantern", "dreidel", "snow globe", "wreath", "jingle bells")
 GAME_ICONS = ("bullet", "crosshair", "fire", "water", "lightning", "ice crystal", "leaf", "health pack", "potion", "coin",
-              "key", "bomb", "sword", "buckler", "bow", "treasure chest")
+              "key", "bomb", "sword", "kite shield", "bow", "treasure chest")
 TOOLS = ("hammer", "wrench", "screwdriver", "saw", "scissors", "paintbrush", "light bulb", "pliers", "axe", "magnet",
          "drill", "ruler")
 PIECES = ("pawn", "rook", "knight", "bishop", "queen", "king", "die", "puzzle piece", "playing card", "domino", "meeple",
@@ -528,10 +527,10 @@ def _flag(name):
                 y = y0 + 3.2 * (1 - (x / 15) ** 2)
                 body.append(B("poly", _r(tri(x, y)), k % 2 == 0))
         return icon(body, lines=[([(-15, y0), (0, y0 + 4), (15, y0)], .6) for y0 in (11, 27)], emblem=(-3.6, 34))
-    if name == "tattered flag":
-        edge = [(14, 10), (11, 12.6), (14.6, 15), (10.4, 18), (13.4, 21), (9.6, 23.6), (12.6, 26), (10, 28)]
-        return _pole_flag([B("poly", [(-10, 10)] + edge + [(-10, 28)], True)], solid=[("circle", (4, 15, 1)), ("circle", (-2, 23.4, .8))],
-                          emblem=(0, 19))
+    if name == "tattered flag":  # torn and flown at half-mast, low on the pole
+        edge = [(13, 24), (10.6, 27), (13.4, 29.4), (8.6, 32.6), (10.4, 35), (4.6, 37.6), (5.4, 40), (-1, 41.6)]
+        return icon([B("poly", [(-10, 24)] + edge + [(-10, 42)], True)], lines=POLE,
+                    solid=[("circle", (-11, 7.4, 1.5)), ("circle", (-3, 29, 1.2)), ("circle", (3.6, 32, .9))], emblem=(-4, 34))
     if name == "disc flag":
         return _pole_flag([B("rect", FLAG_RECT, True)], solid=[("circle", (2, 19, 5.6))], emblem=(2, 19))
     # summit flag
@@ -664,9 +663,9 @@ def _game(name):
     if name == "sword":
         return icon([B("poly", [(0, 7), (3, 11.6), (3, 34), (-3, 34), (-3, 11.6)], True)],
                     solid=[("rr", (-8.6, 34, 17.2, 2.8, 1.2)), ("rect", (-1.4, 36.8, 2.8, 7)), ("circle", (0, 45, 2.1))], emblem=(0, 23))
-    if name == "buckler":
-        return icon([B("circle", (0, CY, 13.4)), B("circle", (0, CY, 10.6), True)],
-                    solid=[("circle", (12 * math.cos(a), CY + 12 * math.sin(a), .9)) for a in [k * TAU / 8 for k in range(8)]])
+    if name == "kite shield":
+        return icon([B("poly", [(0, 9), (12.6, 14), (11, 30), (0, 46), (-11, 30), (-12.6, 14)], True)],
+                    solid=[("rect", (-1.4, 13, 2.8, 28)), ("rect", (-9.6, 21.6, 19.2, 2.8))], emblem=(0, 23))
     if name == "bow":
         limb = arc_pts(-8, CY, 17, 17, -.95, .95, 20) + arc_pts(-8, CY, 14, 14, .95, -.95, 20)
         return icon([B("poly", limb, True)],
@@ -681,10 +680,9 @@ def _game(name):
 def _tool(name):
     if name == "hammer":
         return icon([B("rect", (-1.8, 19, 3.6, 26)), B("poly", [(-12, 11), (7, 11), (12.6, 14), (7, 20), (-12, 20)], True)], emblem=(-4, 15.6))
-    if name == "wrench":
-        jaw = arc_pts(8, 15, 6.4, 6.4, .9, TAU - .9 + 1.6, 20) + arc_pts(8, 15, 3, 3, TAU - .9 + 1.6, .9, 10)
-        r = ring(-9, 41, 4.4, 2.2)
-        return icon([B("poly", rot_rect(-8, 38, 6, 19, 4.6), True)], solid=[("poly", jaw), r], emblem=(-1, 28.6))
+    if name == "wrench":  # upright: open jaw on top, ring end at the bottom
+        jaw = arc_pts(0, 14, 8, 8, -math.pi / 2 + .62, 1.5 * math.pi - .62, 24) + arc_pts(0, 14, 3.8, 3.8, 1.5 * math.pi - .62, -math.pi / 2 + .62, 12)
+        return icon([B("rr", (-2.6, 20.6, 5.2, 21, 1.6), True)], solid=[("poly", jaw), ring(0, 43.4, 4.6, 2.2)], emblem=(0, 31))
     if name == "screwdriver":
         return icon([B("rr", (-3.8, 25, 7.6, 20, 3.2), True)], solid=[("rect", (-2.2, 21, 4.4, 4)), ("rect", (-1, 8.6, 2, 12.6)), ("rect", (-1.8, 8, 3.6, 1.6))],
                     front=[([(x, 28), (x, 42)], .4) for x in (-1.8, 1.8)], emblem=(0, 36))
@@ -872,12 +870,38 @@ def _clothing(name):
                 lines=[(arc_pts(0, 14.4, 5, 5, math.pi, TAU, 10), 1.6)], front=[([(-7.4, 34), (7.4, 34)], .5)], emblem=(0, 38))
 
 
+# Tile style of each character (index into CHAR_ALPHABET): shape = style % 4 (rounded square, circle,
+# hexagon, shield) and inverted = style // 4 (a solid inner tile with the glyph cut out in the panel
+# color). Assigned so that look-alike glyphs (C/G, B/D, S/8, F/P, P/R, D/U, ...) never share a style:
+# 8 groups of 4 with the least-alike glyphs in each group, by pixel difference at true size.
+CHAR_STYLES = "67634506537052411110474230223657"
+
+
+def _tile(shape, inset):
+    k = inset
+    if shape == 0:
+        return "rr", (-11.6 + k, 12 + k, 23.2 - 2 * k, 31.4 - 2 * k, max(1.4, 4.4 - k * .6))
+    if shape == 1:
+        return "circle", (0, 27.6, 15.6 - k)
+    if shape == 2:
+        return "poly", reg(6, 16.6 - k * 1.15, 0, 27.6)
+    return "poly", [(-12.8 + k, 11.6 + k), (12.8 - k, 11.6 + k), (12.8 - k, 30 - k * .2), (0, 45 - k * 1.25), (-12.8 + k, 30 - k * .2)]
+
+
+EMBLEM = ((8.4, 40.6), (10.4, 38.6), (10, 37.6), (8.6, 14.8))
+
+
 def _character(name):
     ch = name.split()[-1]
-    sp = icon([B("rr", (-11.4, 12, 22.8, 31, 4), True), B("rr", (-8.4, 15, 16.8, 25, 2.6))], emblem=(8.6, 40.4))
-    sp["text"] = (ch, 0, 34.6, 21)
+    style = int(CHAR_STYLES[CHAR_ALPHABET.index(ch)])
+    shape, inverted = style % 4, style >= 4
+    outer, inner = _tile(shape, 0), _tile(shape, 3)
+    body = [B(*outer, True)]
+    solid = []
+    (solid.append(inner) if inverted else body.append(B(*inner)))
+    sp = icon(body, solid=solid, emblem=EMBLEM[shape])
+    sp["text"] = (ch, 0, 35.2, 22, inverted)
     return sp
-
 
 KINDS.update({"flag": (FLAGS, _flag), "holiday": (HOLIDAYS, _holiday), "game": (GAME_ICONS, _game), "tool": (TOOLS, _tool),
               "piece": (PIECES, _piece), "sign": (SIGNS, _sign), "clothing": (CLOTHING, _clothing),

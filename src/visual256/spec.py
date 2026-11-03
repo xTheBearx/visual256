@@ -82,7 +82,7 @@ BAR_STYLES = ("segmented", "solid", "lollipops", "chevrons")
 DISPLAYS = ("tiles", "gems", "hex pairs", "arrows")
 ARROW_DIRS = ("up", "up-right", "right", "down-right", "down", "down-left", "left", "up-left")
 GRADIENT_TONES = ("theme color into the hue", "light to dark")
-HEAD_SHAPES = ("dome", "bucket", "skull")
+HEAD_SHAPES = ("wide", "bucket", "skull")
 BUILDINGS = ("house", "skyscraper", "castle", "pagoda", "observatory", "lighthouse", "factory", "temple",
              "windmill", "needle tower")
 ANIMALS = ("cat", "dog", "rabbit", "fox", "owl", "mouse", "frog", "penguin", "lion", "panda")
@@ -153,7 +153,7 @@ MODS = ("antenna", "ear discs", "cable", "fin")
 CHEEKS = ("stripes", "dots", "circuit", "bolts")
 HANDLE_STYLES = ("clean", "horizontal split", "inverted", "boxed")
 SYMBOLS = ("circle", "square", "triangle", "diamond", "star", "plus", "saltire", "heart",
-           "crescent", "sun", "drop", "bolt", "hexagon", "ring", "arrow", "clover")
+           "crescent", "sun", "drop", "bolt", "hourglass", "ring", "arrow", "clover")
 # 8 words with 8 different first letters, so the status chip reads at a glance
 STATUS_WORDS = ("ONLINE", "GHOST", "ROGUE", "HOT", "LOCKED", "BURNED", "ZERO", "SPOOFED")
 GEM_SHAPES = ("circle", "square", "triangle", "diamond")

@@ -161,13 +161,21 @@ def test_icon_kind_details_are_named():
         "waving flag", "decorated tree", "bullet", "hammer", "pawn", "stop sign", "t-shirt", "letter A", "digit 9"]
 
 
+def test_look_alike_characters_get_different_tiles():
+    from visual256.icons import CHAR_ALPHABET, CHAR_STYLES
+    style = dict(zip(CHAR_ALPHABET, CHAR_STYLES))
+    assert sorted(CHAR_STYLES.count(str(k)) for k in range(8)) == [4] * 8
+    for a, b in ("CG", "BD", "S8", "FP", "PR", "DU", "B8", "EF", "GS", "DQ", "GQ", "HU", "CQ", "HN", "35", "S5"):
+        assert style[a] != style[b], (a, b)
+
+
 def test_character_subjects_follow_the_badge_alphabet():
     from visual256.bits import ALPHABET
     assert "".join(_rows(subject=224 + i)["Subject"][-1] for i in range(32)) == ALPHABET
 
 
 def test_three_android_heads_remain():
-    assert [_rows(subject=i)["Subject"] for i in range(3)] == ["android, dome head", "android, bucket head", "android, skull head"]
+    assert [_rows(subject=i)["Subject"] for i in range(3)] == ["android, wide head", "android, bucket head", "android, skull head"]
 
 
 def test_animals_wear_nothing_on_top_of_the_head():

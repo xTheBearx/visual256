@@ -129,7 +129,7 @@ whole byte through color, shape and fill instead of many tiny marks. Every badge
 
 **Subjects.** Bits 36–43 pick the portrait from 256 subjects in 22 kinds:
 
-- 3 android heads: dome, bucket, skull
+- 3 android heads: wide, bucket, skull
 - 10 buildings: house, skyscraper, castle, pagoda, observatory, lighthouse, factory, temple, windmill,
   needle tower
 - 10 animals: cat, dog, rabbit, fox, owl, mouse, frog, penguin, lion, panda
@@ -159,7 +159,7 @@ whole byte through color, shape and fill instead of many tiny marks. Every badge
   menorah, fireworks, birthday cake, valentine heart, shamrock, paper lantern, dreidel, snow globe,
   wreath, jingle bells
 - 16 game icons: bullet, crosshair, fire, water, lightning, ice crystal, leaf, health pack, potion,
-  coin, key, bomb, sword, buckler, bow, treasure chest
+  coin, key, bomb, sword, kite shield, bow, treasure chest
 - 12 tools: hammer, wrench, screwdriver, saw, scissors, paintbrush, light bulb, pliers, axe, magnet,
   drill, ruler
 - 12 game pieces: pawn, rook, knight, bishop, queen, king, die, puzzle piece, playing card, domino,
@@ -169,7 +169,8 @@ whole byte through color, shape and fill instead of many tiny marks. Every badge
 - 12 clothing items: t-shirt, sneaker, sunglasses, mitten, sock, dress, necktie, boot, trousers,
   handbag, wristwatch, backpack
 - 32 characters: one letter or digit of the badge alphabet, `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`,
-  on a tile
+  on one of 8 tiles (rounded square, circle, hexagon or shield, plain or inverted). The tiles are
+  assigned so look-alike glyphs such as C/G, B/D, S/8 and P/R never share one
 
 The five subject detail fields mean different things for each kind:
 
@@ -198,7 +199,8 @@ highlight streak along the same direction (a ring for radial gradients). That gi
 backgrounds per theme. `tools/tune_gradients.py` picks each theme's streak strength, its 8
 gradient colors and its 8 light-to-dark tone pairs as strong as the palette allows: every palette color keeps at least 2:1 contrast
 against the background and every gradient color, and 1.8:1 inside the narrow streak band
-(checked by the tests).
+(checked by the tests). `tools/spread_palettes.py` keeps a theme's 16 colors apart: no two are
+closer than 15 in CIEDE2000, so two different color values never look alike on a small badge.
 
 **512-bit checksums** (SHA-512) are drawn as two badges in one frame, numbered 1 and 2. Both
 badges depend on the whole checksum. The frame takes its colors from badge 1's theme.
