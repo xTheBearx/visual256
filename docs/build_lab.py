@@ -23,6 +23,7 @@ def theme_json() -> str:
             "glow": t.glow, "handle": t.handle, "chroma": list(t.chroma), "peak": t.peak, "unlit": t.unlit,
             "bracket": t.bracket, "font": t.handle_font, "code": t.code_font, "palette": [list(p) for p in t.palette],
             "pairBg": t.pair_bg, "pairFg": t.pair_fg, "inkDark": t.ink_dark, "inkLight": t.ink_light,
+            "gradients": [list(g) for g in t.gradients],
         })
     return json.dumps(out, separators=(",", ":"))
 

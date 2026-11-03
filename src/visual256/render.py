@@ -86,7 +86,7 @@ class Badge:
         out = []
         for f in self.features:
             t = get_theme(f.theme)
-            out.append(describe(f, t.names, t.name))
+            out.append(describe(f, t.names, t.name, tuple(n for n, _ in t.gradients)))
         return out
 
     # ---- rendering ----

@@ -8,7 +8,8 @@ Turn a 256-bit checksum into a small picture people can recognize and compare at
 
 The first style is the **Netrunner ID**: a 128 × 64 badge with an android head, a two-word
 handle, a status chip, signal bars, 12 printed characters on colored chips and 10 detail cells.
-The badge bits pick one of sixteen themes, 8 dark and 8 light, each on a different background hue:
+The badge bits pick one of sixteen themes, 8 dark and 8 light, each on a different background hue,
+and a background gradient toward one of two partner colors in one of four directions:
 
 | | | | |
 |---|---|---|---|
@@ -81,34 +82,36 @@ checksum; the spoken backup below encodes the checksum itself.
 
 | Bits | Feature | Values |
 |---|---|---|
-| 0–3 | Theme | 16 themes (see above) |
-| 4–6 | Card layout | 8 arrangements of face, handle, bars, chips and detail cells |
-| 7–8 | Detail display | tiles, gems, hex pairs, arrows |
-| 9–10 | Frame corners | which corners are cut |
-| 11–12 | Frame style | single, double, dashed, corner brackets |
-| 13–14 | Bar style | segmented, solid, lollipops, chevrons |
-| 15–18 | Frame color | 16 theme colors |
-| 19–22 | Visor color | 16 theme colors |
-| 23–26 | Trim color | head outline, mods, mouth, cheek marks, decal |
-| 27–30 | Accent color | signal bars and handle effects |
-| 31–33 | Head shape | round, angular, boxy, dome, capsule, bucket, shield, skull |
-| 34–36 | Visor style | band, twin-lens, slit, mono-eye, goggles, chevron, triple-lens, grid |
-| 37–39 | Mouth | vents, teeth, dots, LED, zigzag, speaker, fangs, stitches |
-| 40–41 | Head mod | antenna, ear discs, cable, fin |
-| 42–45 | Forehead decal | 16 symbols |
-| 46–47 | Cheek marks | stripes, dots, circuit, bolts |
-| 48–51 | Status word | 16 words, e.g. GHOST, ROGUE, SYNCED |
-| 52–55 | Status color | 16 theme colors |
-| 56–57 | Rank | 1–4 chevrons on the status chip |
-| 58–60 | Handle style | clean, horizontal split, vertical split, slice, inverted, underline, boxed, shadow |
-| 61–71 | Handle word 1 | BIP-39 word |
-| 72–82 | Handle word 2 | BIP-39 word |
-| 83–103 | Signal bars | 7 bars, 1–8 levels each |
+| 0–3 | Theme | 16 looks: background, pattern, fonts and the 16-color palette |
+| 4–5 | Background gradient | left to right, top to bottom, diagonal or radial |
+| 6 | Gradient color | which of the theme's two partner colors the background fades to |
+| 7–9 | Card layout | 8 arrangements of face, handle, bars, chips and detail |
+| 10–11 | Detail display | tiles, gems, hex pairs or arrows |
+| 12–13 | Frame corners | which corners of the frame are cut |
+| 14–15 | Frame style | single, double, dashed or corner brackets |
+| 16–17 | Bar style | segmented, solid, lollipops or chevrons |
+| 18–21 | Frame color | frame and dividers |
+| 22–25 | Visor color | visor |
+| 26–29 | Trim color | head outline, mods, mouth, cheek marks and decal |
+| 30–33 | Accent color | signal bars and handle effects |
+| 34–36 | Head shape | round, angular, boxy, dome, capsule, bucket, shield or skull |
+| 37–39 | Visor style | band, twin-lens, slit, mono-eye, goggles, chevron, triple-lens or grid |
+| 40–42 | Mouth | vents, teeth, dots, LED, zigzag, speaker, fangs or stitches |
+| 43–44 | Head mod | antenna, ear discs, cable or fin |
+| 45–48 | Forehead decal | one of 16 symbols |
+| 49–50 | Cheek marks | stripes, dots, circuit or bolts |
+| 51–54 | Status word | one of 16 words |
+| 55–58 | Status color | status chip |
+| 59–60 | Rank | 1 to 4 chevrons on the status chip |
+| 61–63 | Handle style | clean, split, vertical split, slice, inverted, underline, boxed or shadow |
+| 64–74 | Handle word 1 | BIP-39 word, 1 of 2048 |
+| 75–85 | Handle word 2 | BIP-39 word, 1 of 2048 |
+| 86–103 | Signal bars | 6 bars, 1–8 levels each |
 | 104–115 | Chip colors | 3 chips, 16 theme colors each |
 | 116–175 | Characters | 12 characters, 4 per chip |
 | 176–255 | Detail cells | 10 cells, one badge byte each |
 
-The first 83 bits are headline features people remember. The other 173 bits are detail for a
+The first 86 bits are headline features people remember. The other 170 bits are detail for a
 careful side-by-side check. Detail elements are kept large on purpose: each detail cell carries a
 whole byte through color, shape and fill instead of many tiny marks. Every badge bit is drawn:
 `encode(decode(bits)) == bits`.
@@ -124,8 +127,9 @@ whole byte through color, shape and fill instead of many tiny marks. Every badge
 - **arrows**: 8 directions × 16 colors × solid or outline
 
 **Themes** set the background, its pattern, the fonts and the 16 colors that every color feature
-indexes into. Every palette color has at least 2:1 contrast against its background (checked by
-the tests).
+indexes into. Each theme also has two partner colors; the card fades from the theme color to one
+of them left to right, top to bottom, diagonally or radially. Every palette color has at least
+2:1 contrast against the background and both partners (checked by the tests).
 
 **512-bit checksums** (SHA-512) are drawn as two badges in one frame, numbered 1 and 2. Both
 badges depend on the whole checksum. The frame takes its colors from badge 1's theme.

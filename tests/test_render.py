@@ -57,7 +57,7 @@ def test_rendering_is_deterministic():
     assert b.svg() == b.svg()
 
 
-@pytest.mark.parametrize("field,count", [("shape", 8), ("vstyle", 8), ("grille", 8), ("hstyle", 8),
+@pytest.mark.parametrize("field,count", [("gradient", 4), ("tint", 2), ("shape", 8), ("vstyle", 8), ("grille", 8), ("hstyle", 8),
                                          ("framestyle", 4), ("barstyle", 4), ("cheek", 4), ("rank", 4),
                                          ("mod", 4)])
 def test_every_value_of_each_face_feature_draws(field, count):
@@ -99,3 +99,8 @@ def test_cli_hex_input_and_errors(capsys):
     assert main(["--hex", digest, "--format", "words"]) == 0
     assert main(["--hex", "abc", "--format", "words"]) == 2
     assert main(["--text", "x", "--format", "gif"]) == 2
+
+
+def test_background_is_a_gradient():
+    svg = Badge.from_text("gradient").svg()
+    assert "Gradient" in svg and 'fill="url(#lg' in svg

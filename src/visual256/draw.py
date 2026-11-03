@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import math
 
-from .canvas import Canvas
+from .canvas import Canvas, LinearGradient, RadialGradient
 from .spec import STATUS_WORDS, Features
 from .themes import Theme, chip_ink, get as get_theme
 
@@ -152,7 +152,7 @@ def layout_spec(L: int) -> dict:
     """Regions for each of the 8 layouts, in badge units."""
     def stacked(x0, x1):
         return dict(handle=[dict(text="both", x=x0, y=11.8, w=x1 - x0, align="left", size=8.4)],
-                    bars=[dict(ids=list(range(7)), x0=x0, x1=x1, y0=14.2, y1=24.2)],
+                    bars=[dict(ids=list(range(6)), x0=x0, x1=x1, y0=14.2, y1=24.2)],
                     chips=[dict(ids=[0, 1, 2], x0=x0, y0=26.2, x1=x1, y1=34.6, col=False)],
                     cells=[dict(ids=list(range(10)), x0=x0, y0=36.8, x1=x1, y1=60, gc=5, gr=2)])
 
@@ -160,21 +160,21 @@ def layout_spec(L: int) -> dict:
         mid = x0 + (x1 - x0) * .5
         return dict(handle=[dict(text="both", x=x0, y=11.8, w=x1 - x0, align="left", size=8.4)],
                     cells=[dict(ids=list(range(10)), x0=x0, y0=15, x1=mid - 1.3, y1=60, gc=2, gr=5)],
-                    bars=[dict(ids=list(range(7)), x0=mid + 1.3, x1=x1, y0=15, y1=30.5)],
+                    bars=[dict(ids=list(range(6)), x0=mid + 1.3, x1=x1, y0=15, y1=30.5)],
                     chips=[dict(ids=[0, 1, 2], x0=mid + 1.3, y0=33, x1=x1, y1=60, col=True)])
 
     def split(detail_top):
         def col(x0, x1, side):
             cx = (x0 + x1) / 2
             hd = dict(text="w2" if side else "w1", x=cx, y=11.4, w=x1 - x0, align="center", size=7.8)
-            b = [4, 5, 6] if side else [0, 1, 2, 3]
+            b = [3, 4, 5] if side else [0, 1, 2]
             ch = [2] if side else [0]
             cl = [5, 6, 7, 8, 9] if side else [0, 1, 2, 3, 4]
             if detail_top:
                 return dict(handle=hd, cells=dict(ids=cl, x0=x0, y0=13.8, x1=x1, y1=36.2, gc=3, gr=2),
                             chips=dict(ids=ch, x0=x0, y0=38.2, x1=x1, y1=45.6, col=False),
-                            bars=dict(ids=b, x0=x0, x1=x1, y0=47.6, y1=60, slots=4))
-            return dict(handle=hd, bars=dict(ids=b, x0=x0, x1=x1, y0=13.8, y1=23.4, slots=4),
+                            bars=dict(ids=b, x0=x0, x1=x1, y0=47.6, y1=60))
+            return dict(handle=hd, bars=dict(ids=b, x0=x0, x1=x1, y0=13.8, y1=23.4),
                         chips=dict(ids=ch, x0=x0, y0=25.4, x1=x1, y1=32.8, col=False),
                         cells=dict(ids=cl, x0=x0, y0=35, x1=x1, y1=60, gc=3, gr=2))
         a, c = col(3.5, 40.5, 0), col(87.5, 124.5, 1)
@@ -196,7 +196,7 @@ def layout_spec(L: int) -> dict:
     if L == 5:
         return dict(face=(19.5, 39.5, .74), div=[(6, 13.6, 122, 13.6), (38, 17, 38, 60)],
                     handle=[dict(text="both", x=64, y=10.6, w=112, align="center", size=8.6)],
-                    bars=[dict(ids=list(range(7)), x0=41, x1=123.4, y0=16.4, y1=24.6)],
+                    bars=[dict(ids=list(range(6)), x0=41, x1=123.4, y0=16.4, y1=24.6)],
                     chips=[dict(ids=[0, 1, 2], x0=41, y0=26.6, x1=123.4, y1=34.4, col=False)],
                     cells=[dict(ids=list(range(10)), x0=41, y0=36.6, x1=123.4, y1=60, gc=5, gr=2)])
     if L == 6:
@@ -204,7 +204,7 @@ def layout_spec(L: int) -> dict:
                     handle=[dict(text="both", x=64, y=59.4, w=112, align="center", size=8.6)],
                     cells=[dict(ids=list(range(10)), x0=4.6, y0=4.6, x1=86, y1=25.6, gc=5, gr=2)],
                     chips=[dict(ids=[0, 1, 2], x0=4.6, y0=27.6, x1=86, y1=35.2, col=False)],
-                    bars=[dict(ids=list(range(7)), x0=4.6, x1=86, y0=37.4, y1=48)])
+                    bars=[dict(ids=list(range(6)), x0=4.6, x1=86, y0=37.4, y1=48)])
     return split(True)
 
 
@@ -220,7 +220,7 @@ def draw_badge(ctx: Canvas, f: Features, theme: Theme | None = None) -> None:
     fr = frame_poly(f.corners)
     ctx.begin_path()
     poly(ctx, fr)
-    ctx.fill_style = t.bg
+    ctx.fill_style = background_gradient(t, f.gradient, f.tint)
     ctx.fill()
     ctx.save()
     ctx.clip()
@@ -254,6 +254,18 @@ def draw_badge(ctx: Canvas, f: Features, theme: Theme | None = None) -> None:
     for c in spec["cells"]:
         draw_cells(ctx, f, c, vis, glow, t)
     ctx.restore()
+
+
+def background_gradient(t: Theme, kind: int, tint: int):
+    """The card fill: theme background fading to one of its two partner colors."""
+    stops = [(0, t.bg), (1, t.gradients[tint][1])]
+    if kind == 0:
+        return LinearGradient(0, 32, 128, 32, stops)
+    if kind == 1:
+        return LinearGradient(64, 0, 64, 64, stops)
+    if kind == 2:
+        return LinearGradient(0, 0, 128, 64, stops)
+    return RadialGradient(64, 32, 0, 72, stops)
 
 
 def background(ctx: Canvas, t: Theme) -> None:

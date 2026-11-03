@@ -10,8 +10,8 @@ is a fingerprint: it cannot be turned back into the checksum (the BIP-39 spoken 
 
 Step 2, drawing. The 256 mixed bits are read most significant first:
 
-    bits    0-82   headline features (see HEADLINE_FIELDS)
-    bits   83-103  7 signal bars, 3 bits each (1-8 lit segments)
+    bits    0-85   headline features (see HEADLINE_FIELDS)
+    bits   86-103  6 signal bars, 3 bits each (1-8 lit segments)
     bits  104-115  3 chip colors, 4 bits each
     bits  116-175  12 printed characters, 5 bits each, 4 per chip
     bits  176-255  10 detail cells, 8 bits each (cell k is badge byte 22 + k), drawn as tiles,
@@ -34,6 +34,8 @@ MIX_TAG = b"visual256/netrunner/0.1"
 # (name, bits, label, what it controls)
 HEADLINE_FIELDS: tuple[tuple[str, int, str, str], ...] = (
     ("theme", 4, "Theme", "16 looks: background, pattern, fonts and the 16-color palette"),
+    ("gradient", 2, "Background gradient", "left to right, top to bottom, diagonal or radial"),
+    ("tint", 1, "Gradient color", "which of the theme's two partner colors the background fades to"),
     ("layout", 3, "Card layout", "8 arrangements of face, handle, bars, chips and detail"),
     ("display", 2, "Detail display", "tiles, gems, hex pairs or arrows"),
     ("corners", 2, "Frame corners", "which corners of the frame are cut"),
@@ -57,8 +59,8 @@ HEADLINE_FIELDS: tuple[tuple[str, int, str, str], ...] = (
     ("word2", 11, "Handle word 2", "BIP-39 word, 1 of 2048"),
 )
 HEADLINE_BITS = sum(f[1] for f in HEADLINE_FIELDS)
-N_BARS = 7
-assert HEADLINE_BITS == 83 and HEADLINE_BITS + N_BARS * 3 == 104
+N_BARS = 6
+assert HEADLINE_BITS == 86 and HEADLINE_BITS + N_BARS * 3 == 104
 
 THEME_IDS = ("cyberpunk", "daylight", "paper", "blueprint", "candy", "mint", "arcade", "stealth",
              "ember", "abyss", "sky", "royal", "citrus", "jungle", "lilac", "concrete")
@@ -74,6 +76,7 @@ LAYOUTS = (
 )
 CORNERS = ("top-left and bottom-right cut", "top-right and bottom-left cut", "all four cut", "both top corners cut")
 FRAME_STYLES = ("single", "double", "dashed", "corner brackets")
+GRADIENTS = ("left to right", "top to bottom", "diagonal", "radial")
 BAR_STYLES = ("segmented", "solid", "lollipops", "chevrons")
 DISPLAYS = ("tiles", "gems", "hex pairs", "arrows")
 ARROW_DIRS = ("up", "up-right", "right", "down-right", "down", "down-left", "left", "up-left")
@@ -106,6 +109,8 @@ class Features:
     """Every feature of one Netrunner ID badge. Together they hold exactly 256 bits."""
 
     theme: int
+    gradient: int
+    tint: int
     layout: int
     display: int
     corners: int
@@ -127,7 +132,7 @@ class Features:
     hstyle: int
     word1: int
     word2: int
-    bars: tuple[int, ...]    # 7 values, 0-7 (drawn as 1-8 lit segments)
+    bars: tuple[int, ...]    # 6 values, 0-7 (drawn as 1-8 lit segments)
     chips: tuple[int, ...]   # 3 colors, 0-15
     chars: tuple[int, ...]   # 12 values, 0-31 (alphabet indices)
     cells: tuple[int, ...]   # 10 bytes, 0-255
@@ -197,11 +202,13 @@ def describe_cells(f: Features, names: tuple[str, ...]) -> str:
     return " ".join(f"{c:02X}" for c in f.cells)
 
 
-def describe(f: Features, palette_names: tuple[str, ...], theme_name: str = "") -> list[tuple[str, str, str]]:
+def describe(f: Features, palette_names: tuple[str, ...], theme_name: str = "",
+             tint_names: tuple[str, str] = ("first partner", "second partner")) -> list[tuple[str, str, str]]:
     """Plain-language readout: (bit range, label, value) for every feature."""
     n = palette_names
     values = {
         "theme": theme_name or THEME_IDS[f.theme],
+        "gradient": GRADIENTS[f.gradient], "tint": tint_names[f.tint],
         "layout": f"{f.layout} · {LAYOUTS[f.layout]}",
         "display": DISPLAYS[f.display], "corners": CORNERS[f.corners], "framestyle": FRAME_STYLES[f.framestyle],
         "barstyle": BAR_STYLES[f.barstyle],

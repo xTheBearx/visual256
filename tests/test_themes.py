@@ -23,13 +23,21 @@ def test_backgrounds_are_distinct():
             assert a.bg != b.bg
 
 
-def test_every_palette_color_is_visible_on_its_background():
+def test_every_palette_color_is_visible_on_its_background_and_gradients():
     for t in THEMES_LIST:
         assert len({c for _, c in t.palette}) == 16, t.id
-        for name, c in t.palette:
-            assert contrast(c, t.bg) >= 2.0, f"{t.id}: {name} {c} is too faint"
+        for bg in (t.bg, *(c for _, c in t.gradients)):
+            for name, c in t.palette:
+                assert contrast(c, bg) >= 2.0, f"{t.id}: {name} {c} is too faint on {bg}"
+
+
+def test_two_gradient_partners_per_theme():
+    for t in THEMES_LIST:
+        assert len(t.gradients) == 2 and t.gradients[0][1] != t.gradients[1][1], t.id
 
 
 def test_handle_text_is_readable():
     for t in THEMES_LIST:
         assert contrast(t.handle, t.bg) >= 7, t.id
+        for _, c in t.gradients:
+            assert contrast(t.handle, c) >= 4.5, t.id

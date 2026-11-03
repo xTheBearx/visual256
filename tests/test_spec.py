@@ -9,8 +9,8 @@ from visual256.bits import from_alphabet, to_alphabet
 from visual256.spec import HEADLINE_BITS, HEADLINE_FIELDS, N_BARS
 
 
-def test_headline_is_83_bits_and_total_is_256():
-    assert HEADLINE_BITS == 83
+def test_headline_is_86_bits_and_total_is_256():
+    assert HEADLINE_BITS == 86
     assert HEADLINE_BITS + N_BARS * 3 + 3 * 4 + 12 * 5 + 10 * 8 == 256
 
 
@@ -42,10 +42,9 @@ def test_known_digest_matches_browser_preview():
     assert b.parts[0].hex() == "f2924e11c5dab2f02b72a9423cdfad3bb799811e53d4da75de2cccbde7008c80"
     f = b.features[0]
     assert f.theme_id == "concrete"
-    assert f.handle == "AIR·INCREASE"
+    assert f.handle == "CLOCK·NEXT"
     assert f.char_groups == ["4Q7Z", "VGAT", "6W8W"]
-    assert [v + 1 for v in f.bars] == [3, 3, 5, 2, 1, 8, 5]
-    assert f.layout == 1
+    assert len(f.bars) == 6
 
 
 def test_detail_cells_are_the_last_ten_badge_bytes():

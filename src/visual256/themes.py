@@ -36,6 +36,7 @@ class Theme:
     pair_fg: str
     ink_dark: str = "#111318"
     ink_light: str = "#FFFFFF"
+    gradients: tuple[tuple[str, str], ...] = ()  # two (name, color) partners the background fades to
 
     @property
     def names(self) -> tuple[str, ...]:
@@ -83,15 +84,15 @@ TROPIC = _p("Parrot red:#FF4040|Mango:#FFA62B|Banana:#FFE14D|Lime:#B6F23C|Leaf:#
             "Sky:#5AC8FA|Blue:#4F8BFF|Orchid:#DA70D6|Hibiscus:#FF7EB6|Coral:#FF7F66|Papaya:#FFC8A2|Sand:#E8D8A8|"
             "Bone:#F5F5F0|Lilac:#C3A6FF|Toucan:#FF7A00")
 # Palettes for light backgrounds
-DAY = _p("Red:#D7263D|Orange:#F26419|Amber:#E3A008|Lime:#7CB518|Green:#2E9E44|Teal:#0F8B8D|Cyan:#1BA3C6|"
+DAY = _p("Red:#D7263D|Orange:#F26419|Amber:#C78A00|Lime:#5E9A0E|Green:#2E9E44|Teal:#0F8B8D|Cyan:#1BA3C6|"
          "Blue:#2563EB|Navy:#1E3A8A|Indigo:#5B4BD8|Purple:#8E3FC0|Magenta:#C2185B|Pink:#EC6FA6|Brown:#8D5524|"
          "Slate:#64748B|Black:#111318")
 INK = _p("Navy:#1F3A6B|Oxblood:#7A1F2B|Forest:#23573A|Plum:#6B2A6E|Teal:#1F6E73|Sepia:#6B4A2B|Slate:#55606E|"
          "Crimson:#C0272F|Royal:#2F55C8|Olive:#6B7022|Ochre:#B07A12|Indigo:#4A2F9A|Moss:#4F8A2B|Rust:#B5501F|"
          "Charcoal:#232323|Rose:#B8426E")
-CANDY = _p("Raspberry:#C2185B|Cherry:#E53935|Tangerine:#F4511E|Honey:#D98E04|Lime:#689F38|Mint:#00A884|"
+CANDY = _p("Raspberry:#C2185B|Cherry:#E53935|Tangerine:#F4511E|Honey:#B87700|Lime:#689F38|Mint:#00A884|"
            "Teal:#00796B|Sky:#0288D1|Blueberry:#3949AB|Grape:#7B1FA2|Lavender:#9575CD|Bubblegum:#F06292|"
-           "Chocolate:#6D4C41|Licorice:#212121|Slate:#546E7A|Coral:#FF7043")
+           "Chocolate:#6D4C41|Licorice:#212121|Slate:#546E7A|Forest:#2E6B30")
 GARDEN = _p("Red:#D32F2F|Orange:#EF6C00|Gold:#C98A00|Olive:#827717|Green:#2E7D32|Teal:#00796B|Cyan:#0097A7|"
             "Blue:#1565C0|Navy:#1A237E|Indigo:#4527A0|Purple:#6A1B9A|Magenta:#AD1457|Pink:#E91E63|Brown:#5D4037|"
             "Gray:#546E7A|Black:#1B1B1B")
@@ -100,11 +101,34 @@ BOLD = _p("Red:#B71C1C|Orange:#C43E00|Mustard:#8A6500|Moss:#3E6B1F|Green:#1B5E20
           "Olive:#555A16|Slate:#2F3E46")
 
 
+# Each theme's background fades to one of two partner colors (chosen by the `tint` bit). Partners
+# stay close to the theme's brightness, so the palette stays readable everywhere on the card.
+PARTNERS = {
+    "cyberpunk": (("violet haze", "#3A0C56"), ("deep teal", "#04384D")),
+    "daylight": (("ice blue", "#CFE0FF"), ("peach", "#FFD9C4")),
+    "paper": (("parchment", "#E2C894"), ("rose paper", "#F2CFC2")),
+    "blueprint": (("midnight", "#041A35"), ("sea blue", "#0F6382")),
+    "candy": (("lavender", "#DCCBFF"), ("vanilla", "#FFE8B8")),
+    "mint": (("aqua", "#BFE8F5"), ("pistachio", "#E6F3BF")),
+    "arcade": (("purple", "#4A0F7A"), ("cobalt", "#0A3585")),
+    "stealth": (("olive", "#47452A"), ("gunmetal", "#1A2430")),
+    "ember": (("rust glow", "#5E1F04"), ("plum", "#2A0820")),
+    "abyss": (("trench blue", "#021638"), ("kelp", "#0B4A2C")),
+    "sky": (("lavender", "#E2D6FF"), ("aqua", "#CCF2EA")),
+    "royal": (("wine", "#5C1240"), ("indigo", "#1A1260")),
+    "citrus": (("peach", "#FFD3A8"), ("lime", "#DDF2A8")),
+    "jungle": (("lagoon", "#073A45"), ("moss", "#374A0A")),
+    "lilac": (("pink", "#F9D2E8"), ("periwinkle", "#CCDAF8")),
+    "concrete": (("sandstone", "#DCC7A4"), ("steel", "#A7BACD")),
+}
+
+
 def _dark(**kw) -> Theme:
     base = dict(glow=False, peak="#FFFFFF", unlit="rgba(255,255,255,.09)", bracket="rgba(255,255,255,.38)",
                 code_font="mono", ink_dark=kw.get("bg", "#111318"), ink_light="#FFFFFF")
     base.update(kw)
     base.setdefault("pair_bg", base["bg"])
+    base["gradients"] = PARTNERS[base["id"]]
     return Theme(**base)
 
 
@@ -115,6 +139,7 @@ def _light(**kw) -> Theme:
                 code_font="mono", ink_dark=ink, ink_light="#FFFFFF")
     base.update(kw)
     base.setdefault("pair_bg", base["bg"])
+    base["gradients"] = PARTNERS[base["id"]]
     return Theme(**base)
 
 

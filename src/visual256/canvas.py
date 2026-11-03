@@ -51,6 +51,20 @@ def _adjust_end(start: float, end: float, ccw: bool) -> float:
     return end
 
 
+class LinearGradient:
+    """Like canvas createLinearGradient: coordinates are read in the transform current at fill time."""
+
+    def __init__(self, x0, y0, x1, y1, stops):
+        self.x0, self.y0, self.x1, self.y1, self.stops = x0, y0, x1, y1, list(stops)
+
+
+class RadialGradient:
+    """Like canvas createRadialGradient with a shared center."""
+
+    def __init__(self, cx, cy, r0, r1, stops):
+        self.cx, self.cy, self.r0, self.r1, self.stops = cx, cy, r0, r1, list(stops)
+
+
 _STATE_KEYS = ("fill_style", "stroke_style", "line_width", "line_cap", "line_join", "global_alpha",
                "shadow_color", "shadow_blur", "font_key", "font_size", "text_align", "text_baseline", "dash")
 
@@ -222,7 +236,31 @@ class Canvas:
     def _emit(self, s: str) -> None:
         self._stack[-1].append(s)
 
-    def _paint_attrs(self, color: str, prefix: str) -> str:
+    def _gradient_ref(self, g) -> str:
+        gid = f"lg{self._ids}"
+        self._ids += 1
+        stops = "".join(f'<stop offset="{fmt(o)}" stop-color="{parse_color(c)[0]}"'
+                        + (f' stop-opacity="{fmt(parse_color(c)[1])}"' if parse_color(c)[1] < 0.999 else "") + "/>"
+                        for o, c in g.stops)
+        if isinstance(g, LinearGradient):
+            (x0, y0), (x1, y1) = self._tp(g.x0, g.y0), self._tp(g.x1, g.y1)
+            self._defs.append(f'<linearGradient id="{gid}" gradientUnits="userSpaceOnUse" x1="{fmt(x0)}" y1="{fmt(y0)}" '
+                              f'x2="{fmt(x1)}" y2="{fmt(y1)}">{stops}</linearGradient>')
+        else:
+            cx, cy = self._tp(g.cx, g.cy)
+            k = self._scale_factor()
+            r0 = g.r0 / g.r1 if g.r1 else 0
+            stops = "".join(f'<stop offset="{fmt(r0 + (1 - r0) * o)}" stop-color="{parse_color(c)[0]}"/>' for o, c in g.stops)
+            self._defs.append(f'<radialGradient id="{gid}" gradientUnits="userSpaceOnUse" cx="{fmt(cx)}" cy="{fmt(cy)}" '
+                              f'r="{fmt(g.r1 * k)}">{stops}</radialGradient>')
+        return f"url(#{gid})"
+
+    def _paint_attrs(self, color, prefix: str) -> str:
+        if isinstance(color, (LinearGradient, RadialGradient)):
+            out = f' {prefix}="{self._gradient_ref(color)}"'
+            if self.global_alpha < 0.999:
+                out += f' {prefix}-opacity="{fmt(self.global_alpha)}"'
+            return out
         hexc, a = parse_color(color)
         alpha = a * self.global_alpha
         out = f' {prefix}="{hexc}"'
