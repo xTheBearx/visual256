@@ -116,7 +116,7 @@ def test_every_subject_detail_draws(subject):
 
 
 def test_subject_details_change_the_picture():
-    for subject in (0, 8, 20, 32, 48):
+    for subject in (0, 8, 20, 32, 44, 56):
         for field, count in (("vstyle", 8), ("grille", 8), ("mod", 4), ("cheek", 4)):
             svgs = set()
             for v in range(count):

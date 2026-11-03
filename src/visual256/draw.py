@@ -9,7 +9,7 @@ import math
 
 from .canvas import Canvas, LinearGradient, RadialGradient, parse_color
 from .spec import STATUS_WORDS, Features, subject_kind
-from .subjects import draw_animal, draw_building, draw_plant, draw_vehicle
+from .subjects import draw_animal, draw_building, draw_furniture, draw_plant, draw_vehicle
 from .themes import Theme, chip_ink, get as get_theme
 
 S = 480.0          # canvas height
@@ -455,7 +455,7 @@ def draw_frame(ctx: Canvas, f: Features, fr, fcol, glow: Glow) -> None:
 
 
 def draw_face(ctx: Canvas, f: Features, hx: float, glow: Glow, vis: str, trim: str, t: Theme) -> None:
-    """The portrait: an android head, a building or an animal, then the status chip."""
+    """The portrait (an android head, building, animal, vehicle, plant or furniture), then the status chip."""
     kind = subject_kind(f.subject)
     if kind == "face":
         draw_android(ctx, f, hx, glow, vis, trim, t)
@@ -465,8 +465,10 @@ def draw_face(ctx: Canvas, f: Features, hx: float, glow: Glow, vis: str, trim: s
         draw_animal(ctx, f, hx, glow, vis, trim, t)
     elif kind == "vehicle":
         draw_vehicle(ctx, f, hx, glow, vis, trim, t)
-    else:
+    elif kind == "plant":
         draw_plant(ctx, f, hx, glow, vis, trim, t)
+    else:
+        draw_furniture(ctx, f, hx, glow, vis, trim, t)
     ctx.line_cap, ctx.line_join = "butt", "miter"
     draw_status(ctx, f, hx, glow, t)
 

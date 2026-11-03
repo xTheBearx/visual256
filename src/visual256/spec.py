@@ -43,15 +43,15 @@ HEADLINE_FIELDS: tuple[tuple[str, int, str, str], ...] = (
     ("framestyle", 2, "Frame style", "single, double, dashed or corner brackets"),
     ("barstyle", 2, "Bar style", "segmented, solid, lollipops or chevrons"),
     ("frame", 4, "Frame color", "frame and dividers"),
-    ("visor", 4, "Visor color", "visor, lit windows or eyes"),
+    ("visor", 4, "Visor color", "visor, lit windows, eyes, blooms or fabric"),
     ("trim", 4, "Trim color", "outlines, roofs, doors, mouths, marks and decal"),
     ("accent", 4, "Accent color", "signal bars and handle effects"),
-    ("subject", 6, "Subject", "8 android heads, 12 buildings, 12 animals, 16 vehicles or 16 plants"),
-    ("vstyle", 3, "Subject detail A", "visor, windows, eyes, vehicle windows or blooms (8 each)"),
-    ("grille", 3, "Subject detail B", "mouth, door, nose, trail or pot (8 each)"),
-    ("mod", 2, "Subject detail C", "head mod, roof add-on, accessory, vehicle add-on or visitor (4 each)"),
-    ("decal", 4, "Subject symbol", "decal, sign, forehead mark, emblem or pot label (16 symbols)"),
-    ("cheek", 2, "Subject detail D", "cheeks, grounds, markings, livery or ground extras (4 each)"),
+    ("subject", 6, "Subject", "8 android heads, 12 buildings, 12 animals, 12 vehicles, 12 plants or 8 furniture"),
+    ("vstyle", 3, "Subject detail A", "visor, windows, eyes, vehicle windows, blooms or fabric (8 each)"),
+    ("grille", 3, "Subject detail B", "mouth, door, nose, trail, pot or companion object (8 each)"),
+    ("mod", 2, "Subject detail C", "head mod, roof add-on, accessory, vehicle add-on, visitor or wall item (4 each)"),
+    ("decal", 4, "Subject symbol", "decal, sign, forehead mark, emblem, pot label or plaque (16 symbols)"),
+    ("cheek", 2, "Subject detail D", "cheeks, grounds, markings, livery, ground extras or floor (4 each)"),
     ("status", 4, "Status word", "one of 16 words"),
     ("scolor", 4, "Status color", "status chip"),
     ("hstyle", 3, "Handle style", "clean, split, vertical split, slice, inverted, underline, boxed or shadow"),
@@ -84,19 +84,27 @@ HEAD_SHAPES = ("round", "angular", "boxy", "dome", "capsule", "bucket", "shield"
 BUILDINGS = ("house", "tower", "skyscraper", "castle", "pagoda", "observatory", "lighthouse", "factory",
              "chapel", "temple", "windmill", "needle tower")
 ANIMALS = ("cat", "dog", "bear", "rabbit", "fox", "owl", "mouse", "pig", "frog", "penguin", "lion", "panda")
-VEHICLES = ("car", "pickup truck", "bus", "race car", "motorcycle", "bicycle", "locomotive", "tram",
-            "sailboat", "speedboat", "submarine", "airplane", "helicopter", "hot-air balloon", "rocket", "flying saucer")
-PLANTS = ("pine", "oak", "palm", "cactus", "tulip", "sunflower", "daisies", "mushroom",
-          "bonsai", "fern", "bamboo", "succulent", "cherry blossom", "willow", "wheat", "lotus")
-SUBJECTS = tuple(f"android, {s} head" for s in HEAD_SHAPES) + BUILDINGS + ANIMALS + VEHICLES + PLANTS
-assert len(SUBJECTS) == 64
+VEHICLES = ("car", "bus", "motorcycle", "bicycle", "locomotive", "sailboat", "submarine", "airplane",
+            "helicopter", "hot-air balloon", "rocket", "flying saucer")
+PLANTS = ("pine", "oak", "palm", "cactus", "tulip", "sunflower", "mushroom", "bonsai",
+          "fern", "bamboo", "cherry blossom", "lotus")
+FURNITURE = ("armchair", "sofa", "bed", "bookshelf", "grandfather clock", "floor lamp", "piano", "bathtub")
+SUBJECT_KINDS = (("face", HEAD_SHAPES), ("building", BUILDINGS), ("animal", ANIMALS), ("vehicle", VEHICLES),
+                 ("plant", PLANTS), ("furniture", FURNITURE))
+SUBJECT_START: dict[str, int] = {}
+_n = 0
+for _kind, _names in SUBJECT_KINDS:
+    SUBJECT_START[_kind] = _n
+    _n += len(_names)
+SUBJECTS = tuple(f"android, {s} head" for s in HEAD_SHAPES) + BUILDINGS + ANIMALS + VEHICLES + PLANTS + FURNITURE
+assert len(SUBJECTS) == _n == 64
 WINDOWS = ("square grid", "portholes", "arches", "bands", "strips", "picture window", "diamonds", "checker lights")
 DOORS = ("plain door", "arched door", "double door", "round door", "garage door", "gate", "glass door", "awning door")
 ROOFS = ("antenna", "flag", "chimney", "satellite dish")
 GROUNDS = ("steps", "fence", "bushes", "lamp posts")
 EYES = ("dots", "glossy", "sleepy", "happy", "stern", "slit", "sparkle", "hearts")
 SNOUTS = ("button nose", "round nose", "heart nose", "open mouth", "tongue out", "buck teeth", "cat mouth", "fangs")
-ACCESSORIES = ("collar and tag", "bow", "party hat", "scarf")
+ACCESSORIES = ("collar and tag", "bow", "bow tie", "scarf")
 MARKINGS = ("whiskers", "spots", "blush", "stripes")
 TRAILS = ("smoke puffs", "flames", "speed lines", "sparks", "bubbles", "vapor trail", "stars", "zigzag")
 VEHICLE_MODS = ("antenna", "flag", "siren", "fin")
@@ -105,16 +113,17 @@ BLOOMS = ("berries", "blossoms", "stars", "hearts", "apples", "lemons", "sparkle
 POTS = ("terracotta pot", "square planter", "round bowl", "tall vase", "wooden crate", "soil mound", "glass jar", "teacup")
 VISITORS = ("butterfly", "bee", "bird", "ladybug")
 GROUND_EXTRAS = ("grass tufts", "pebbles", "fallen petals", "seedlings")
+FABRICS = ("stripes", "bands", "polka dots", "checks", "diamonds", "zigzag", "plaid", "scales")
+COMPANIONS = ("cat", "book stack", "potted plant", "teapot", "radio", "globe", "candle", "gift box")
+WALL_ITEMS = ("picture frame", "round mirror", "window", "bunting")
+FLOORS = ("oval rug", "floorboards", "checker tiles", "fringed rug")
 
 
 def subject_kind(subject: int) -> str:
-    if subject < 8:
-        return "face"
-    if subject < 20:
-        return "building"
-    if subject < 32:
-        return "animal"
-    return "vehicle" if subject < 48 else "plant"
+    for kind, names in SUBJECT_KINDS:
+        if subject < SUBJECT_START[kind] + len(names):
+            return kind
+    raise ValueError(subject)
 VISORS = ("band", "twin-lens", "slit", "mono-eye", "goggles", "chevron", "triple-lens", "grid")
 MOUTHS = ("vents", "teeth", "dots", "LED", "zigzag", "speaker", "fangs", "stitches")
 MODS = ("antenna", "ear discs", "cable", "fin")
@@ -236,6 +245,8 @@ def _subject_values(f: Features) -> dict:
         return {"vstyle": WINDOWS[f.vstyle], "grille": TRAILS[f.grille], "mod": VEHICLE_MODS[f.mod], "cheek": LIVERIES[f.cheek]}
     if kind == "plant":
         return {"vstyle": BLOOMS[f.vstyle], "grille": POTS[f.grille], "mod": VISITORS[f.mod], "cheek": GROUND_EXTRAS[f.cheek]}
+    if kind == "furniture":
+        return {"vstyle": FABRICS[f.vstyle], "grille": COMPANIONS[f.grille], "mod": WALL_ITEMS[f.mod], "cheek": FLOORS[f.cheek]}
     return {"vstyle": EYES[f.vstyle], "grille": SNOUTS[f.grille], "mod": ACCESSORIES[f.mod], "cheek": MARKINGS[f.cheek]}
 
 

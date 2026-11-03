@@ -111,12 +111,26 @@ def test_encode_rejects_out_of_range_values():
         encode(with_changes(f, theme=8))
 
 
-def test_subjects_cover_all_five_kinds():
+def test_subjects_cover_all_six_kinds():
     from visual256.spec import SUBJECTS, subject_kind
     kinds = [subject_kind(i) for i in range(64)]
     assert kinds.count("face") == 8 and kinds.count("building") == 12 and kinds.count("animal") == 12
-    assert kinds.count("vehicle") == 16 and kinds.count("plant") == 16
+    assert kinds.count("vehicle") == 12 and kinds.count("plant") == 12 and kinds.count("furniture") == 8
+    assert kinds == sorted(kinds, key=kinds.index)  # each kind is one contiguous range
     assert len(set(SUBJECTS)) == 64
+
+
+def test_furniture_details_are_named():
+    f = with_changes(decode(bytes(32)), subject=63, vstyle=6, grille=3, mod=3, cheek=2)
+    rows = dict((label, value) for _, label, value in describe(f, tuple("c" * 16)))
+    assert rows["Subject"] == "bathtub"
+    assert (rows["Subject detail A"], rows["Subject detail B"]) == ("plaid", "teapot")
+    assert (rows["Subject detail C"], rows["Subject detail D"]) == ("bunting", "checker tiles")
+
+
+def test_animals_wear_nothing_on_top_of_the_head():
+    from visual256.spec import ACCESSORIES
+    assert "party hat" not in ACCESSORIES and "bow tie" in ACCESSORIES
 
 
 def test_describe_names_subject_details_by_kind():
@@ -124,7 +138,7 @@ def test_describe_names_subject_details_by_kind():
     house = dict((label, value) for _, label, value in describe(with_changes(f, subject=8), tuple("c" * 16)))
     cat = dict((label, value) for _, label, value in describe(with_changes(f, subject=20), tuple("c" * 16)))
     car = dict((label, value) for _, label, value in describe(with_changes(f, subject=32), tuple("c" * 16)))
-    pine = dict((label, value) for _, label, value in describe(with_changes(f, subject=48), tuple("c" * 16)))
+    pine = dict((label, value) for _, label, value in describe(with_changes(f, subject=44), tuple("c" * 16)))
     assert house["Subject"] == "house" and house["Subject detail A"] == "square grid"
     assert cat["Subject"] == "cat" and cat["Subject detail B"] == "button nose"
     assert car["Subject"] == "car" and car["Subject detail B"] == "smoke puffs"

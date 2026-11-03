@@ -7,16 +7,16 @@ Turn a 256-bit checksum into a small picture people can recognize and compare at
 > change stays at 0.1 until the first release, so badges are not yet stable between commits.
 
 The first style is the **Netrunner ID**: a 128 × 64 badge with a portrait (an android head, a
-building, an animal, a vehicle or a plant), a two-word handle, a status chip, signal bars, 12
-printed characters on colored chips and 10 detail cells. The badge bits pick one of eight themes,
-4 dark and 4 light, each with its own background hue, pattern, fonts and palette, and a background
-gradient (theme color into one of 8 hues, or that hue from light to dark) in one of four
-directions:
+building, an animal, a vehicle, a plant or a piece of furniture), a two-word handle, a status chip,
+signal bars, 12 printed characters on colored chips and 10 detail cells. The badge bits pick one of
+eight themes, 4 dark and 4 light, each with its own background hue, pattern, fonts and palette, and
+a background gradient (theme color into one of 8 hues, or that hue from light to dark) in one of
+four directions:
 
 | | | | |
 |---|---|---|---|
 | ![cyberpunk](docs/examples/cyberpunk.svg)<br>Cyberpunk · `release-1.2.tar.gz` | ![daylight](docs/examples/daylight.svg)<br>Daylight · `release-1.0.tar.gz` | ![paper](docs/examples/paper.svg)<br>Paper · `release-1.15.tar.gz` | ![blueprint](docs/examples/blueprint.svg)<br>Blueprint · `release-1.17.tar.gz` |
-| ![candy](docs/examples/candy.svg)<br>Candy · `release-1.23.tar.gz` | ![mint](docs/examples/mint.svg)<br>Mint · `release-1.6.tar.gz` | ![ember](docs/examples/ember.svg)<br>Ember · `release-1.18.tar.gz` | ![jungle](docs/examples/jungle.svg)<br>Jungle · `release-1.1.tar.gz` |
+| ![candy](docs/examples/candy.svg)<br>Candy · `release-1.23.tar.gz` | ![mint](docs/examples/mint.svg)<br>Mint · `release-1.6.tar.gz` | ![ember](docs/examples/ember.svg)<br>Ember · `release-1.13.tar.gz` | ![jungle](docs/examples/jungle.svg)<br>Jungle · `release-1.1.tar.gz` |
 
 Each example is the real SHA-256 badge of the file name shown.
 
@@ -92,15 +92,15 @@ checksum; the spoken backup below encodes the checksum itself.
 | 16–17 | Frame style | single, double, dashed or corner brackets |
 | 18–19 | Bar style | segmented, solid, lollipops or chevrons |
 | 20–23 | Frame color | frame and dividers |
-| 24–27 | Visor color | visor, lit windows or eyes |
+| 24–27 | Visor color | visor, lit windows, eyes, blooms or fabric |
 | 28–31 | Trim color | outlines, roofs, doors, mouths, marks and decal |
 | 32–35 | Accent color | signal bars and handle effects |
-| 36–41 | Subject | 8 android heads, 12 buildings, 12 animals, 16 vehicles or 16 plants |
-| 42–44 | Subject detail A | visor, windows, eyes, vehicle windows or blooms (8 each) |
-| 45–47 | Subject detail B | mouth, door, nose, trail or pot (8 each) |
-| 48–49 | Subject detail C | head mod, roof add-on, accessory, vehicle add-on or visitor (4 each) |
-| 50–53 | Subject symbol | decal, sign, forehead mark, emblem or pot label (16 symbols) |
-| 54–55 | Subject detail D | cheeks, grounds, markings, livery or ground extras (4 each) |
+| 36–41 | Subject | 8 android heads, 12 buildings, 12 animals, 12 vehicles, 12 plants or 8 furniture |
+| 42–44 | Subject detail A | visor, windows, eyes, vehicle windows, blooms or fabric (8 each) |
+| 45–47 | Subject detail B | mouth, door, nose, trail, pot or companion object (8 each) |
+| 48–49 | Subject detail C | head mod, roof add-on, accessory, vehicle add-on, visitor or wall item (4 each) |
+| 50–53 | Subject symbol | decal, sign, forehead mark, emblem, pot label or plaque (16 symbols) |
+| 54–55 | Subject detail D | cheeks, grounds, markings, livery, ground extras or floor (4 each) |
 | 56–59 | Status word | one of 16 words |
 | 60–63 | Status color | status chip |
 | 64–66 | Handle style | clean, split, vertical split, slice, inverted, underline, boxed or shadow |
@@ -126,26 +126,28 @@ whole byte through color, shape and fill instead of many tiny marks. Every badge
 - **hex pairs**: two hex digits on a seven-segment display
 - **arrows**: 8 directions × 16 colors × solid or outline
 
-**Subjects.** Bits 36–41 pick the portrait from 64 subjects in five kinds:
+**Subjects.** Bits 36–41 pick the portrait from 64 subjects in six kinds:
 
 - 8 android heads: round, angular, boxy, dome, capsule, bucket, shield, skull
 - 12 buildings: house, tower, skyscraper, castle, pagoda, observatory, lighthouse, factory, chapel,
   temple, windmill, needle tower
 - 12 animals: cat, dog, bear, rabbit, fox, owl, mouse, pig, frog, penguin, lion, panda
-- 16 vehicles: car, pickup truck, bus, race car, motorcycle, bicycle, locomotive, tram, sailboat,
-  speedboat, submarine, airplane, helicopter, hot-air balloon, rocket, flying saucer
-- 16 plants: pine, oak, palm, cactus, tulip, sunflower, daisies, mushroom, bonsai, fern, bamboo,
-  succulent, cherry blossom, willow, wheat, lotus
+- 12 vehicles: car, bus, motorcycle, bicycle, locomotive, sailboat, submarine, airplane, helicopter,
+  hot-air balloon, rocket, flying saucer
+- 12 plants: pine, oak, palm, cactus, tulip, sunflower, mushroom, bonsai, fern, bamboo, cherry
+  blossom, lotus
+- 8 pieces of furniture: armchair, sofa, bed, bookshelf, grandfather clock, floor lamp, piano,
+  bathtub
 
 The five subject detail fields mean different things for each kind:
 
-| Field | Android head | Building | Animal | Vehicle | Plant |
-|---|---|---|---|---|---|
-| Detail A (8) | visor | window pattern | eye style | window pattern | blooms: berries, blossoms, stars, hearts, apples, lemons, sparkles, bells |
-| Detail B (8) | mouth | door | nose and mouth | trail: smoke, flames, speed lines, sparks, bubbles, vapor, stars, zigzag | pot: terracotta, planter, bowl, vase, crate, mound, jar, teacup |
-| Detail C (4) | antenna, ear discs, cable, fin | antenna, flag, chimney, satellite dish | collar, bow, party hat, scarf | antenna, flag, siren, fin | butterfly, bee, bird, ladybug |
-| Symbol (16) | forehead decal | sign plaque | forehead mark | emblem | pot label |
-| Detail D (4) | stripes, dots, circuit, bolts | steps, fence, bushes, lamp posts | whiskers, spots, blush, stripes | stripe, double stripe, checker band, zigzag stripe | grass tufts, pebbles, fallen petals, seedlings |
+| Field | Android head | Building | Animal | Vehicle | Plant | Furniture |
+|---|---|---|---|---|---|---|
+| Detail A (8) | visor | window pattern | eye style | window pattern | blooms: berries, blossoms, stars, hearts, apples, lemons, sparkles, bells | fabric: stripes, bands, polka dots, checks, diamonds, zigzag, plaid, scales |
+| Detail B (8) | mouth | door | nose and mouth | trail: smoke, flames, speed lines, sparks, bubbles, vapor, stars, zigzag | pot: terracotta, planter, bowl, vase, crate, mound, jar, teacup | companion: cat, book stack, potted plant, teapot, radio, globe, candle, gift box |
+| Detail C (4) | antenna, ear discs, cable, fin | antenna, flag, chimney, satellite dish | collar, bow, bow tie, scarf | antenna, flag, siren, fin | butterfly, bee, bird, ladybug | picture frame, round mirror, window, bunting |
+| Symbol (16) | forehead decal | sign plaque | forehead mark | emblem | pot label | plaque |
+| Detail D (4) | stripes, dots, circuit, bolts | steps, fence, bushes, lamp posts | whiskers, spots, blush, stripes | stripe, double stripe, checker band, zigzag stripe | grass tufts, pebbles, fallen petals, seedlings | oval rug, floorboards, checker tiles, fringed rug |
 
 **Themes** set the background, its pattern, the fonts and the 16 colors that every color feature
 indexes into. The badge bits then pick one of 8 hues (red, orange, yellow, green, cyan, blue,

@@ -111,7 +111,7 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
   <header>
     <span class="eyebrow">Version 0.1 · in development</span>
     <h1>Netrunner ID Lab</h1>
-    <p class="lede">Development version 0.1. The checksum is mixed through SHA-256 before drawing, so changing a single bit of the input changes the whole badge. The badge bits then pick one of sixteen themes, one of eight layouts, a face, colors, a two-word handle, signal bars, colored character chips and ten detail cells. This page mirrors the Python package in <a href="https://github.com/xTheBearx/visual256" target="_blank" rel="noopener">xTheBearx/visual256</a>.</p>
+    <p class="lede">Development version 0.1. The checksum is mixed through SHA-256 before drawing, so changing a single bit of the input changes the whole badge. The badge bits then pick one of eight themes, one of eight layouts, a portrait, colors, a two-word handle, signal bars, colored character chips and ten detail cells. This page mirrors the Python package in <a href="https://github.com/xTheBearx/visual256" target="_blank" rel="noopener">xTheBearx/visual256</a>.</p>
   </header>
 
   <section class="panel" aria-label="Input">
@@ -153,7 +153,7 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
   <section>
     <div class="sec-head">
       <h2>Sixty-four subjects</h2>
-      <p class="note">Bits 36–41 pick the portrait: 8 android heads, 12 buildings, 12 animals, 16 vehicles or 16 plants. The same four detail fields and symbol mean something that fits each kind: a visor, windows, eyes, vehicle windows or blooms; a mouth, door, nose, exhaust trail or pot; a head mod, roof add-on, accessory, vehicle add-on or visiting creature; cheek marks, ground details, markings, a livery stripe or ground extras.</p>
+      <p class="note">Bits 36–41 pick the portrait: 8 android heads, 12 buildings, 12 animals, 12 vehicles, 12 plants or 8 pieces of furniture. The same four detail fields and symbol mean something that fits each kind: a visor, windows, eyes, vehicle windows, blooms or fabric; a mouth, door, nose, exhaust trail, pot or companion object; a head mod, roof add-on, accessory, vehicle add-on, visiting creature or wall item; cheek marks, ground details, markings, a livery stripe, ground extras or floor.</p>
     </div>
     <div class="panel"><div class="layouts" id="subjects"></div></div>
   </section>
@@ -237,7 +237,7 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
       <div style="display:flex;flex-direction:column;gap:12px">
         <h3>Open questions</h3>
         <ul>
-          <li><strong>Theme recognition.</strong> Are all sixteen easy to tell apart at true size? Any pair that looks alike weakens the strongest feature.</li>
+          <li><strong>Theme recognition.</strong> Are all eight easy to tell apart at true size? Any pair that looks alike weakens the strongest feature.</li>
           <li><strong>Fingerprint, not encoding.</strong> Mixing means the picture can no longer be read back into the checksum. The 24-word backup still can. Is that the right trade?</li>
           <li><strong>Release.</strong> Everything stays at version 0.1 until you decide to publish a release.</li>
         </ul>
@@ -267,14 +267,18 @@ const DOORS=['plain door','arched door','double door','round door','garage door'
 const ROOFS=['antenna','flag','chimney','satellite dish'], GROUNDS=['steps','fence','bushes','lamp posts'];
 const EYES=['dots','glossy','sleepy','happy','stern','slit','sparkle','hearts'];
 const SNOUTS=['button nose','round nose','heart nose','open mouth','tongue out','buck teeth','cat mouth','fangs'];
-const ACCESSORIES=['collar and tag','bow','party hat','scarf'], MARKINGS=['whiskers','spots','blush','stripes'];
-const VEHICLES=['car','pickup truck','bus','race car','motorcycle','bicycle','locomotive','tram','sailboat','speedboat','submarine','airplane','helicopter','hot-air balloon','rocket','flying saucer'];
-const PLANTS=['pine','oak','palm','cactus','tulip','sunflower','daisies','mushroom','bonsai','fern','bamboo','succulent','cherry blossom','willow','wheat','lotus'];
+const ACCESSORIES=['collar and tag','bow','bow tie','scarf'], MARKINGS=['whiskers','spots','blush','stripes'];
+const VEHICLES=['car','bus','motorcycle','bicycle','locomotive','sailboat','submarine','airplane','helicopter','hot-air balloon','rocket','flying saucer'];
+const PLANTS=['pine','oak','palm','cactus','tulip','sunflower','mushroom','bonsai','fern','bamboo','cherry blossom','lotus'];
+const FURNITURE=['armchair','sofa','bed','bookshelf','grandfather clock','floor lamp','piano','bathtub'];
 const TRAILS=['smoke puffs','flames','speed lines','sparks','bubbles','vapor trail','stars','zigzag'], VEHICLE_MODS=['antenna','flag','siren','fin'], LIVERIES=['stripe','double stripe','checker band','zigzag stripe'];
 const BLOOMS=['berries','blossoms','stars','hearts','apples','lemons','sparkles','bells'], POTS=['terracotta pot','square planter','round bowl','tall vase','wooden crate','soil mound','glass jar','teacup'];
 const VISITORS=['butterfly','bee','bird','ladybug'], GROUND_EXTRAS=['grass tufts','pebbles','fallen petals','seedlings'];
-const kindOf = s => s < 8 ? 'face' : s < 20 ? 'building' : s < 32 ? 'animal' : s < 48 ? 'vehicle' : 'plant';
-const pickKind = (d, face, building, animal, vehicle, plant) => ({face, building, animal, vehicle, plant})[kindOf(d.subject)];
+const FABRICS=['stripes','bands','polka dots','checks','diamonds','zigzag','plaid','scales'], COMPANIONS=['cat','book stack','potted plant','teapot','radio','globe','candle','gift box'];
+const WALL_ITEMS=['picture frame','round mirror','window','bunting'], FLOORS=['oval rug','floorboards','checker tiles','fringed rug'];
+const SUBJECT_START = {face:0, building:8, animal:20, vehicle:32, plant:44, furniture:56};
+const kindOf = s => s < 8 ? 'face' : s < 20 ? 'building' : s < 32 ? 'animal' : s < 44 ? 'vehicle' : s < 56 ? 'plant' : 'furniture';
+const pickKind = (d, face, building, animal, vehicle, plant, furniture) => ({face, building, animal, vehicle, plant, furniture})[kindOf(d.subject)];
 const SYM = ['circle','square','triangle','diamond','star','plus','saltire','heart','crescent','sun','drop','bolt','hexagon','ring','arrow','clover'];
 const STATUS=['ONLINE','GHOST','ROGUE','SYNCED','ROOTED','DARK','LIVE','BURNED','CLEAN','HOT','ZERO','LOCKED','SPOOFED','MIRROR','IDLE','VOID'];
 const LAYOUTS=['Face left, stacked','Face right, stacked','Face center, bars on top','Face left, grid','Face right, grid','Banner on top, face left','Banner at bottom, face right','Face center, detail on top'];
@@ -283,7 +287,7 @@ const FRAME_STYLES=['single','double','dashed','corner brackets'];
 const DISPLAYS=['tiles','gems','hex pairs','arrows'];
 const ARROW_DIRS=['up','up-right','right','down-right','down','down-left','left','up-left'];
 const HEADSHAPES=['round','angular','boxy','dome','capsule','bucket','shield','skull'];
-const SUBJECTS = [...HEADSHAPES.map(h => `android, ${h} head`), ...BUILDINGS, ...ANIMALS, ...VEHICLES, ...PLANTS];
+const SUBJECTS = [...HEADSHAPES.map(h => `android, ${h} head`), ...BUILDINGS, ...ANIMALS, ...VEHICLES, ...PLANTS, ...FURNITURE];
 const VISORS=['band','twin-lens','slit','mono-eye','goggles','chevron','triple-lens','grid'];
 const MOUTHS=['vents','teeth','dots','LED','zigzag','speaker','fangs','stitches'];
 const MODS=['antenna','ear discs','cable','fin'];
@@ -310,15 +314,15 @@ const FIELDS = [
   ['framestyle',2,'Frame style','single · double · dashed · brackets', d => FRAME_STYLES[d.framestyle]],
   ['barstyle',2,'Bar style','segmented · solid · lollipops · chevrons', d => BAR_STYLES[d.barstyle]],
   ['frame',4,'Frame color','frame and dividers', (d,t) => tname(t, d.frame)],
-  ['visor',4,'Visor color','visor, lit windows or eyes', (d,t) => tname(t, d.visor)],
+  ['visor',4,'Visor color','visor, lit windows, eyes, blooms or fabric', (d,t) => tname(t, d.visor)],
   ['trim',4,'Trim color','outlines, roofs, doors, mouths, marks, decal', (d,t) => tname(t, d.trim)],
   ['accent',4,'Accent color','signal bars and handle effects', (d,t) => tname(t, d.accent)],
-  ['subject',6,'Subject','8 android heads, 12 buildings, 12 animals, 16 vehicles or 16 plants', d => SUBJECTS[d.subject]],
-  ['vstyle',3,'Subject detail A','visor, windows, eyes, vehicle windows or blooms', d => pickKind(d, VISORS, WINDOWS, EYES, WINDOWS, BLOOMS)[d.vstyle]],
-  ['grille',3,'Subject detail B','mouth, door, nose, trail or pot', d => pickKind(d, MOUTHS, DOORS, SNOUTS, TRAILS, POTS)[d.grille]],
-  ['mod',2,'Subject detail C','head mod, roof add-on, accessory, vehicle add-on or visitor', d => pickKind(d, MODS, ROOFS, ACCESSORIES, VEHICLE_MODS, VISITORS)[d.mod]],
-  ['decal',4,'Subject symbol','decal, sign, mark, emblem or pot label', d => SYM[d.decal]],
-  ['cheek',2,'Subject detail D','cheeks, grounds, markings, livery or ground extras', d => pickKind(d, CHEEKS, GROUNDS, MARKINGS, LIVERIES, GROUND_EXTRAS)[d.cheek]],
+  ['subject',6,'Subject','8 android heads, 12 buildings, 12 animals, 12 vehicles, 12 plants or 8 furniture', d => SUBJECTS[d.subject]],
+  ['vstyle',3,'Subject detail A','visor, windows, eyes, vehicle windows, blooms or fabric', d => pickKind(d, VISORS, WINDOWS, EYES, WINDOWS, BLOOMS, FABRICS)[d.vstyle]],
+  ['grille',3,'Subject detail B','mouth, door, nose, trail, pot or companion object', d => pickKind(d, MOUTHS, DOORS, SNOUTS, TRAILS, POTS, COMPANIONS)[d.grille]],
+  ['mod',2,'Subject detail C','head mod, roof add-on, accessory, vehicle add-on, visitor or wall item', d => pickKind(d, MODS, ROOFS, ACCESSORIES, VEHICLE_MODS, VISITORS, WALL_ITEMS)[d.mod]],
+  ['decal',4,'Subject symbol','decal, sign, mark, emblem, pot label or plaque', d => SYM[d.decal]],
+  ['cheek',2,'Subject detail D','cheeks, grounds, markings, livery, ground extras or floor', d => pickKind(d, CHEEKS, GROUNDS, MARKINGS, LIVERIES, GROUND_EXTRAS, FLOORS)[d.cheek]],
   ['status',4,'Status word','16 words', d => STATUS[d.status]],
   ['scolor',4,'Status color','status chip', (d,t) => tname(t, d.scolor)],
   ['hstyle',3,'Handle style','8 text treatments', d => HSTYLES[d.hstyle]],
@@ -490,14 +494,15 @@ function drawFrame(ctx, d, fr, fcol, glow, noglow){
   noglow();
   if(st === 1){ ctx.beginPath(); poly(ctx, framePoly(d.corners, 1.7)); ctx.lineWidth = .35; ctx.stroke(); }
 }
-/* the portrait: an android head, a building or an animal, then the status chip (mirrors draw.draw_face) */
+/* the portrait (android head, building, animal, vehicle, plant or furniture), then the status chip (mirrors draw.draw_face) */
 function drawFace(ctx, d, hx, glow, noglow, vis, trim, t){
   const k = kindOf(d.subject);
   if(k === 'face') drawAndroid(ctx, d, hx, glow, noglow, vis, trim, t);
   else if(k === 'building') drawBuilding(ctx, d, hx, glow, noglow, vis, trim, t);
   else if(k === 'animal') drawAnimal(ctx, d, hx, glow, noglow, vis, trim, t);
   else if(k === 'vehicle') drawVehicle(ctx, d, hx, glow, noglow, vis, trim, t);
-  else drawPlant(ctx, d, hx, glow, noglow, vis, trim, t);
+  else if(k === 'plant') drawPlant(ctx, d, hx, glow, noglow, vis, trim, t);
+  else drawFurniture(ctx, d, hx, glow, noglow, vis, trim, t);
   ctx.lineCap = 'butt'; ctx.lineJoin = 'miter';
   drawStatus(ctx, d, hx, glow, noglow, t);
 }
@@ -623,23 +628,19 @@ function drawGround(ctx, style, c, door, vis, trim, glow, noglow, t){
   else { for(const s of [-1,1]){ ctx.moveTo(c+s*14, 50); ctx.lineTo(c+s*14, 43); } ctx.stroke(); ctx.beginPath(); for(const s of [-1,1]){ ctx.moveTo(c+s*14+1, 42.4); ctx.arc(c+s*14, 42.4, 1, 0, TAU); } glow(vis,1); ctx.fillStyle = vis; ctx.fill(); noglow(); }
 }
 /* ---------- vehicles (mirror visual256/subjects.py) ---------- */
-function vehicleSpec(v, c){
+function vehicleSpec(v, c){  // v: vehicle name
   const L = [-1, 0];
-  if(v === 0) return { body:[[[c-15,44],[c-15,38],[c-10,37],[c-6,31],[c+5,31],[c+10,37],[c+15,38],[c+15,44]]], wheels:[[c-9,44.5,3],[c+9,44.5,3]], win:[c-5.5,32.5,c+4.5,36.5], band:[c-15,39,c+15,41.5], emblem:[c+12,41.6], top:[c,31], trail:[c-15,41,L] };
-  if(v === 1) return { body:[[[c-15,44],[c-15,36],[c-2,36],[c-2,30],[c+7,30],[c+11,36],[c+15,37],[c+15,44]]], wheels:[[c-10,44.5,3],[c+9,44.5,3]], win:[c,31.5,c+6.5,35.5], band:[c-15,38.5,c+15,41], emblem:[c-8.5,33.5], top:[c+2,30], trail:[c-15,40,L] };
-  if(v === 2) return { body:[[[c-16,45],[c-16,28],[c+15,28],[c+16,31],[c+16,45]]], wheels:[[c-10,45.5,2.8],[c+10,45.5,2.8]], win:[c-14,30,c+14,35.5], band:[c-16,38,c+16,40.5], emblem:[c+12.5,42.4], top:[c-6,28], trail:[c-16,43,L] };
-  if(v === 3) return { body:[[[c-16,44],[c-16,40],[c-8,38],[c-4,35],[c+3,35],[c+6,38],[c+16,40],[c+16,44]],[[c-16,40],[c-16,34],[c-12,34],[c-12,38.6]]], wheels:[[c-10,44.5,3.2],[c+10,44.5,3.2]], win:[c-3.5,35.6,c+2.5,38], band:[c-16,40.6,c+16,42.6], emblem:[c+2,41.6], top:[c-14,34], trail:[c-16,42,L] };
-  if(v === 4) return { body:[[[c-6,40],[c-2,35],[c+5,35],[c+8,40],[c+3,42.5],[c-4,42.5]]], wheels:[[c-9.5,44,4.2],[c+9.5,44,4.2]], win:[c+5.5,30.5,c+9.5,35], band:[c-6,38,c+8,40], emblem:[c+.5,39], top:[c+7.5,30.5], trail:[c-14,43,L], bars:[[c+5,35],[c+9.5,44]] };
-  if(v === 5) return { body:[[[c-6,43],[c-1,35.5],[c+5.5,35.5],[c+2.5,43]],[[c+7,31],[c+13,31],[c+12,36],[c+8,36]]], wheels:[[c-9,44,5],[c+9,44,5]], rings:true, win:[c+7.6,31.6,c+12.4,35.4], band:[c-6,38,c+6,40], emblem:[c+1,39.4], top:[c-3,34], trail:[c-15,44,L], bars:[[c-9,44],[c-3.5,34.5],[c+6,33],[c+9,44]] };
-  if(v === 6) return { body:[[[c-16,45],[c-16,30],[c-8,30],[c-8,26],[c-2,26],[c-2,33],[c+10,33],[c+16,40],[c+16,45]],[[c+5,27],[c+8,27],[c+8,33],[c+5,33]]], wheels:[[c-11,45.5,3],[c-4,45.5,3],[c+4,45.5,3],[c+11,45.5,2.4]], win:[c-14.5,31.5,c-9.5,36], band:[c-16,39,c+16,41], emblem:[c+2,36.5], top:[c-12,30], trail:[c+6.5,26,[0,-1]] };
-  if(v === 7) return { body:[[[c-15,44],[c-15,27],[c+15,27],[c+15,44]]], wheels:[[c-9,45,2.4],[c+9,45,2.4]], win:[c-13,29,c+13,35], band:[c-15,37.5,c+15,40], emblem:[c,42], top:[c+9,27], trail:[c-15,41,L], bars:[[c-4,27],[c,21],[c+4,27]] };
-  if(v === 8) return { body:[[[c-15,40],[c+15,40],[c+11,46],[c-11,46]],[[c+1,13],[c+1,38],[c+13,38]],[[c-1,16],[c-1,38],[c-11,38]]], wheels:[], win:[c-9,41.4,c+9,44.6], band:[c-11,30,c+13,32.4], emblem:[c+5,34.5], top:[c,12], trail:[c-15,44,L], bars:[[c,40],[c,12]], water:true };
-  if(v === 9) return { body:[[[c-16,38],[c+10,38],[c+16,41],[c+12,46],[c-14,46]],[[c-4,38],[c,33],[c+6,33],[c+8,38]]], wheels:[], win:[c+.5,33.8,c+6,37.2], band:[c-16,41,c+16,43], emblem:[c-9,40], top:[c+3,33], trail:[c-16,44,L], water:true };
-  if(v === 10) return { body:[[[c-3,27],[c+5,27],[c+5,33],[c-3,33]]], hull:[c,38,15,6.5], wheels:[], win:[c-9,36,c+9,39.5], band:[c-15,40.5,c+15,42.5], emblem:[c+1,30], top:[c+3,27], trail:[c-15,38,L], bars:[[c-1,27],[c-1,22],[c+2,22]] };
-  if(v === 11) return { body:[[[c-15,33],[c-13,24],[c-9,33]],[[c-3,36],[c+5,36],[c+1,44],[c-5,44]]], fuselage:[c-15,33,30,6], wheels:[], win:[c-7,34.2,c+11,36.4], band:[c-15,37.2,c+15,38.6], emblem:[c-12,29.5], top:[c+4,33], trail:[c-15,36,L] };
-  if(v === 12) return { body:[[[c-6,34],[c-16,33],[c-16,35.5],[c-6,37.5]]], cabin:[c+3,36,9,6], wheels:[], win:[c+4,32,c+10.5,36.5], band:[c-6,38,c+12,40], emblem:[c-1.5,35.6], top:[c+9,30.5], trail:[c-16,38,L], bars:[[c-12,28],[c+16,28],[c+3,28],[c+3,30]], skids:true };
-  if(v === 13) return { body:[[[c-4,42],[c+4,42],[c+4,47],[c-4,47]]], envelope:[c,22,12,13], wheels:[], win:[c-8,17,c+8,25], band:[c-12,26,c+12,29], emblem:[c,12.5], top:[c+5,10.5], trail:[c,48,[0,1]], bars:[[c-9,31],[c-4,42],[c+9,31],[c+4,42]] };
-  if(v === 14) return { body:[[[c,6],[c+5,14],[c+5,38],[c-5,38],[c-5,14]],[[c-5,30],[c-10,40],[c-5,38]],[[c+5,30],[c+10,40],[c+5,38]],[[c-3,38],[c+3,38],[c+3,41],[c-3,41]]], wheels:[], win:[c-2.5,15,c+2.5,26], band:[c-5,28,c+5,30.5], emblem:[c,33.6], top:[c+4,14], trail:[c,42,[0,1]] };
+  if(v === 'car') return { body:[[[c-15,44],[c-15,38],[c-10,37],[c-6,31],[c+5,31],[c+10,37],[c+15,38],[c+15,44]]], wheels:[[c-9,44.5,3],[c+9,44.5,3]], win:[c-5.5,32.5,c+4.5,36.5], band:[c-15,39,c+15,41.5], emblem:[c+12,41.6], top:[c,31], trail:[c-15,41,L] };
+  if(v === 'bus') return { body:[[[c-16,45],[c-16,28],[c+15,28],[c+16,31],[c+16,45]]], wheels:[[c-10,45.5,2.8],[c+10,45.5,2.8]], win:[c-14,30,c+14,35.5], band:[c-16,38,c+16,40.5], emblem:[c+12.5,42.4], top:[c-6,28], trail:[c-16,43,L] };
+  if(v === 'motorcycle') return { body:[[[c-6,40],[c-2,35],[c+5,35],[c+8,40],[c+3,42.5],[c-4,42.5]]], wheels:[[c-9.5,44,4.2],[c+9.5,44,4.2]], win:[c+5.5,30.5,c+9.5,35], band:[c-6,38,c+8,40], emblem:[c+.5,39], top:[c+7.5,30.5], trail:[c-14,43,L], bars:[[c+5,35],[c+9.5,44]] };
+  if(v === 'bicycle') return { body:[[[c-6,43],[c-1,35.5],[c+5.5,35.5],[c+2.5,43]],[[c+7,31],[c+13,31],[c+12,36],[c+8,36]]], wheels:[[c-9,44,5],[c+9,44,5]], rings:true, win:[c+7.6,31.6,c+12.4,35.4], band:[c-6,38,c+6,40], emblem:[c+1,39.4], top:[c-3,34], trail:[c-15,44,L], bars:[[c-9,44],[c-3.5,34.5],[c+6,33],[c+9,44]] };
+  if(v === 'locomotive') return { body:[[[c-16,45],[c-16,30],[c-8,30],[c-8,26],[c-2,26],[c-2,33],[c+10,33],[c+16,40],[c+16,45]],[[c+5,27],[c+8,27],[c+8,33],[c+5,33]]], wheels:[[c-11,45.5,3],[c-4,45.5,3],[c+4,45.5,3],[c+11,45.5,2.4]], win:[c-14.5,31.5,c-9.5,36], band:[c-16,39,c+16,41], emblem:[c+2,36.5], top:[c-12,30], trail:[c+6.5,26,[0,-1]] };
+  if(v === 'sailboat') return { body:[[[c-15,40],[c+15,40],[c+11,46],[c-11,46]],[[c+1,13],[c+1,38],[c+13,38]],[[c-1,16],[c-1,38],[c-11,38]]], wheels:[], win:[c-9,41.4,c+9,44.6], band:[c-11,30,c+13,32.4], emblem:[c+5,34.5], top:[c,12], trail:[c-15,44,L], bars:[[c,40],[c,12]], water:true };
+  if(v === 'submarine') return { body:[[[c-3,27],[c+5,27],[c+5,33],[c-3,33]]], hull:[c,38,15,6.5], wheels:[], win:[c-9,36,c+9,39.5], band:[c-15,40.5,c+15,42.5], emblem:[c+1,30], top:[c+3,27], trail:[c-15,38,L], bars:[[c-1,27],[c-1,22],[c+2,22]] };
+  if(v === 'airplane') return { body:[[[c-15,33],[c-13,24],[c-9,33]],[[c-3,36],[c+5,36],[c+1,44],[c-5,44]]], fuselage:[c-15,33,30,6], wheels:[], win:[c-7,34.2,c+11,36.4], band:[c-15,37.2,c+15,38.6], emblem:[c-12,29.5], top:[c+4,33], trail:[c-15,36,L] };
+  if(v === 'helicopter') return { body:[[[c-6,34],[c-16,33],[c-16,35.5],[c-6,37.5]]], cabin:[c+3,36,9,6], wheels:[], win:[c+4,32,c+10.5,36.5], band:[c-6,38,c+12,40], emblem:[c-1.5,35.6], top:[c+9,30.5], trail:[c-16,38,L], bars:[[c-12,28],[c+16,28],[c+3,28],[c+3,30]], skids:true };
+  if(v === 'hot-air balloon') return { body:[[[c-4,42],[c+4,42],[c+4,47],[c-4,47]]], envelope:[c,22,12,13], wheels:[], win:[c-8,17,c+8,25], band:[c-12,26,c+12,29], emblem:[c,12.5], top:[c+5,10.5], trail:[c,48,[0,1]], bars:[[c-9,31],[c-4,42],[c+9,31],[c+4,42]] };
+  if(v === 'rocket') return { body:[[[c,6],[c+5,14],[c+5,38],[c-5,38],[c-5,14]],[[c-5,30],[c-10,40],[c-5,38]],[[c+5,30],[c+10,40],[c+5,38]],[[c-3,38],[c+3,38],[c+3,41],[c-3,41]]], wheels:[], win:[c-2.5,15,c+2.5,26], band:[c-5,28,c+5,30.5], emblem:[c,33.6], top:[c+4,14], trail:[c,42,[0,1]] };
   return { body:[], saucer:[c,34,15,4.5], dome:[c,32,7], wheels:[], win:[c-12,33.6,c+12,35.6], band:[c-15,35.8,c+15,37.6], emblem:[c,28.4], top:[c+4,26], trail:[c,40,[0,1]], bars:[[c-8,37.5],[c-11,44],[c+8,37.5],[c+11,44]] };
 }
 function vehicleBodyPath(ctx, sp){
@@ -651,16 +652,16 @@ function vehicleBodyPath(ctx, sp){
   if(sp.saucer){ let [x,y,r] = sp.dome; ctx.moveTo(x-r, y); ctx.arc(x, y, r, Math.PI, TAU); ctx.closePath(); const [sx,sy,rx,ry] = sp.saucer; ctx.moveTo(sx+rx, sy); ctx.ellipse(sx, sy, rx, ry, 0, 0, TAU); }
 }
 function drawVehicle(ctx, d, c, glow, noglow, vis, trim, t){
-  const v = d.subject - 32, sp = vehicleSpec(v, c);
+  const v = VEHICLES[d.subject - SUBJECT_START.vehicle], sp = vehicleSpec(v, c);
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
   drawTrail(ctx, d.grille, ...sp.trail, vis, trim, glow, noglow);
   if(sp.water){ ctx.beginPath(); for(let k=0;k<9;k++){ const x = c-16+k*4, y = 47.5 + (k % 2 ? .7 : -.7); k ? ctx.lineTo(x,y) : ctx.moveTo(x,y); } ctx.lineWidth = .5; ctx.strokeStyle = trim; ctx.stroke(); }
   const bars = sp.bars;
-  if(bars && [4,5,7,8,10,12,13,15].includes(v)){
+  if(bars){
     ctx.beginPath();
-    if(v === 12 || v === 13 || v === 15){ ctx.moveTo(...bars[0]); ctx.lineTo(...bars[1]); ctx.moveTo(...bars[2]); ctx.lineTo(...bars[3]); }
+    if(v === 'helicopter' || v === 'hot-air balloon' || v === 'flying saucer'){ ctx.moveTo(...bars[0]); ctx.lineTo(...bars[1]); ctx.moveTo(...bars[2]); ctx.lineTo(...bars[3]); }
     else bars.forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p));
-    ctx.lineWidth = v !== 12 ? .8 : 1; ctx.strokeStyle = trim; ctx.stroke();
+    ctx.lineWidth = v === 'helicopter' ? 1 : .8; ctx.strokeStyle = trim; ctx.stroke();
   }
   if(sp.skids){ ctx.beginPath(); ctx.moveTo(c-6,45); ctx.lineTo(c+12,45); ctx.moveTo(c-1,41.5); ctx.lineTo(c-2,45); ctx.moveTo(c+7,41.5); ctx.lineTo(c+8,45); ctx.lineWidth = .7; ctx.stroke(); ctx.beginPath(); ctx.arc(c-16, 34.2, 2, 0, TAU); ctx.lineWidth = .5; ctx.stroke(); }
   vehicleBodyPath(ctx, sp); ctx.fillStyle = t.panel; ctx.fill(); glow(trim,1); ctx.lineWidth = .7; ctx.strokeStyle = trim; ctx.stroke(); noglow();
@@ -703,28 +704,20 @@ function drawVehicleMod(ctx, style, tx, ty, vis, trim, glow, noglow){
   else { poly(ctx, [[tx-2, ty],[tx+1.2, ty],[tx-1.4, ty-4.2]]); ctx.fillStyle = trim; ctx.fill(); }
 }
 /* ---------- plants (mirror visual256/subjects.py) ---------- */
-function plantSpec(p, c){
+function plantSpec(p, c){  // p: plant name
   let fol = [], stems = [], blooms = [], extra = [];
   const ang = n => Array.from({length:n}, (_, k) => k);
-  if(p === 0){ fol = [['poly',[[c-10,38],[c+10,38],[c,26]]],['poly',[[c-8,31],[c+8,31],[c,19]]],['poly',[[c-6,24],[c+6,24],[c,12]]]]; stems = [['rect',[c-1.2,38,2.4,2]]]; blooms = [[c-5,35.5],[c+4,34],[c-2,28.5],[c+3,22.5],[c-1,17]]; }
-  else if(p === 1){ fol = [['circle',[c,21,8.5]],['circle',[c-6.5,26,6]],['circle',[c+6.5,26,6]]]; stems = [['rect',[c-1.5,30,3,10]]]; blooms = [[c-4.5,18.5],[c+4,17.5],[c,25],[c+8,26],[c-8,26.5]]; }
-  else if(p === 2){ fol = [-2.8,-2.0,-1.2,-.4,.4].map(a => ['ellipse',[c+2+6*Math.cos(a), 17+4*Math.sin(a), 7, 1.8, a]]); stems = [['curve',[[c-1,40],[c-2,30],[c+2,17]],2]]; blooms = [[c+.6,19.6],[c+3.4,19.6],[c+2,21.6]]; }
-  else if(p === 3){ fol = [['rr',[c-3,14,6,26,3]],['rr',[c-9,21,3,9,1.5]],['rr',[c-9,27.5,7,3,1.5]],['rr',[c+6,17,3,11,1.5]],['rr',[c+2,25.5,7,3,1.5]]]; blooms = [[c,14],[c-7.5,21],[c+7.5,17],[c,24.5],[c,33]]; }
-  else if(p === 4){ fol = [['poly',[[c-4,15],[c-4,21],[c,24],[c+4,21],[c+4,15],[c+2,17.5],[c,14],[c-2,17.5]]],['ellipse',[c-3.4,33,1.8,6,.5]],['ellipse',[c+3.4,31,1.8,6,-.5]]]; stems = [['line',[[c,40],[c,22]],.9]]; blooms = [[c-8,22],[c+8,20],[c-7,30],[c+8,31]]; }
-  else if(p === 5){ fol = ang(12).map(k => { const a = k*Math.PI/6; return ['ellipse',[c+5.2*Math.cos(a), 16+5.2*Math.sin(a), 2.6, 1.1, a]]; }); fol.push(['ellipse',[c-3.4,32,1.8,5,.6]],['ellipse',[c+3.4,29,1.8,5,-.6]]); stems = [['line',[[c,40],[c,20]],.9]]; blooms = [[c,16],[c-1.2,15],[c+1.2,17]]; extra = [['center',[c,16,3]]]; }
-  else if(p === 6){ for(const [fx, fy] of [[c-5,21],[c+4.5,17],[c+.5,27]]) for(const k of ang(6)){ const a = k*TAU/6; fol.push(['circle',[fx+2.2*Math.cos(a), fy+2.2*Math.sin(a), 1.3]]); } stems = [['line',[[c-5,21],[c-2,40]],.7],['line',[[c+4.5,17],[c+1,40]],.7],['line',[[c+.5,27],[c,40]],.7]]; blooms = [[c-5,21],[c+4.5,17],[c+.5,27]]; }
-  else if(p === 7){ fol = [['halfellipse',[c,30,12,10]]]; stems = [['rr',[c-3,30,6,10,1.5]]]; blooms = [[c-6,25.5],[c,23],[c+6,26],[c-3,28.4],[c+3,28.4]]; }
-  else if(p === 8){ fol = [['ellipse',[c-6,24,6,3,0]],['ellipse',[c+5,18,7,3.5,0]],['ellipse',[c+1,30,5,2.5,0]]]; stems = [['curve',[[c,40],[c-4,33],[c+3,26],[c-2,20],[c+4,18]],1.8]]; blooms = [[c-8,23.5],[c-4,23],[c+3,17],[c+8,18],[c+2,29.5]]; }
-  else if(p === 9){ fol = [-1.1,-.55,0,.55,1.1].map(a => ['ellipse',[c+10*Math.sin(a), 40-13*Math.cos(a)-2, 2.6, 9, a]]); blooms = [[c-9,33],[c-5,26],[c,25],[c+5,26],[c+9,33]]; }
-  else if(p === 10){ fol = [['rect',[c-6,12,2.6,28]],['rect',[c-1.3,8,2.6,32]],['rect',[c+4,15,2.6,25]],['ellipse',[c-8,16,3,1,-.5]],['ellipse',[c+3,11,3,1,-.5]],['ellipse',[c+8.5,19,3,1,.5]]]; blooms = [[c-4.7,20],[c,14],[c+5.3,24],[c,30],[c-4.7,34]]; extra = [['nodes',[[c-6,2.6,[20,28,35]],[c-1.3,2.6,[16,24,32]],[c+4,2.6,[22,30,36]]]]]; }
-  else if(p === 11){
-    for(const k of ang(7)){ const a = Math.PI + k*Math.PI/6; fol.push(['poly',[[c,34],[c+9*Math.cos(a-.28), 34+9*Math.sin(a-.28)*.75],[c+12*Math.cos(a), 34+12*Math.sin(a)*.75],[c+9*Math.cos(a+.28), 34+9*Math.sin(a+.28)*.75]]]); }
-    for(const k of ang(4)){ const a = Math.PI*1.2 + k*Math.PI/5; fol.push(['poly',[[c,34],[c+5*Math.cos(a-.4), 34+5*Math.sin(a-.4)],[c+8*Math.cos(a), 34+8*Math.sin(a)],[c+5*Math.cos(a+.4), 34+5*Math.sin(a+.4)]]]); }
-    blooms = [[c-9,29],[c-4,26],[c+4,26],[c+9,29],[c,30]];
-  }
-  else if(p === 12){ fol = [[-10,20,4],[-5,15,4.5],[2,13,4.5],[8,17,4],[11,23,3.5],[-11,26,3]].map(([x,y,r]) => ['circle',[c+x,y,r]]); stems = [['curve',[[c,40],[c,30],[c-9,22]],1.4],['curve',[[c,30],[c+2,22],[c+10,21]],1.1],['curve',[[c+1,24],[c-3,16]],.9]]; blooms = [[c-10,19],[c-5,14],[c+2,12],[c+8,16],[c+11,22]]; }
-  else if(p === 13){ fol = [['halfellipse',[c,24,12,9]]]; stems = [['rect',[c-1.5,24,3,16]], ...[-11,-8,-5,5,8,11].map(x => ['line',[[c+x,24],[c+x*1.15, 24+12-Math.abs(x)*.5]],.6])]; blooms = [[c-6,19],[c,17],[c+6,19],[c-9,22],[c+9,22]]; }
-  else if(p === 14){ for(const [x, top] of [[c-5,14],[c,10],[c+5,15]]) for(const k of ang(4)) for(const s of [-1,1]) fol.push(['ellipse',[x+s*1.2, top+2+k*2.4, 1, 1.6, s*.5]]); stems = [['line',[[c-5,40],[c-5,14]],.7],['line',[[c,40],[c,10]],.7],['line',[[c+5,40],[c+5,15]],.7]]; blooms = [[c-5,13],[c,9],[c+5,14],[c-2.5,30],[c+2.5,30]]; }
+  if(p === 'pine'){ fol = [['poly',[[c-10,38],[c+10,38],[c,26]]],['poly',[[c-8,31],[c+8,31],[c,19]]],['poly',[[c-6,24],[c+6,24],[c,12]]]]; stems = [['rect',[c-1.2,38,2.4,2]]]; blooms = [[c-5,35.5],[c+4,34],[c-2,28.5],[c+3,22.5],[c-1,17]]; }
+  else if(p === 'oak'){ fol = [['circle',[c,21,8.5]],['circle',[c-6.5,26,6]],['circle',[c+6.5,26,6]]]; stems = [['rect',[c-1.5,30,3,10]]]; blooms = [[c-4.5,18.5],[c+4,17.5],[c,25],[c+8,26],[c-8,26.5]]; }
+  else if(p === 'palm'){ fol = [-2.8,-2.0,-1.2,-.4,.4].map(a => ['ellipse',[c+2+6*Math.cos(a), 17+4*Math.sin(a), 7, 1.8, a]]); stems = [['curve',[[c-1,40],[c-2,30],[c+2,17]],2]]; blooms = [[c+.6,19.6],[c+3.4,19.6],[c+2,21.6]]; }
+  else if(p === 'cactus'){ fol = [['rr',[c-3,14,6,26,3]],['rr',[c-9,21,3,9,1.5]],['rr',[c-9,27.5,7,3,1.5]],['rr',[c+6,17,3,11,1.5]],['rr',[c+2,25.5,7,3,1.5]]]; blooms = [[c,14],[c-7.5,21],[c+7.5,17],[c,24.5],[c,33]]; }
+  else if(p === 'tulip'){ fol = [['poly',[[c-4,15],[c-4,21],[c,24],[c+4,21],[c+4,15],[c+2,17.5],[c,14],[c-2,17.5]]],['ellipse',[c-3.4,33,1.8,6,.5]],['ellipse',[c+3.4,31,1.8,6,-.5]]]; stems = [['line',[[c,40],[c,22]],.9]]; blooms = [[c-8,22],[c+8,20],[c-7,30],[c+8,31]]; }
+  else if(p === 'sunflower'){ fol = ang(12).map(k => { const a = k*Math.PI/6; return ['ellipse',[c+5.2*Math.cos(a), 16+5.2*Math.sin(a), 2.6, 1.1, a]]; }); fol.push(['ellipse',[c-3.4,32,1.8,5,.6]],['ellipse',[c+3.4,29,1.8,5,-.6]]); stems = [['line',[[c,40],[c,20]],.9]]; blooms = [[c,16],[c-1.2,15],[c+1.2,17]]; extra = [['center',[c,16,3]]]; }
+  else if(p === 'mushroom'){ fol = [['halfellipse',[c,30,12,10]]]; stems = [['rr',[c-3,30,6,10,1.5]]]; blooms = [[c-6,25.5],[c,23],[c+6,26],[c-3,28.4],[c+3,28.4]]; }
+  else if(p === 'bonsai'){ fol = [['ellipse',[c-6,24,6,3,0]],['ellipse',[c+5,18,7,3.5,0]],['ellipse',[c+1,30,5,2.5,0]]]; stems = [['curve',[[c,40],[c-4,33],[c+3,26],[c-2,20],[c+4,18]],1.8]]; blooms = [[c-8,23.5],[c-4,23],[c+3,17],[c+8,18],[c+2,29.5]]; }
+  else if(p === 'fern'){ fol = [-1.1,-.55,0,.55,1.1].map(a => ['ellipse',[c+10*Math.sin(a), 40-13*Math.cos(a)-2, 2.6, 9, a]]); blooms = [[c-9,33],[c-5,26],[c,25],[c+5,26],[c+9,33]]; }
+  else if(p === 'bamboo'){ fol = [['rect',[c-6,12,2.6,28]],['rect',[c-1.3,8,2.6,32]],['rect',[c+4,15,2.6,25]],['ellipse',[c-8,16,3,1,-.5]],['ellipse',[c+3,11,3,1,-.5]],['ellipse',[c+8.5,19,3,1,.5]]]; blooms = [[c-4.7,20],[c,14],[c+5.3,24],[c,30],[c-4.7,34]]; extra = [['nodes',[[c-6,2.6,[20,28,35]],[c-1.3,2.6,[16,24,32]],[c+4,2.6,[22,30,36]]]]]; }
+  else if(p === 'cherry blossom'){ fol = [[-10,20,4],[-5,15,4.5],[2,13,4.5],[8,17,4],[11,23,3.5],[-11,26,3]].map(([x,y,r]) => ['circle',[c+x,y,r]]); stems = [['curve',[[c,40],[c,30],[c-9,22]],1.4],['curve',[[c,30],[c+2,22],[c+10,21]],1.1],['curve',[[c+1,24],[c-3,16]],.9]]; blooms = [[c-10,19],[c-5,14],[c+2,12],[c+8,16],[c+11,22]]; }
   else { fol = [['ellipse',[c-8,38,6,1.8,0]],['ellipse',[c+8,38.5,6,1.8,0]], ...[-1.3,-.65,0,.65,1.3].map(a => ['ellipse',[c+5*Math.sin(a), 30-4*Math.cos(a), 1.8, 4.6, a]])]; blooms = [[c,26],[c-4,28],[c+4,28],[c-8,36],[c+8,36]]; }
   return { fol, stems, blooms, extra };
 }
@@ -737,7 +730,7 @@ function plantShape(ctx, kind, a){
   else if(kind === 'halfellipse'){ const [x,y,rx,ry] = a; ctx.moveTo(x-rx, y); ctx.ellipse(x, y, rx, ry, 0, Math.PI, TAU); ctx.closePath(); }
 }
 function drawPlant(ctx, d, c, glow, noglow, vis, trim, t){
-  const sp = plantSpec(d.subject - 48, c);
+  const sp = plantSpec(PLANTS[d.subject - SUBJECT_START.plant], c);
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
   drawGroundExtras(ctx, d.cheek, c, vis, trim);
   for(const st of sp.stems){
@@ -866,11 +859,140 @@ function drawMarkings(ctx, style, c, ny, rx, trim){
   else if(style === 2){ for(const s of [-1,1]){ ctx.moveTo(c+s*8.2+2.3, ny-1); ctx.ellipse(c+s*8.2, ny-1, 2.3, 1.3, 0, 0, TAU); } ctx.fillStyle = 'rgba(255,105,140,.55)'; ctx.fill(); }
   else { for(const s of [-1,1]){ const x = c+s*(rx-1.5); for(const dy of [-3,0,3]){ ctx.moveTo(x, ny-6+dy); ctx.lineTo(x-s*2.6, ny-5+dy); } } ctx.lineWidth = .6; ctx.stroke(); }
 }
+/* ---------- furniture (mirror visual256/subjects.py) ---------- */
+function furnitureSpec(name, c){
+  let lines = [], solid = [], body, emblem, wall, obj;
+  if(name === 'armchair'){ const a = c-3;
+    body = [['rr',[a-9,20,18,16,3],true],['rr',[a-12,28,5,13,2],false],['rr',[a+7,28,5,13,2],false],['rr',[a-7,34,14,6,1.5],false]];
+    lines = [[[[a-10,41],[a-10,46]],1.2],[[[a+10,41],[a+10,46]],1.2]]; emblem = [a,26]; wall = [a,12]; obj = [c+12.5,46]; }
+  else if(name === 'sofa'){
+    body = [['rr',[c-14,24,28,12,3],true],['rr',[c-17,30,6,12,2.5],false],['rr',[c+11,30,6,12,2.5],false],['rr',[c-11,35,11,6,1.5],false],['rr',[c,35,11,6,1.5],false]];
+    lines = [[[[c-14,42],[c-14,46]],1.2],[[[c+14,42],[c+14,46]],1.2]]; emblem = [c-5.5,29.5]; wall = [c,14]; obj = [c+5.5,35]; }
+  else if(name === 'bed'){
+    body = [['rr',[c-17,22,5,24,2],false],['rect',[c-12,34,24,6],false],['ellipse',[c-8,32.6,3.6,2,0],false],['poly',[[c-4,31.5],[c+12,31.5],[c+12,40],[c-4,40]],true],['rr',[c+12,30,5,16,2],false]];
+    lines = [[[[c-12,41],[c+12,41]],1.4]]; emblem = [c+3,36.5]; wall = [c,14]; obj = [c+8.5,31.5]; }
+  else if(name === 'bookshelf'){
+    body = [['rect',[c-8,10,16,36],false],['rect',[c-6.6,37.5,13.2,7.5],true]];
+    lines = [[[[c-8,19],[c+8,19]],.7],[[[c-8,28],[c+8,28]],.7],[[[c-8,37],[c+8,37]],.7],[[[c,37.5],[c,45]],.5]];
+    for(const [y0, books] of [[19,[[-6.6,1.6,7],[-4.6,1.2,6],[-3,1.8,7.5],[1.5,1.4,6.5],[3.4,1.6,7.5]]],
+                              [28,[[-6.6,1.4,6.5],[-4.8,1.8,7.5],[-2.6,1.2,6],[-.2,1.6,7],[2,1.4,6.5],[4.6,1.8,7.5]]],
+                              [37,[[-6.6,1.8,7.5],[-4.4,1.4,6.5]]]])
+      for(const [x, w, h] of books) solid.push(['rect',[c+x, y0-h, w, h]]);
+    solid.push(['poly',[[c-2.6,37],[c-1.2,37],[c+1.8,31],[c+.6,30.4]]]);
+    emblem = [c,41.2]; wall = [c-13,17]; obj = [c+13,46]; }
+  else if(name === 'grandfather clock'){
+    body = [['rect',[c-6,38,12,8],true],['rect',[c-4.5,21,9,17],false],['rr',[c-6,7,12,14.5,4],false],['circle',[c,14,4],false],['rr',[c-2.6,23,5.2,13,1.4],false]];
+    lines = [[[[c,14],[c,11]],.6],[[[c,14],[c+2.2,15.2]],.6],[[[c,23.5],[c,32]],.6]];
+    solid = [['circle',[c,32.6,1.6]]]; emblem = [c,42]; wall = [c-12.5,16]; obj = [c+12.5,46]; }
+  else if(name === 'floor lamp'){ const L = c-7;
+    body = [['poly',[[L-7,22],[L+7,22],[L+4,11],[L-4,11]],true],['rect',[c+3,35.5,12,10.5],false]];
+    lines = [[[[L,22],[L,44.5]],1.2]]; solid = [['ellipse',[L,45,5,1.4,0]],['rect',[c+2,33.6,14,1.9]]];
+    emblem = [c+9,40.6]; wall = [c+9,15]; obj = [c+9,33.6]; }
+  else if(name === 'piano'){ const P = c-3;
+    body = [['rect',[P-12,20,24,26],false],['rect',[P-10,22.2,20,7.6],true],['rect',[P-13.5,31,27,3.6],false],['rr',[c+10,37,7,2.2,1],false]];
+    solid = [['rect',[P-13.5,18.4,27,2.2]], ...Array.from({length:8}, (_, k) => ['rect',[P-11.6+k*3.2,31,1.4,2]])];
+    lines = [[[[c+11.5,39.2],[c+11.5,46]],.9],[[[c+15.5,39.2],[c+15.5,46]],.9]];
+    emblem = [P,40]; wall = [P+6,11]; obj = [P-6.5,18.4]; }
+  else {  // bathtub
+    body = [['poly',[[c-15,30],[c+15,30],[c+13.5,37],[c+9,41.5],[c-9,41.5],[c-13.5,37]],true],['rr',[c-16.5,28.4,33,2.6,1.2],false]];
+    lines = [[[[c-12.5,28.4],[c-12.5,22],[c-8.6,22],[c-8.6,24.2]],1]];
+    solid = [['ellipse',[c-9.5,43.6,1.6,2.4,-.3]],['ellipse',[c+9.5,43.6,1.6,2.4,.3]]];
+    emblem = [c,35.4]; wall = [c,12]; obj = [c+10.5,28.4]; }
+  return { body, lines, solid, emblem, wall, obj };
+}
+function shapeBox(kind, a){
+  if(kind === 'poly'){ const xs = a.map(p => p[0]), ys = a.map(p => p[1]); return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]; }
+  if(kind === 'circle') return [a[0]-a[2], a[1]-a[2], a[0]+a[2], a[1]+a[2]];
+  if(kind === 'ellipse'){ const r = Math.max(a[2], a[3]); return [a[0]-r, a[1]-r, a[0]+r, a[1]+r]; }
+  return [a[0], a[1], a[0]+a[2], a[1]+a[3]];
+}
+function drawFurniture(ctx, d, c, glow, noglow, vis, trim, t){
+  const sp = furnitureSpec(FURNITURE[d.subject - SUBJECT_START.furniture], c);
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  drawFloor(ctx, d.cheek, c, vis, trim);
+  for(const [pts, w] of sp.lines){ ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p)); ctx.lineWidth = w; ctx.strokeStyle = trim; ctx.stroke(); }
+  for(const [kind, a, fab] of sp.body){
+    ctx.beginPath(); plantShape(ctx, kind, a); ctx.fillStyle = t.panel; ctx.fill();
+    if(fab){ ctx.save(); ctx.clip(); drawFabric(ctx, d.vstyle, ...shapeBox(kind, a), vis); ctx.restore(); ctx.beginPath(); plantShape(ctx, kind, a); }
+    glow(trim,1); ctx.lineWidth = .7; ctx.strokeStyle = trim; ctx.stroke(); noglow();
+  }
+  ctx.beginPath(); for(const [kind, a] of sp.solid) plantShape(ctx, kind, a); ctx.fillStyle = trim; ctx.fill();
+  const [ex, ey] = sp.emblem;
+  ctx.beginPath(); ctx.arc(ex, ey, 2.2, 0, TAU); ctx.fillStyle = t.panel; ctx.fill(); ctx.lineWidth = .45; ctx.strokeStyle = trim; ctx.stroke();
+  drawSymbol(ctx, d.decal, ex, ey, 1.5, trim);
+  drawWallItem(ctx, d.mod, ...sp.wall, vis, trim, glow, noglow, t);
+  drawCompanion(ctx, d.grille, ...sp.obj, vis, trim, glow, noglow, t);
+}
+function drawFabric(ctx, style, x0, y0, x1, y1, vis){
+  ctx.fillStyle = vis; ctx.strokeStyle = vis; ctx.beginPath();
+  if(style === 0){ for(let x = x0+.6; x < x1; x += 2.6) ctx.rect(x, y0, 1.1, y1-y0); ctx.fill(); }
+  else if(style === 1){ for(let y = y0+1; y < y1; y += 3) ctx.rect(x0, y, x1-x0, 1.2); ctx.fill(); }
+  else if(style === 2){ for(let row = 0, y = y0+1.4; y < y1+1; row++, y += 2.4) for(let x = x0 + (row % 2 ? 1.4 : 0); x < x1+1; x += 2.8){ ctx.moveTo(x+.75, y); ctx.arc(x, y, .75, 0, TAU); } ctx.fill(); }
+  else if(style === 3){ for(let row = 0, y = y0; y < y1; row++, y += 1.8) for(let x = x0 + (row % 2 ? 1.8 : 0); x < x1; x += 3.6) ctx.rect(x, y, 1.8, 1.8); ctx.fill(); }
+  else if(style === 4){ for(let row = 0, y = y0+1.6; y < y1+1.6; row++, y += 3) for(let x = x0 + (row % 2 ? 1.6 : 0); x < x1+1.6; x += 3.2) poly(ctx, [[x,y-1.5],[x+1.1,y],[x,y+1.5],[x-1.1,y]]); ctx.fill(); }
+  else if(style === 5){ for(let y = y0+1.4; y < y1+1; y += 3) for(let x = x0-1, k = 0; x < x1+1.6; x += 1.6, k++){ const p = [x, y + (k % 2 ? .8 : -.8)]; k ? ctx.lineTo(...p) : ctx.moveTo(...p); } ctx.lineWidth = .7; ctx.stroke(); }
+  else if(style === 6){ for(let y = y0+1.2; y < y1; y += 3.4) ctx.rect(x0, y, x1-x0, .9); for(let x = x0+1.2; x < x1; x += 3.4) ctx.rect(x, y0, .9, y1-y0); ctx.globalAlpha = .75; ctx.fill(); ctx.globalAlpha = 1; }
+  else { for(let row = 0, y = y0+1.6; y < y1+1.6; row++, y += 1.8) for(let x = x0 + (row % 2 ? 1.4 : 0); x < x1+1.4; x += 2.8){ ctx.moveTo(x-1.4, y); ctx.arc(x, y, 1.4, Math.PI, TAU, true); } ctx.lineWidth = .5; ctx.stroke(); }
+}
+function drawFloor(ctx, style, c, vis, trim){
+  ctx.lineWidth = .5; ctx.strokeStyle = trim; ctx.fillStyle = trim;
+  ctx.beginPath(); ctx.moveTo(c-17, 50); ctx.lineTo(c+17, 50); ctx.stroke();
+  ctx.beginPath();
+  if(style === 0){ ctx.moveTo(c+14, 47.8); ctx.ellipse(c, 47.8, 14, 1.9, 0, 0, TAU); ctx.fillStyle = vis; ctx.globalAlpha = .55; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.moveTo(c+11, 47.8); ctx.ellipse(c, 47.8, 11, 1.1, 0, 0, TAU); ctx.lineWidth = .4; ctx.stroke(); }
+  else if(style === 1){ for(const y of [46.8, 48.4]){ ctx.moveTo(c-17, y); ctx.lineTo(c+17, y); }
+    for(const [x, y] of [[-12,46.8],[-3,46.8],[7,46.8],[14,46.8],[-15,48.4],[-7,48.4],[2,48.4],[11,48.4]]){ ctx.moveTo(c+x, y); ctx.lineTo(c+x, y+1.6); }
+    ctx.lineWidth = .4; ctx.stroke(); }
+  else if(style === 2){ for(let k=0;k<17;k++) ctx.rect(c-17+k*2, 46+(k%2)*2, 2, 2); ctx.globalAlpha = .6; ctx.fill(); ctx.globalAlpha = 1; }
+  else { ctx.rect(c-12, 46.6, 24, 2.6); ctx.fillStyle = vis; ctx.globalAlpha = .55; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.beginPath(); for(const s of [-1,1]) for(let k=0;k<4;k++){ const y = 46.9 + k*.7; ctx.moveTo(c+s*12, y); ctx.lineTo(c+s*13.6, y); } ctx.lineWidth = .35; ctx.stroke(); }
+}
+function drawWallItem(ctx, style, x, y, vis, trim, glow, noglow, t){
+  ctx.lineWidth = .6; ctx.strokeStyle = trim; ctx.beginPath();
+  if(style === 0){ ctx.rect(x-3.6, y-2.8, 7.2, 5.6); ctx.fillStyle = t.panel; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); poly(ctx, [[x-2.8,y+2],[x-.8,y-1.2],[x+.4,y+.4],[x+1.4,y-.6],[x+2.8,y+2]]); ctx.fillStyle = vis; ctx.fill(); }
+  else if(style === 1){ ctx.arc(x, y, 3.2, 0, TAU); ctx.fillStyle = t.panel; ctx.fill(); ctx.lineWidth = .8; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x-1.6, y+.2); ctx.lineTo(x-.2, y-1.4); ctx.moveTo(x-.6, y+1.2); ctx.lineTo(x+1.2, y-.6); glow(vis,.8); ctx.lineWidth = .5; ctx.strokeStyle = vis; ctx.stroke(); noglow(); }
+  else if(style === 2){ ctx.rect(x-3, y-3, 6, 6); glow(vis,.8); ctx.fillStyle = vis; ctx.fill(); noglow(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, y-3); ctx.lineTo(x, y+3); ctx.moveTo(x-3, y); ctx.lineTo(x+3, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x-3.8, y+3.4); ctx.lineTo(x+3.8, y+3.4); ctx.lineWidth = .8; ctx.stroke(); }
+  else { ctx.moveTo(x-6, y-2); ctx.quadraticCurveTo(x, y+1, x+6, y-2); ctx.lineWidth = .4; ctx.stroke();
+    [-4.2,-1.4,1.4,4.2].forEach((dx, k) => { const yy = y-2 + 3*(1-(dx/6)**2)/2; ctx.beginPath(); poly(ctx, [[x+dx-1.1,yy],[x+dx+1.1,yy],[x+dx,yy+2.6]]); ctx.fillStyle = k % 2 === 0 ? vis : trim; ctx.fill(); }); }
+}
+function drawCompanion(ctx, style, x, y, vis, trim, glow, noglow, t){
+  ctx.fillStyle = trim; ctx.strokeStyle = trim; ctx.lineWidth = .6; ctx.beginPath();
+  if(style === 0){ ctx.moveTo(x+2.8, y-2); ctx.ellipse(x, y-2, 2.8, 2, 0, 0, TAU); ctx.moveTo(x+3.8, y-4.8); ctx.arc(x+2, y-4.8, 1.8, 0, TAU);
+    poly(ctx, [[x+.5,y-5.6],[x+.7,y-7.6],[x+1.9,y-6.4]]); poly(ctx, [[x+2.3,y-6.5],[x+3.4,y-7.6],[x+3.6,y-5.6]]); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x-2.6, y-1); ctx.quadraticCurveTo(x-4.4, y-2, x-3.6, y-4.4); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x+2.2, y-4.8); ctx.arc(x+1.6, y-4.8, .45, 0, TAU); ctx.fillStyle = vis; ctx.fill(); }
+  else if(style === 1){ [[-3,6],[-2.6,5.2],[-3.2,5.8]].forEach(([dx, w], k) => { ctx.beginPath(); ctx.rect(x+dx, y-1.7*(k+1), w, 1.6); ctx.fillStyle = k % 2 ? vis : trim; ctx.fill(); }); }
+  else if(style === 2){ poly(ctx, [[x-2,y-3.4],[x+2,y-3.4],[x+1.4,y],[x-1.4,y]]); ctx.fill();
+    ctx.beginPath(); for(const [dx, a] of [[-1.4,-.5],[0,0],[1.4,.5]]){ ctx.moveTo(x+dx+.9*Math.cos(a), y-5.6+.9*Math.sin(a)); ctx.ellipse(x+dx, y-5.6, .9, 2, a, 0, TAU); }
+    glow(vis,.8); ctx.fillStyle = vis; ctx.fill(); noglow(); }
+  else if(style === 3){ ctx.moveTo(x+2.8, y-2.4); ctx.ellipse(x, y-2.4, 2.8, 2.4, 0, 0, TAU); poly(ctx, [[x+2,y-2.6],[x+4.4,y-4.6],[x+4.6,y-4],[x+2.4,y-1.2]]);
+    ctx.moveTo(x+.9, y-5); ctx.arc(x, y-5, .9, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(x-3, y-2.6, 1.3, Math.PI*.5, Math.PI*1.5); ctx.stroke();
+    ctx.beginPath(); ctx.rect(x-2.6, y-2.8, 5.2, .8); ctx.fillStyle = vis; ctx.fill(); }
+  else if(style === 4){ ctx.moveTo(x-2, y-4.6); ctx.lineTo(x+.6, y-8); ctx.stroke();
+    ctx.beginPath(); plantShape(ctx, 'rr', [x-3.6, y-4.8, 7.2, 4.8, 1]); ctx.fill();
+    ctx.beginPath(); ctx.arc(x-1.2, y-2.4, 1.4, 0, TAU); ctx.fillStyle = t.panel; ctx.fill();
+    ctx.beginPath(); ctx.rect(x+1, y-3.6, 1.8, .8); ctx.rect(x+1, y-2, 1.8, .8); ctx.fillStyle = vis; ctx.fill(); }
+  else if(style === 5){ ctx.moveTo(x-2.4, y); ctx.lineTo(x+2.4, y); ctx.moveTo(x, y); ctx.lineTo(x, y-1.6); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, y-5, 3.3, Math.PI*.6, Math.PI*1.6); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, y-5, 2.6, 0, TAU); glow(vis,.8); ctx.fillStyle = vis; ctx.fill(); noglow();
+    ctx.beginPath(); ctx.moveTo(x-2.6, y-5); ctx.lineTo(x+2.6, y-5); ctx.moveTo(x+1.1, y-5); ctx.ellipse(x, y-5, 1.1, 2.6, 0, 0, TAU); ctx.lineWidth = .4; ctx.stroke(); }
+  else if(style === 6){ ctx.moveTo(x+2.6, y-.5); ctx.ellipse(x, y-.5, 2.6, .7, 0, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.rect(x-1, y-5.6, 2, 5); ctx.fillStyle = t.panel; ctx.fill(); ctx.lineWidth = .5; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x+.9, y-7.2); ctx.ellipse(x, y-7.2, .9, 1.5, 0, 0, TAU); glow(vis,1.4); ctx.fillStyle = vis; ctx.fill(); noglow(); }
+  else { ctx.rect(x-3, y-5, 6, 5); ctx.fillStyle = vis; ctx.fill();
+    ctx.beginPath(); ctx.rect(x-.6, y-5, 1.2, 5); ctx.rect(x-3, y-3, 6, 1.1); ctx.moveTo(x, y-5); ctx.ellipse(x-1.2, y-5.8, 1.3, .8, .4, 0, TAU);
+    ctx.moveTo(x+2.5, y-5.8); ctx.ellipse(x+1.2, y-5.8, 1.3, .8, -.4, 0, TAU); ctx.fillStyle = trim; ctx.fill(); }
+}
 function drawAccessory(ctx, style, c, top, vis, trim, glow, noglow){
   glow(vis,.8); ctx.fillStyle = vis; ctx.beginPath();
   if(style === 0){ ctx.rect(c-8, 42.6, 16, 1.8); ctx.fill(); noglow(); ctx.beginPath(); ctx.arc(c, 45.8, 1.4, 0, TAU); ctx.fillStyle = trim; ctx.fill(); }
   else if(style === 1){ const bx = c+8.5, by = top+1.5; poly(ctx, [[bx,by],[bx-3.6,by-2.2],[bx-3.6,by+2.2]]); poly(ctx, [[bx,by],[bx+3.6,by-2.2],[bx+3.6,by+2.2]]); ctx.fill(); noglow(); ctx.beginPath(); ctx.arc(bx, by, .9, 0, TAU); ctx.fillStyle = trim; ctx.fill(); }
-  else if(style === 2){ poly(ctx, [[c-4, top+1.2],[c+4, top+1.2],[c+1, top-8.5]]); ctx.fill(); noglow(); ctx.lineWidth = .45; ctx.strokeStyle = trim; ctx.stroke(); ctx.beginPath(); ctx.arc(c+1, top-8.8, 1.1, 0, TAU); ctx.fillStyle = trim; ctx.fill(); }
+  else if(style === 2){ poly(ctx, [[c,43.4],[c-5,40.6],[c-5,46.2]]); poly(ctx, [[c,43.4],[c+5,40.6],[c+5,46.2]]); ctx.fill(); noglow(); ctx.lineWidth = .4; ctx.strokeStyle = trim; ctx.stroke(); ctx.beginPath(); ctx.arc(c, 43.4, 1.2, 0, TAU); ctx.fillStyle = trim; ctx.fill(); }  // bow tie
   else { ctx.rect(c-9, 41.8, 18, 2.6); ctx.rect(c+3.5, 43.6, 2.6, 6); ctx.fill(); noglow(); ctx.lineWidth = .35; ctx.strokeStyle = trim; ctx.stroke(); }
   noglow();
 }
