@@ -10,9 +10,9 @@
 from . import bip39
 from .bits import ALPHABET
 from .render import Badge
-from .spec import SPEC_VERSION, Features, decode, describe, encode, with_changes
+from .spec import SPEC_VERSION, Features, decode, describe, encode, mix, with_changes
 from .themes import THEMES, Theme
 
-__version__ = "0.2.0"
-__all__ = ["Badge", "Features", "decode", "encode", "describe", "with_changes", "bip39", "ALPHABET",
+__version__ = "0.1.0"
+__all__ = ["Badge", "Features", "decode", "encode", "describe", "mix", "with_changes", "bip39", "ALPHABET",
            "THEMES", "Theme", "SPEC_VERSION", "__version__"]

@@ -11,7 +11,7 @@ from visual256.draw import H, W, draw_badge
 BASE = decode(hashlib.sha256(b"render").digest())
 
 
-@pytest.mark.parametrize("theme", range(8))
+@pytest.mark.parametrize("theme", range(16))
 @pytest.mark.parametrize("layout", range(8))
 @pytest.mark.parametrize("display", range(4))
 def test_every_layout_display_and_theme_draws_valid_svg(theme, layout, display):
@@ -58,7 +58,8 @@ def test_rendering_is_deterministic():
 
 
 @pytest.mark.parametrize("field,count", [("shape", 8), ("vstyle", 8), ("grille", 8), ("hstyle", 8),
-                                         ("framestyle", 4), ("cheek", 4), ("rank", 4), ("mod", 4)])
+                                         ("framestyle", 4), ("barstyle", 4), ("cheek", 4), ("rank", 4),
+                                         ("mod", 4)])
 def test_every_value_of_each_face_feature_draws(field, count):
     for v in range(count):
         c = Canvas(W, H)
@@ -67,8 +68,19 @@ def test_every_value_of_each_face_feature_draws(field, count):
 
 
 def test_theme_comes_from_the_bits():
-    svgs = {Badge.from_bytes(bytes([i << 5]) + bytes(31)).svg() for i in range(8)}
-    assert len(svgs) == 8
+    svgs = set()
+    for i in range(16):
+        c = Canvas(W, H)
+        draw_badge(c, decode(bytes([i << 4]) + bytes(31)))
+        svgs.add(c.to_svg())
+    assert len(svgs) == 16
+
+
+def test_badge_shows_mixed_bits_and_words_show_the_checksum():
+    from visual256 import bip39, mix
+    b = Badge.from_text("abc")
+    assert b.parts == mix(b.digest)
+    assert bip39.from_mnemonic(b.mnemonic()[0]) == b.digest
 
 
 def test_cli_writes_files(tmp_path, capsys):

@@ -109,9 +109,9 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
 
 <div class="wrap">
   <header>
-    <span class="eyebrow">Round 6 · spec v2</span>
+    <span class="eyebrow">Version 0.1 · in development</span>
     <h1>Netrunner ID Lab</h1>
-    <p class="lede">Spec v2. The first 3 bits now pick one of eight themes, and bits have moved out of small marks into bigger features: more face parts, a rank, handle styles, color chips behind the characters, 8-level signal bars, and 10 detail cells that each carry a whole byte as a colored tile, gem, hex pair or arrow. This page mirrors the Python package in <a href="https://github.com/xTheBearx/visual256" target="_blank" rel="noopener">xTheBearx/visual256</a>.</p>
+    <p class="lede">Development version 0.1. The checksum is mixed through SHA-256 before drawing, so changing a single bit of the input changes the whole badge. The badge bits then pick one of sixteen themes, one of eight layouts, a face, colors, a two-word handle, signal bars, colored character chips and ten detail cells. This page mirrors the Python package in <a href="https://github.com/xTheBearx/visual256" target="_blank" rel="noopener">xTheBearx/visual256</a>.</p>
   </header>
 
   <section class="panel" aria-label="Input">
@@ -139,8 +139,8 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
       <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
         <div class="ruler" id="ruler" aria-hidden="true"></div>
         <div class="rulerkey">
-          <span><b style="background:var(--seg-a)"></b>Headline · 80 bits</span>
-          <span><b style="background:var(--seg-bars)"></b>Signal bars · 24 bits</span>
+          <span><b style="background:var(--seg-a)"></b>Headline · 83 bits</span>
+          <span><b style="background:var(--seg-bars)"></b>Signal bars · 21 bits</span>
           <span><b style="background:var(--seg-chars)"></b>Chips and characters · 72 bits</span>
           <span><b style="background:var(--seg-dots)"></b>Detail cells · 80 bits</span>
         </div>
@@ -168,8 +168,8 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
 
   <section>
     <div class="sec-head">
-      <h2>Eight themes</h2>
-      <p class="note">The first 3 bits pick the theme, so it is one of the strongest features of a badge. These previews force each theme onto the same hash; only the highlighted one is real.</p>
+      <h2>Sixteen themes</h2>
+      <p class="note">The first 4 badge bits pick the theme: 8 dark and 8 light backgrounds, each a different hue, so the theme alone is recognizable. These previews force each theme onto the same badge bits; only the highlighted one is real.</p>
     </div>
     <div class="panel"><div class="layouts" id="themes"></div></div>
   </section>
@@ -179,11 +179,10 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
     <div class="bench">
       <div class="panel">
         <h3>One-bit change</h3>
-        <p class="note">Headline flips change the theme, layout, face, colors, status or a handle word. Detail flips change one bar, one chip color, one character or one detail cell.</p>
+        <p class="note">Flip a single bit of the checksum. Because the badge is drawn from SHA-256 of the whole checksum, about half of all badge bits change, so the two badges look unrelated.</p>
         <div class="btns">
-          <button class="btn" type="button" data-flip="any">Flip any bit</button>
-          <button class="btn" type="button" data-flip="head">Flip a headline bit</button>
-          <button class="btn" type="button" data-flip="detail">Flip a detail bit</button>
+          <button class="btn" type="button" data-flip="any">Flip a random checksum bit</button>
+          <button class="btn" type="button" data-flip="last">Flip the last bit</button>
         </div>
         <div class="flipview">
           <figure><canvas id="flipA"></canvas><span class="cap">Before</span></figure>
@@ -222,9 +221,9 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
       <div style="display:flex;flex-direction:column;gap:12px">
         <h3>Open questions</h3>
         <ul>
-          <li><strong>Readability at true size.</strong> The smallest elements are now about 10 × 14 units (detail cells) and 8 units tall (chips), up from 2 to 6 units. Do the true-size copies read well enough now?</li>
-          <li><strong>Themes.</strong> Are all eight distinct enough at a glance? The theme is now the single strongest feature, so any two that look alike weaken it.</li>
-          <li><strong>License.</strong> I recommend MIT; confirm and I'll add it.</li>
+          <li><strong>Theme recognition.</strong> Are all sixteen easy to tell apart at true size? Any pair that looks alike weakens the strongest feature.</li>
+          <li><strong>Fingerprint, not encoding.</strong> Mixing means the picture can no longer be read back into the checksum. The 24-word backup still can. Is that the right trade?</li>
+          <li><strong>Release.</strong> Everything stays at version 0.1 until you decide to publish a release.</li>
         </ul>
       </div>
     </div>
@@ -240,10 +239,11 @@ const BIP39 = 'abandon ability able about above absent absorb abstract absurd ab
 if(BIP39.length !== 2048) console.error('BIP-39 list has ' + BIP39.length + ' words');
 const B32 = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
-/* ---------- spec v2 (mirrors visual256/spec.py): 80 headline + 24 bars + 12 chip colors + 60 characters + 80 detail = 256 ---------- */
+/* ---------- spec 0.1 (mirrors visual256/spec.py): 83 headline + 21 bars + 12 chip colors + 60 characters + 80 detail = 256 ---------- */
+const MIX_TAG = 'visual256/netrunner/0.1';
+const BAR_STYLES=['segmented','solid','lollipops','chevrons'];
 const SYM = ['circle','square','triangle','diamond','star','plus','saltire','heart','crescent','sun','drop','bolt','hexagon','ring','arrow','clover'];
 const STATUS=['ONLINE','GHOST','ROGUE','SYNCED','ROOTED','DARK','LIVE','BURNED','CLEAN','HOT','ZERO','LOCKED','SPOOFED','MIRROR','IDLE','VOID'];
-const THEME_IDS=['cyberpunk','daylight','paper','blueprint','synthwave','terminal','arcade','stealth'];
 const LAYOUTS=['Face left, stacked','Face right, stacked','Face center, bars on top','Face left, grid','Face right, grid','Banner on top, face left','Banner at bottom, face right','Face center, detail on top'];
 const CORNERS=['top-left and bottom-right cut','top-right and bottom-left cut','all four cut','both top corners cut'];
 const FRAME_STYLES=['single','double','dashed','corner brackets'];
@@ -257,26 +257,8 @@ const CHEEKS=['stripes','dots','circuit','bolts'];
 const HSTYLES=['clean','horizontal split','vertical split','slice shift','inverted','underline','boxed','shadow'];
 const GEM_SHAPES=['circle','square','triangle','diamond'], GEM_FILLS=['solid','outline','dotted','half'];
 
-/* ---------- themes (mirror visual256/themes.py); the hash picks one ---------- */
-const P = s => s.split('|').map(x => x.split(':'));
-const THEMES = [
-  { id:'cyberpunk', name:'Cyberpunk', bg:'#0A0913', panel:'#16132C', grid:'grid', gridColor:'rgba(120,140,255,.12)', glow:true, handle:'#F4F7FF', chroma:['rgba(0,229,255,.8)','rgba(255,43,241,.8)'], peak:'#FFFFFF', unlit:'rgba(255,255,255,.08)', bracket:'rgba(255,255,255,.35)', font:'cyber', code:'mono', pairBg:'#0A0913', pairFg:'#00E5FF', inkDark:'#111318', inkLight:'#FFFFFF',
-    palette:P('Hot pink:#FF2E88|Magenta:#FF2BF1|Violet:#B04DFF|Ultraviolet:#6E5BFF|Electric blue:#2F7BFF|Cyan:#00E5FF|Aqua:#00FFC3|Neon green:#39FF14|Acid:#C6FF00|Yellow:#FFF200|Amber:#FFB000|Orange:#FF6A00|Red:#FF2A3D|Rose:#FF8FB8|Ice:#A8E6FF|White:#F4F7FF') },
-  { id:'daylight', name:'Daylight', bg:'#F5F6F9', panel:'#FFFFFF', grid:'dots', gridColor:'rgba(30,40,70,.16)', glow:false, handle:'#14161C', chroma:['rgba(27,163,198,.85)','rgba(194,24,91,.85)'], peak:'#14161C', unlit:'rgba(20,24,40,.09)', bracket:'rgba(20,24,40,.35)', font:'cyber', code:'mono', pairBg:'#F5F6F9', pairFg:'#1E3A8A', inkDark:'#111318', inkLight:'#FFFFFF',
-    palette:P('Red:#D7263D|Orange:#F26419|Amber:#E3A008|Lime:#7CB518|Green:#2E9E44|Teal:#0F8B8D|Cyan:#1BA3C6|Blue:#2563EB|Navy:#1E3A8A|Indigo:#5B4BD8|Purple:#8E3FC0|Magenta:#C2185B|Pink:#EC6FA6|Brown:#8D5524|Slate:#64748B|Black:#111318') },
-  { id:'paper', name:'Paper', bg:'#F3ECD9', panel:'#FBF6E9', grid:'hatch', gridColor:'rgba(90,60,30,.10)', glow:false, handle:'#1E1B16', chroma:['rgba(35,70,184,.75)','rgba(200,32,47,.75)'], peak:'#1E1B16', unlit:'rgba(60,40,20,.10)', bracket:'rgba(60,40,20,.4)', font:'serif', code:'mono', pairBg:'#F3ECD9', pairFg:'#1F3A6B', inkDark:'#1E1B16', inkLight:'#FBF6E9',
-    palette:P('Navy:#1F3A6B|Oxblood:#7A1F2B|Forest:#23573A|Plum:#6B2A6E|Teal:#1F6E73|Sepia:#6B4A2B|Slate:#55606E|Crimson:#C0272F|Royal:#2F55C8|Olive:#6B7022|Ochre:#B07A12|Indigo:#4A2F9A|Moss:#4F8A2B|Rust:#B5501F|Charcoal:#232323|Rose:#B8426E') },
-  { id:'blueprint', name:'Blueprint', bg:'#0F3A68', panel:'#164A80', grid:'grid', gridColor:'rgba(255,255,255,.14)', glow:false, handle:'#F4F8FF', chroma:['rgba(143,211,255,.85)','rgba(255,158,207,.85)'], peak:'#FFFFFF', unlit:'rgba(255,255,255,.12)', bracket:'rgba(255,255,255,.45)', font:'mono', code:'mono', pairBg:'#0F3A68', pairFg:'#F4F8FF', inkDark:'#0F3A68', inkLight:'#FFFFFF',
-    palette:P('White:#F4F8FF|Silver:#B9C6D8|Sky:#8FD3FF|Cyan:#3FE0E8|Teal:#2EC4B6|Mint:#8DF5B5|Lime:#C6F25A|Yellow:#FFE45E|Sand:#E9D7A5|Amber:#FFB547|Orange:#FF8A4C|Coral:#FF6B6B|Pink:#FF9ECF|Peach:#FFC9A3|Lilac:#C9A7FF|Violet:#9D8CFF') },
-  { id:'synthwave', name:'Synthwave', bg:'#1A0B2E', panel:'#2A1347', grid:'horizon', gridColor:'rgba(255,90,200,.22)', glow:true, handle:'#FFE9FF', chroma:['rgba(0,229,255,.8)','rgba(255,214,0,.8)'], peak:'#FFFFFF', unlit:'rgba(255,255,255,.09)', bracket:'rgba(255,200,255,.4)', font:'retro', code:'mono', pairBg:'#1A0B2E', pairFg:'#FF3CAC', inkDark:'#1A0B2E', inkLight:'#FFFFFF',
-    palette:P('Hot pink:#FF3CAC|Orchid:#E040FB|Lavender:#C3A6FF|Periwinkle:#7C8CFF|Sky:#4FC3F7|Cyan:#18FFFF|Mint:#64FFDA|Lime:#B2FF59|Yellow:#FFEA00|Gold:#FFC400|Tangerine:#FF9100|Coral:#FF6E6E|Red:#FF1744|Peach:#FFD3B6|Rose:#FF9ACD|White:#FFFFFF') },
-  { id:'terminal', name:'Terminal', bg:'#0C0C0C', panel:'#171717', grid:'scanlines', gridColor:'rgba(255,255,255,.05)', glow:true, handle:'#E6E6E6', chroma:['rgba(0,255,255,.7)','rgba(255,0,255,.7)'], peak:'#FFFFFF', unlit:'rgba(255,255,255,.09)', bracket:'rgba(255,255,255,.35)', font:'mono', code:'mono', pairBg:'#0C0C0C', pairFg:'#50FA7B', inkDark:'#0C0C0C', inkLight:'#FFFFFF',
-    palette:P('Red:#FF5555|Orange:#FFB86C|Yellow:#F1FA8C|Lime:#A6E22E|Green:#50FA7B|Teal:#2AC3A2|Cyan:#8BE9FD|Blue:#61AFEF|Indigo:#7C83FD|Purple:#BD93F9|Magenta:#FF79C6|Pink:#FFB3D9|Tan:#C89F6D|Gray:#9DA5B4|White:#F8F8F2|Amber:#FFC857') },
-  { id:'arcade', name:'Arcade', bg:'#101030', panel:'#1C1C4A', grid:'pixels', gridColor:'rgba(255,255,255,.35)', glow:false, handle:'#FFFFFF', chroma:['#FF004D','#29ADFF'], peak:'#FFFFFF', unlit:'rgba(255,255,255,.11)', bracket:'rgba(255,255,255,.45)', font:'pixel', code:'pixel', pairBg:'#101030', pairFg:'#FFEC27', inkDark:'#101030', inkLight:'#FFFFFF',
-    palette:P('Red:#FF004D|Orange:#FFA300|Yellow:#FFEC27|Green:#00E436|Blue:#29ADFF|Lavender:#9C8CD8|Pink:#FF77A8|Peach:#FFCCAA|Cream:#FFF1E8|Silver:#C2C3C7|Brown:#C2683C|Plum:#B03A78|Forest:#1FA35A|Cyan:#00F5FF|Purple:#B65CFF|Lime:#A8E61D') },
-  { id:'stealth', name:'Stealth', bg:'#2B2E26', panel:'#3A3E33', grid:'crosses', gridColor:'rgba(220,230,200,.13)', glow:false, handle:'#ECE9DA', chroma:['rgba(255,140,0,.8)','rgba(120,200,255,.8)'], peak:'#FFFFFF', unlit:'rgba(236,233,218,.10)', bracket:'rgba(236,233,218,.4)', font:'stencil', code:'mono', pairBg:'#2B2E26', pairFg:'#FFD300', inkDark:'#2B2E26', inkLight:'#FFFFFF',
-    palette:P('Blaze:#FF6A13|Safety yellow:#FFD300|Signal red:#E5322D|Lime:#9BE22D|Mint:#7FE7C4|Sky:#7FC8F8|Cobalt:#4D7CFE|Violet:#A98BFF|Pink:#FF8FC8|Sand:#D9C9A3|Khaki:#B8B07A|Rust:#C8642D|Teal:#2FB5A5|Ivory:#F2EFE3|Steel:#9AA7B0|Amber:#FFB000') },
-];
+/* ---------- themes: generated from visual256/themes.py by docs/build_lab.py; the hash picks one ---------- */
+const THEMES = [{"id":"cyberpunk","name":"Cyberpunk","bg":"#0A0913","panel":"#16132C","grid":"grid","gridColor":"rgba(120,140,255,.12)","glow":true,"handle":"#F4F7FF","chroma":["rgba(0,229,255,.8)","rgba(255,43,241,.8)"],"peak":"#FFFFFF","unlit":"rgba(255,255,255,.08)","bracket":"rgba(255,255,255,.35)","font":"cyber","code":"mono","palette":[["Hot pink","#FF2E88"],["Magenta","#FF2BF1"],["Violet","#B04DFF"],["Ultraviolet","#6E5BFF"],["Electric blue","#2F7BFF"],["Cyan","#00E5FF"],["Aqua","#00FFC3"],["Neon green","#39FF14"],["Acid","#C6FF00"],["Yellow","#FFF200"],["Amber","#FFB000"],["Orange","#FF6A00"],["Red","#FF2A3D"],["Rose","#FF8FB8"],["Ice","#A8E6FF"],["White","#F4F7FF"]],"pairBg":"#0A0913","pairFg":"#00E5FF","inkDark":"#111318","inkLight":"#FFFFFF"},{"id":"daylight","name":"Daylight","bg":"#F5F6F9","panel":"#FFFFFF","grid":"dots","gridColor":"rgba(30,40,70,.16)","glow":false,"handle":"#14161C","chroma":["rgba(27,163,198,.85)","rgba(194,24,91,.85)"],"peak":"#14161C","unlit":"rgba(20,22,28,.09)","bracket":"rgba(20,22,28,.35)","font":"cyber","code":"mono","palette":[["Red","#D7263D"],["Orange","#F26419"],["Amber","#E3A008"],["Lime","#7CB518"],["Green","#2E9E44"],["Teal","#0F8B8D"],["Cyan","#1BA3C6"],["Blue","#2563EB"],["Navy","#1E3A8A"],["Indigo","#5B4BD8"],["Purple","#8E3FC0"],["Magenta","#C2185B"],["Pink","#EC6FA6"],["Brown","#8D5524"],["Slate","#64748B"],["Black","#111318"]],"pairBg":"#F5F6F9","pairFg":"#1E3A8A","inkDark":"#111318","inkLight":"#FFFFFF"},{"id":"paper","name":"Paper","bg":"#F3ECD9","panel":"#FBF6E9","grid":"hatch","gridColor":"rgba(90,60,30,.10)","glow":false,"handle":"#1E1B16","chroma":["rgba(35,70,184,.75)","rgba(200,32,47,.75)"],"peak":"#1E1B16","unlit":"rgba(30,27,22,.09)","bracket":"rgba(30,27,22,.35)","font":"serif","code":"mono","palette":[["Navy","#1F3A6B"],["Oxblood","#7A1F2B"],["Forest","#23573A"],["Plum","#6B2A6E"],["Teal","#1F6E73"],["Sepia","#6B4A2B"],["Slate","#55606E"],["Crimson","#C0272F"],["Royal","#2F55C8"],["Olive","#6B7022"],["Ochre","#B07A12"],["Indigo","#4A2F9A"],["Moss","#4F8A2B"],["Rust","#B5501F"],["Charcoal","#232323"],["Rose","#B8426E"]],"pairBg":"#F3ECD9","pairFg":"#1F3A6B","inkDark":"#1E1B16","inkLight":"#FBF6E9"},{"id":"blueprint","name":"Blueprint","bg":"#0F3A68","panel":"#164A80","grid":"grid","gridColor":"rgba(255,255,255,.14)","glow":false,"handle":"#F4F8FF","chroma":["rgba(143,211,255,.85)","rgba(255,158,207,.85)"],"peak":"#FFFFFF","unlit":"rgba(255,255,255,.12)","bracket":"rgba(255,255,255,.45)","font":"mono","code":"mono","palette":[["White","#F4F8FF"],["Silver","#B9C6D8"],["Sky","#8FD3FF"],["Cyan","#3FE0E8"],["Teal","#2EC4B6"],["Mint","#8DF5B5"],["Lime","#C6F25A"],["Yellow","#FFE45E"],["Sand","#E9D7A5"],["Amber","#FFB547"],["Orange","#FF8A4C"],["Coral","#FF6B6B"],["Pink","#FF9ECF"],["Peach","#FFC9A3"],["Lilac","#C9A7FF"],["Violet","#9D8CFF"]],"pairBg":"#0F3A68","pairFg":"#F4F8FF","inkDark":"#0F3A68","inkLight":"#FFFFFF"},{"id":"candy","name":"Candy","bg":"#FCE6F0","panel":"#FFF7FB","grid":"polka","gridColor":"rgba(194,24,91,.10)","glow":false,"handle":"#3A0F24","chroma":["rgba(0,168,132,.8)","rgba(57,73,171,.8)"],"peak":"#3A0F24","unlit":"rgba(58,15,36,.09)","bracket":"rgba(58,15,36,.35)","font":"retro","code":"mono","palette":[["Raspberry","#C2185B"],["Cherry","#E53935"],["Tangerine","#F4511E"],["Honey","#D98E04"],["Lime","#689F38"],["Mint","#00A884"],["Teal","#00796B"],["Sky","#0288D1"],["Blueberry","#3949AB"],["Grape","#7B1FA2"],["Lavender","#9575CD"],["Bubblegum","#F06292"],["Chocolate","#6D4C41"],["Licorice","#212121"],["Slate","#546E7A"],["Coral","#FF7043"]],"pairBg":"#FCE6F0","pairFg":"#C2185B","inkDark":"#3A0F24","inkLight":"#FFFFFF"},{"id":"mint","name":"Mint","bg":"#E3F4EC","panel":"#F7FFFB","grid":"waves","gridColor":"rgba(0,90,60,.16)","glow":false,"handle":"#0E2E22","chroma":["rgba(211,47,47,.75)","rgba(21,101,192,.75)"],"peak":"#0E2E22","unlit":"rgba(14,46,34,.09)","bracket":"rgba(14,46,34,.35)","font":"mono","code":"mono","palette":[["Red","#D32F2F"],["Orange","#EF6C00"],["Gold","#C98A00"],["Olive","#827717"],["Green","#2E7D32"],["Teal","#00796B"],["Cyan","#0097A7"],["Blue","#1565C0"],["Navy","#1A237E"],["Indigo","#4527A0"],["Purple","#6A1B9A"],["Magenta","#AD1457"],["Pink","#E91E63"],["Brown","#5D4037"],["Gray","#546E7A"],["Black","#1B1B1B"]],"pairBg":"#E3F4EC","pairFg":"#00796B","inkDark":"#0E2E22","inkLight":"#FFFFFF"},{"id":"arcade","name":"Arcade","bg":"#17175A","panel":"#24247A","grid":"pixels","gridColor":"rgba(255,255,255,.35)","glow":false,"handle":"#FFFFFF","chroma":["#FF004D","#29ADFF"],"peak":"#FFFFFF","unlit":"rgba(255,255,255,.11)","bracket":"rgba(255,255,255,.45)","font":"pixel","code":"pixel","palette":[["Red","#FF004D"],["Orange","#FFA300"],["Yellow","#FFEC27"],["Green","#00E436"],["Blue","#29ADFF"],["Lavender","#9C8CD8"],["Pink","#FF77A8"],["Peach","#FFCCAA"],["Cream","#FFF1E8"],["Silver","#C2C3C7"],["Brown","#C2683C"],["Plum","#B03A78"],["Forest","#1FA35A"],["Cyan","#00F5FF"],["Purple","#B65CFF"],["Lime","#A8E61D"]],"pairBg":"#17175A","pairFg":"#FFEC27","inkDark":"#17175A","inkLight":"#FFFFFF"},{"id":"stealth","name":"Stealth","bg":"#2C2C2A","panel":"#3B3B38","grid":"crosses","gridColor":"rgba(230,230,220,.13)","glow":false,"handle":"#ECE9DA","chroma":["rgba(255,140,0,.8)","rgba(120,200,255,.8)"],"peak":"#FFFFFF","unlit":"rgba(236,233,218,.10)","bracket":"rgba(236,233,218,.4)","font":"stencil","code":"mono","palette":[["Blaze","#FF6A13"],["Safety yellow","#FFD300"],["Signal red","#E5322D"],["Lime","#9BE22D"],["Mint","#7FE7C4"],["Sky","#7FC8F8"],["Cobalt","#4D7CFE"],["Violet","#A98BFF"],["Pink","#FF8FC8"],["Sand","#D9C9A3"],["Khaki","#B8B07A"],["Rust","#C8642D"],["Teal","#2FB5A5"],["Ivory","#F2EFE3"],["Steel","#9AA7B0"],["Amber","#FFB000"]],"pairBg":"#2C2C2A","pairFg":"#FFD300","inkDark":"#2C2C2A","inkLight":"#FFFFFF"},{"id":"ember","name":"Ember","bg":"#2A0C0C","panel":"#3A1414","grid":"scanlines","gridColor":"rgba(255,120,60,.10)","glow":true,"handle":"#FFF1E0","chroma":["rgba(255,213,79,.8)","rgba(255,61,61,.8)"],"peak":"#FFFFFF","unlit":"rgba(255,220,200,.09)","bracket":"rgba(255,200,170,.38)","font":"stencil","code":"mono","palette":[["Gold","#FFD54F"],["Lemon","#FFF176"],["Amber","#FFB300"],["Orange","#FF8F00"],["Flame","#FF5722"],["Red","#FF3D3D"],["Coral","#FF8A80"],["Pink","#F48FB1"],["Orchid","#EA80FC"],["Violet","#B39DDB"],["Sky","#81D4FA"],["Cyan","#4DD0E1"],["Mint","#A5D6A7"],["Lime","#C5E1A5"],["Peach","#FFCCBC"],["White","#FFFFFF"]],"pairBg":"#2A0C0C","pairFg":"#FF8F00","inkDark":"#2A0C0C","inkLight":"#FFFFFF"},{"id":"abyss","name":"Abyss","bg":"#052B30","panel":"#0B3B42","grid":"bubbles","gridColor":"rgba(120,255,240,.18)","glow":true,"handle":"#E8FFFD","chroma":["rgba(0,229,255,.8)","rgba(198,255,0,.8)"],"peak":"#FFFFFF","unlit":"rgba(255,255,255,.09)","bracket":"rgba(255,255,255,.38)","font":"retro","code":"mono","palette":[["Hot pink","#FF2E88"],["Magenta","#FF2BF1"],["Violet","#B04DFF"],["Ultraviolet","#6E5BFF"],["Electric blue","#2F7BFF"],["Cyan","#00E5FF"],["Aqua","#00FFC3"],["Neon green","#39FF14"],["Acid","#C6FF00"],["Yellow","#FFF200"],["Amber","#FFB000"],["Orange","#FF6A00"],["Red","#FF2A3D"],["Rose","#FF8FB8"],["Ice","#A8E6FF"],["White","#F4F7FF"]],"pairBg":"#052B30","pairFg":"#00FFC3","inkDark":"#052B30","inkLight":"#FFFFFF"},{"id":"sky","name":"Sky","bg":"#E1EEFA","panel":"#F8FBFF","grid":"zigzag","gridColor":"rgba(20,60,120,.15)","glow":false,"handle":"#0B1F3A","chroma":["rgba(233,30,99,.75)","rgba(0,151,167,.75)"],"peak":"#0B1F3A","unlit":"rgba(11,31,58,.09)","bracket":"rgba(11,31,58,.35)","font":"cyber","code":"mono","palette":[["Red","#D32F2F"],["Orange","#EF6C00"],["Gold","#C98A00"],["Olive","#827717"],["Green","#2E7D32"],["Teal","#00796B"],["Cyan","#0097A7"],["Blue","#1565C0"],["Navy","#1A237E"],["Indigo","#4527A0"],["Purple","#6A1B9A"],["Magenta","#AD1457"],["Pink","#E91E63"],["Brown","#5D4037"],["Gray","#546E7A"],["Black","#1B1B1B"]],"pairBg":"#E1EEFA","pairFg":"#1565C0","inkDark":"#0B1F3A","inkLight":"#FFFFFF"},{"id":"royal","name":"Royal","bg":"#2B1145","panel":"#3A1A5C","grid":"lattice","gridColor":"rgba(242,193,78,.15)","glow":false,"handle":"#F8EED0","chroma":["rgba(242,193,78,.8)","rgba(255,59,127,.8)"],"peak":"#FFFFFF","unlit":"rgba(255,255,255,.09)","bracket":"rgba(242,193,78,.45)","font":"serif","code":"mono","palette":[["Gold","#F2C14E"],["Ruby","#FF3B7F"],["Emerald","#2ECC71"],["Sapphire","#4D8BFF"],["Amethyst","#B57BFF"],["Topaz","#FFB347"],["Pearl","#F4F1EA"],["Rose quartz","#FF9EC0"],["Turquoise","#40E0D0"],["Coral","#FF7F50"],["Citrine","#E4D00A"],["Jade","#00C27A"],["Aquamarine","#7FFFD4"],["Garnet","#FF5A4F"],["Silver","#C8C8D0"],["Peridot","#B4D335"]],"pairBg":"#2B1145","pairFg":"#F2C14E","inkDark":"#2B1145","inkLight":"#FFFFFF"},{"id":"citrus","name":"Citrus","bg":"#FFF5D1","panel":"#FFFDF2","grid":"rays","gridColor":"rgba(200,140,0,.14)","glow":false,"handle":"#2E2200","chroma":["rgba(0,121,107,.75)","rgba(229,57,53,.75)"],"peak":"#2E2200","unlit":"rgba(46,34,0,.09)","bracket":"rgba(46,34,0,.35)","font":"pixel","code":"mono","palette":[["Raspberry","#C2185B"],["Cherry","#E53935"],["Tangerine","#F4511E"],["Honey","#D98E04"],["Lime","#689F38"],["Mint","#00A884"],["Teal","#00796B"],["Sky","#0288D1"],["Blueberry","#3949AB"],["Grape","#7B1FA2"],["Lavender","#9575CD"],["Bubblegum","#F06292"],["Chocolate","#6D4C41"],["Licorice","#212121"],["Slate","#546E7A"],["Coral","#FF7043"]],"pairBg":"#FFF5D1","pairFg":"#E65100","inkDark":"#2E2200","inkLight":"#FFFFFF"},{"id":"jungle","name":"Jungle","bg":"#0B3A1C","panel":"#134A28","grid":"waves","gridColor":"rgba(180,255,180,.12)","glow":false,"handle":"#F1FFE8","chroma":["rgba(255,166,43,.8)","rgba(218,112,214,.8)"],"peak":"#FFFFFF","unlit":"rgba(255,255,255,.09)","bracket":"rgba(255,255,255,.38)","font":"cyber","code":"mono","palette":[["Parrot red","#FF4040"],["Mango","#FFA62B"],["Banana","#FFE14D"],["Lime","#B6F23C"],["Leaf","#4CD964"],["Lagoon","#2ED8C3"],["Sky","#5AC8FA"],["Blue","#4F8BFF"],["Orchid","#DA70D6"],["Hibiscus","#FF7EB6"],["Coral","#FF7F66"],["Papaya","#FFC8A2"],["Sand","#E8D8A8"],["Bone","#F5F5F0"],["Lilac","#C3A6FF"],["Toucan","#FF7A00"]],"pairBg":"#0B3A1C","pairFg":"#B6F23C","inkDark":"#0B3A1C","inkLight":"#FFFFFF"},{"id":"lilac","name":"Lilac","bg":"#EDE7FA","panel":"#FBF9FF","grid":"hatch","gridColor":"rgba(80,50,160,.12)","glow":false,"handle":"#1F1438","chroma":["rgba(0,121,107,.75)","rgba(194,24,91,.75)"],"peak":"#1F1438","unlit":"rgba(31,20,56,.09)","bracket":"rgba(31,20,56,.35)","font":"serif","code":"mono","palette":[["Red","#D32F2F"],["Orange","#EF6C00"],["Gold","#C98A00"],["Olive","#827717"],["Green","#2E7D32"],["Teal","#00796B"],["Cyan","#0097A7"],["Blue","#1565C0"],["Navy","#1A237E"],["Indigo","#4527A0"],["Purple","#6A1B9A"],["Magenta","#AD1457"],["Pink","#E91E63"],["Brown","#5D4037"],["Gray","#546E7A"],["Black","#1B1B1B"]],"pairBg":"#EDE7FA","pairFg":"#5B4BD8","inkDark":"#1F1438","inkLight":"#FFFFFF"},{"id":"concrete","name":"Concrete","bg":"#C9CCD1","panel":"#E4E6E9","grid":"pixels","gridColor":"rgba(30,30,30,.22)","glow":false,"handle":"#111111","chroma":["rgba(198,40,40,.8)","rgba(21,101,192,.8)"],"peak":"#111111","unlit":"rgba(17,17,17,.09)","bracket":"rgba(17,17,17,.35)","font":"mono","code":"mono","palette":[["Red","#B71C1C"],["Orange","#C43E00"],["Mustard","#8A6500"],["Moss","#3E6B1F"],["Green","#1B5E20"],["Teal","#00594F"],["Cyan","#006672"],["Blue","#0D47A1"],["Navy","#0D1B4C"],["Purple","#5B1A8A"],["Magenta","#9C1050"],["Maroon","#5E1424"],["Brown","#4E342E"],["Black","#111111"],["Olive","#555A16"],["Slate","#2F3E46"]],"pairBg":"#C9CCD1","pairFg":"#111111","inkDark":"#111111","inkLight":"#FFFFFF"}];
 const FONTS = { cyber:'"Chakra Petch", "JetBrains Mono", monospace', mono:'"JetBrains Mono", ui-monospace, monospace', serif:'Spectral, Georgia, serif', retro:'Audiowide, "Chakra Petch", sans-serif', pixel:'Silkscreen, "JetBrains Mono", monospace', stencil:'"Saira Stencil One", "Chakra Petch", sans-serif' };
 const FONT_WEIGHT = { cyber:700, mono:600, serif:600, retro:400, pixel:700, stencil:400 };
 const tcol = (t, i) => t.palette[i&15][1], tname = (t, i) => t.palette[i&15][0];
@@ -284,11 +266,12 @@ function lum(h){ const n = parseInt(h.slice(1,7),16); const ch = [n>>16&255, n>>
 const chipInk = (t, c) => lum(c) > 0.3 ? t.inkDark : t.inkLight;
 
 const FIELDS = [
-  ['theme',3,'Theme','8 looks: background, fonts and palette', d => THEMES[d.theme].name],
+  ['theme',4,'Theme','16 looks: background, pattern, fonts, palette', d => THEMES[d.theme].name],
   ['layout',3,'Card layout','8 arrangements', d => `${d.layout} · ${LAYOUTS[d.layout].toLowerCase()}`],
   ['display',2,'Detail display','tiles · gems · hex pairs · arrows', d => DISPLAYS[d.display]],
   ['corners',2,'Frame corners','which corners are cut', d => CORNERS[d.corners]],
   ['framestyle',2,'Frame style','single · double · dashed · brackets', d => FRAME_STYLES[d.framestyle]],
+  ['barstyle',2,'Bar style','segmented · solid · lollipops · chevrons', d => BAR_STYLES[d.barstyle]],
   ['frame',4,'Frame color','frame and dividers', (d,t) => tname(t, d.frame)],
   ['visor',4,'Visor color','visor', (d,t) => tname(t, d.visor)],
   ['trim',4,'Trim color','head outline, mods, mouth, cheeks, decal', (d,t) => tname(t, d.trim)],
@@ -305,20 +288,20 @@ const FIELDS = [
   ['hstyle',3,'Handle style','8 text treatments', d => HSTYLES[d.hstyle]],
   ['word1',11,'Handle word 1','BIP-39 word, 1 of 2,048', d => `${BIP39[d.word1]} (#${d.word1+1})`],
   ['word2',11,'Handle word 2','BIP-39 word, 1 of 2,048', d => `${BIP39[d.word2]} (#${d.word2+1})`],
-  ['bars',24,'Signal bars','8 bars × 1–8 lit segments', d => d.bars.map(v => v+1).join(' ')],
+  ['bars',21,'Signal bars','7 bars × 1–8 levels', d => d.bars.map(v => v+1).join(' ')],
   ['chips',12,'Chip colors','3 chips × 16 colors', (d,t) => d.chips.map(c => tname(t, c)).join(', ')],
   ['chars',60,'Characters','12 characters on 3 chips', d => charGroups(d).join(' ')],
   ['cells',80,'Detail cells','10 cells × 8 bits, drawn in the detail display', (d,t) => describeCells(d, t)],
 ];
 let off = 0; for(const f of FIELDS){ f.off = off; off += f[1]; }
 if(off !== 256) console.error('bit layout sums to ' + off);
-const HEADLINE_BITS = 80;
+const HEADLINE_BITS = 83;
 function readBits(b, pos, n){ let v = 0; for(let i=0;i<n;i++){ const p = pos+i; v = v*2 + ((b[p>>3] >> (7-(p&7))) & 1); } return v; }
 function decode(b){
   const d = {};
   for(const f of FIELDS){
     const [k, n] = f;
-    if(k === 'bars'){ d.bars = []; for(let i=0;i<8;i++) d.bars.push(readBits(b, f.off+3*i, 3)); }
+    if(k === 'bars'){ d.bars = []; for(let i=0;i<7;i++) d.bars.push(readBits(b, f.off+3*i, 3)); }
     else if(k === 'chips'){ d.chips = []; for(let i=0;i<3;i++) d.chips.push(readBits(b, f.off+4*i, 4)); }
     else if(k === 'chars'){ d.chars = []; for(let i=0;i<12;i++) d.chars.push(readBits(b, f.off+5*i, 5)); }
     else if(k === 'cells'){ d.cells = []; for(let i=0;i<10;i++) d.cells.push(readBits(b, f.off+8*i, 8)); }
@@ -338,13 +321,13 @@ const words = d => [BIP39[d.word1].toUpperCase(), BIP39[d.word2].toUpperCase()];
 
 /* ---------- the 8 layouts (mirror visual256/draw.py layout_spec) ---------- */
 function layoutSpec(L){
-  const stacked = (x0, x1) => ({ handle:[{text:'both', x:x0, y:11.8, w:x1-x0, align:'left', size:8.4}], bars:[{ids:[0,1,2,3,4,5,6,7], x0, x1, y0:14.2, y1:24.2}], chips:[{ids:[0,1,2], x0, y0:26.2, x1, y1:34.6, col:false}], cells:[{ids:[0,1,2,3,4,5,6,7,8,9], x0, y0:36.8, x1, y1:60, gc:5, gr:2}] });
-  const grid = (x0, x1) => { const mid = x0 + (x1-x0)*.5; return { handle:[{text:'both', x:x0, y:11.8, w:x1-x0, align:'left', size:8.4}], cells:[{ids:[0,1,2,3,4,5,6,7,8,9], x0, y0:15, x1:mid-1.3, y1:60, gc:2, gr:5}], bars:[{ids:[0,1,2,3,4,5,6,7], x0:mid+1.3, x1, y0:15, y1:30.5}], chips:[{ids:[0,1,2], x0:mid+1.3, y0:33, x1, y1:60, col:true}] }; };
+  const stacked = (x0, x1) => ({ handle:[{text:'both', x:x0, y:11.8, w:x1-x0, align:'left', size:8.4}], bars:[{ids:[0,1,2,3,4,5,6], x0, x1, y0:14.2, y1:24.2}], chips:[{ids:[0,1,2], x0, y0:26.2, x1, y1:34.6, col:false}], cells:[{ids:[0,1,2,3,4,5,6,7,8,9], x0, y0:36.8, x1, y1:60, gc:5, gr:2}] });
+  const grid = (x0, x1) => { const mid = x0 + (x1-x0)*.5; return { handle:[{text:'both', x:x0, y:11.8, w:x1-x0, align:'left', size:8.4}], cells:[{ids:[0,1,2,3,4,5,6,7,8,9], x0, y0:15, x1:mid-1.3, y1:60, gc:2, gr:5}], bars:[{ids:[0,1,2,3,4,5,6], x0:mid+1.3, x1, y0:15, y1:30.5}], chips:[{ids:[0,1,2], x0:mid+1.3, y0:33, x1, y1:60, col:true}] }; };
   const split = top => {
-    const col = (x0, x1, side) => { const cx = (x0+x1)/2, hd = {text:side?'w2':'w1', x:cx, y:11.4, w:x1-x0, align:'center', size:7.8}, b = side ? [4,5,6,7] : [0,1,2,3], ch = side ? [2] : [0], cl = side ? [5,6,7,8,9] : [0,1,2,3,4];
+    const col = (x0, x1, side) => { const cx = (x0+x1)/2, hd = {text:side?'w2':'w1', x:cx, y:11.4, w:x1-x0, align:'center', size:7.8}, b = side ? [4,5,6] : [0,1,2,3], ch = side ? [2] : [0], cl = side ? [5,6,7,8,9] : [0,1,2,3,4];
       return top
-        ? { handle:hd, cells:{ids:cl, x0, y0:13.8, x1, y1:36.2, gc:3, gr:2}, chips:{ids:ch, x0, y0:38.2, x1, y1:45.6, col:false}, bars:{ids:b, x0, x1, y0:47.6, y1:60} }
-        : { handle:hd, bars:{ids:b, x0, x1, y0:13.8, y1:23.4}, chips:{ids:ch, x0, y0:25.4, x1, y1:32.8, col:false}, cells:{ids:cl, x0, y0:35, x1, y1:60, gc:3, gr:2} }; };
+        ? { handle:hd, cells:{ids:cl, x0, y0:13.8, x1, y1:36.2, gc:3, gr:2}, chips:{ids:ch, x0, y0:38.2, x1, y1:45.6, col:false}, bars:{ids:b, x0, x1, y0:47.6, y1:60, slots:4} }
+        : { handle:hd, bars:{ids:b, x0, x1, y0:13.8, y1:23.4, slots:4}, chips:{ids:ch, x0, y0:25.4, x1, y1:32.8, col:false}, cells:{ids:cl, x0, y0:35, x1, y1:60, gc:3, gr:2} }; };
     const a = col(3.5, 40.5, 0), c = col(87.5, 124.5, 1), topChip = {ids:[1], x0:47, y0:2.6, x1:81, y1:9.8, col:false};
     return { face:[64,34,.88], div:[[43,6,43,58],[85,6,85,58]], handle:[a.handle, c.handle], bars:[a.bars, c.bars], chips:[a.chips, topChip, c.chips], cells:[a.cells, c.cells] };
   };
@@ -354,8 +337,8 @@ function layoutSpec(L){
     case 2: return split(false);
     case 3: return { face:[21.5,31,1], div:[[42.5,6,42.5,58]], ...grid(45.6, 123.4) };
     case 4: return { face:[106.5,31,1], div:[[85.5,6,85.5,58]], ...grid(4.4, 82.6) };
-    case 5: return { face:[19.5,39.5,.74], div:[[6,13.6,122,13.6],[38,17,38,60]], handle:[{text:'both', x:64, y:10.6, w:112, align:'center', size:8.6}], bars:[{ids:[0,1,2,3,4,5,6,7], x0:41, x1:123.4, y0:16.4, y1:24.6}], chips:[{ids:[0,1,2], x0:41, y0:26.6, x1:123.4, y1:34.4, col:false}], cells:[{ids:[0,1,2,3,4,5,6,7,8,9], x0:41, y0:36.6, x1:123.4, y1:60, gc:5, gr:2}] };
-    case 6: return { face:[108.5,26.5,.74], div:[[6,50.6,122,50.6],[89,5,89,48]], handle:[{text:'both', x:64, y:59.4, w:112, align:'center', size:8.6}], cells:[{ids:[0,1,2,3,4,5,6,7,8,9], x0:4.6, y0:4.6, x1:86, y1:25.6, gc:5, gr:2}], chips:[{ids:[0,1,2], x0:4.6, y0:27.6, x1:86, y1:35.2, col:false}], bars:[{ids:[0,1,2,3,4,5,6,7], x0:4.6, x1:86, y0:37.4, y1:48}] };
+    case 5: return { face:[19.5,39.5,.74], div:[[6,13.6,122,13.6],[38,17,38,60]], handle:[{text:'both', x:64, y:10.6, w:112, align:'center', size:8.6}], bars:[{ids:[0,1,2,3,4,5,6], x0:41, x1:123.4, y0:16.4, y1:24.6}], chips:[{ids:[0,1,2], x0:41, y0:26.6, x1:123.4, y1:34.4, col:false}], cells:[{ids:[0,1,2,3,4,5,6,7,8,9], x0:41, y0:36.6, x1:123.4, y1:60, gc:5, gr:2}] };
+    case 6: return { face:[108.5,26.5,.74], div:[[6,50.6,122,50.6],[89,5,89,48]], handle:[{text:'both', x:64, y:59.4, w:112, align:'center', size:8.6}], cells:[{ids:[0,1,2,3,4,5,6,7,8,9], x0:4.6, y0:4.6, x1:86, y1:25.6, gc:5, gr:2}], chips:[{ids:[0,1,2], x0:4.6, y0:27.6, x1:86, y1:35.2, col:false}], bars:[{ids:[0,1,2,3,4,5,6], x0:4.6, x1:86, y0:37.4, y1:48}] };
     default: return split(true);
   }
 }
@@ -407,6 +390,12 @@ function background(ctx, t){
   else if(k === 'horizon'){ for(let i=0;i<7;i++){ const y = 30+i*i*.85; ctx.moveTo(0,y); ctx.lineTo(128,y); } for(let xb=-56;xb<185;xb+=12){ ctx.moveTo(64+(xb-64)*.15,30); ctx.lineTo(xb,64); } ctx.lineWidth=.25; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
   else if(k === 'scanlines'){ for(let y=.6;y<64;y+=1.3){ ctx.moveTo(0,y); ctx.lineTo(128,y); } ctx.lineWidth=.35; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
   else if(k === 'pixels'){ let s = 7; for(let i=0;i<70;i++){ s = (s*75+74) % 65537; const x = s % 1280 / 10; s = (s*75+74) % 65537; const y = s % 640 / 10; ctx.rect(x,y,.7,.7); } ctx.fillStyle=t.gridColor; ctx.fill(); }
+  else if(k === 'polka'){ let j = 0; for(let y=3;y<64;y+=5, j++) for(let x=3+(j%2?3:0);x<128;x+=6){ ctx.moveTo(x+.7,y); ctx.arc(x,y,.7,0,TAU); } ctx.fillStyle=t.gridColor; ctx.fill(); }
+  else if(k === 'waves'){ for(let y0=3;y0<66;y0+=5) for(let i=0;i<65;i++){ const x=i*2, y=y0+.8*Math.sin(x/6); i ? ctx.lineTo(x,y) : ctx.moveTo(x,y); } ctx.lineWidth=.3; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
+  else if(k === 'zigzag'){ for(let y0=3;y0<66;y0+=5) for(let i=0;i<33;i++){ const y = y0 + (i%2 ? 1 : -1); i ? ctx.lineTo(i*4,y) : ctx.moveTo(i*4,y); } ctx.lineWidth=.3; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
+  else if(k === 'rays'){ for(let i=0;i<16;i++){ const a = -Math.PI/2 + i*Math.PI/30; ctx.moveTo(0,64); ctx.lineTo(170*Math.cos(a), 64+170*Math.sin(a)); } ctx.lineWidth=.5; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
+  else if(k === 'lattice'){ for(let x=-64;x<128;x+=6){ ctx.moveTo(x,64); ctx.lineTo(x+64,0); ctx.moveTo(x,0); ctx.lineTo(x+64,64); } ctx.lineWidth=.2; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
+  else if(k === 'bubbles'){ let s = 11; for(let i=0;i<40;i++){ s=(s*75+74)%65537; const x=s%1280/10; s=(s*75+74)%65537; const y=s%640/10; s=(s*75+74)%65537; const r=.6+(s%10)/10; ctx.moveTo(x+r,y); ctx.arc(x,y,r,0,TAU); } ctx.lineWidth=.25; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
   else { for(let y=3;y<64;y+=6) for(let x=3;x<128;x+=6){ ctx.rect(x-.8,y-.1,1.6,.2); ctx.rect(x-.1,y-.8,.2,1.6); } ctx.fillStyle=t.gridColor; ctx.fill(); }
 }
 
@@ -428,7 +417,7 @@ function drawNetrunner(ctx, d){
   ctx.save(); ctx.translate(fx, fy); ctx.scale(fs, fs); ctx.translate(-21.5, -31); drawFace(ctx, d, 21.5, glow, noglow, vis, trim, t); ctx.restore();
   const w = words(d);
   for(const h of spec.handle){ const text = h.text === 'both' ? `${w[0]}·${w[1]}` : h.text === 'w1' ? w[0] : w[1]; handleText(ctx, text, h.x, h.y, h.w, h.align, d.hstyle, acc, h.size, glow, noglow, t); }
-  for(const b of spec.bars) drawBars(ctx, b.ids.map(i => d.bars[i]), b.x0, b.x1, b.y0, b.y1, acc, glow, noglow, t);
+  for(const b of spec.bars) drawBars(ctx, b.ids.map(i => d.bars[i]), b.x0, b.x1, b.y0, b.y1, b.slots || 0, d.barstyle, acc, glow, noglow, t);
   for(const c of spec.chips) drawChips(ctx, d, c, t);
   for(const c of spec.cells) drawCells(ctx, d, c, vis, glow, noglow, t);
   ctx.restore();
@@ -527,12 +516,29 @@ function handleText(ctx, text, x, y, maxW, align, style, acc, size, glow, noglow
   else if(style === 5){ ctx.fillStyle = acc; ctx.fillRect(left, y+fs*.16, w, fs*.13); }
   else if(style === 6){ ctx.beginPath(); ctx.rect(left-1.2, y-fs*.82, w+2.4, fs*1.04); ctx.lineWidth = .45; ctx.strokeStyle = acc; ctx.stroke(); }
 }
-function drawBars(ctx, vals, x0, x1, y0, y1, acc, glow, noglow, t){
-  const n = vals.length, gap = 1.4, bw = (x1-x0-(n-1)*gap)/n, bh = y1-y0, seg = bh/8;
-  for(let i=0;i<n;i++){ const x = x0+i*(bw+gap);
-    for(let s=0;s<8;s++){ const y = y0+bh-(s+1)*seg, lit = s <= vals[i];
-      ctx.fillStyle = lit ? (s === vals[i] ? t.peak : acc) : t.unlit;
-      if(lit) glow(acc,.8); ctx.fillRect(x, y+.15, bw, seg-.35); noglow(); } }
+function drawBars(ctx, vals, x0, x1, y0, y1, slots, style, acc, glow, noglow, t){
+  const n = vals.length, gap = 1.4, k = Math.max(n, slots), bw = (x1-x0-(k-1)*gap)/k, bh = y1-y0, seg = bh/8, ox = x0 + (k-n)*(bw+gap)/2;
+  vals.forEach((v, i) => {
+    const x = ox + i*(bw+gap);
+    if(style === 1){
+      for(let s=0;s<8;s++){ ctx.fillStyle = t.unlit; ctx.fillRect(x, y0+bh-(s+1)*seg+.15, bw, seg-.35); }
+      const top = y0+bh-(v+1)*seg; glow(acc,.8); ctx.fillStyle = acc; ctx.fillRect(x, top+.15, bw, (v+1)*seg-.15); noglow();
+      ctx.fillStyle = t.peak; ctx.fillRect(x, top+.15, bw, .6); return;
+    }
+    if(style === 2){
+      const cx = x+bw/2, top = y0+bh-(v+.5)*seg, sw = Math.min(bw*.22, .8), r = Math.min(bw*.42, 1.7);
+      ctx.fillStyle = t.unlit; ctx.fillRect(cx-sw/2, y0, sw, bh);
+      glow(acc,.8); ctx.fillStyle = acc; ctx.fillRect(cx-sw/2, top, sw, y0+bh-top);
+      ctx.beginPath(); ctx.arc(cx, top, r, 0, TAU); ctx.fillStyle = t.peak; ctx.fill(); noglow(); return;
+    }
+    for(let s=0;s<8;s++){
+      const y = y0+bh-(s+1)*seg, lit = s <= v, color = lit ? (s === v ? t.peak : acc) : t.unlit;
+      if(lit) glow(acc,.8);
+      if(style === 3){ ctx.beginPath(); ctx.moveTo(x+.2, y+seg-.25); ctx.lineTo(x+bw/2, y+.3); ctx.lineTo(x+bw-.2, y+seg-.25); ctx.lineWidth = .55; ctx.strokeStyle = color; ctx.lineJoin = 'miter'; ctx.stroke(); }
+      else { ctx.fillStyle = color; ctx.fillRect(x, y+.15, bw, seg-.35); }
+      noglow();
+    }
+  });
 }
 function drawChips(ctx, d, r, t){
   const ids = r.ids, gap = 1.6, n = ids.length, groups = charGroups(d);
@@ -590,15 +596,15 @@ function sevenSeg(ctx, n, x, y, w, h, vis, glow, noglow, t){
 /* ---------- canvases, 512-bit pairs, painting ---------- */
 const cache = new Map();
 const toHex = u => Array.from(u, x => x.toString(16).padStart(2,'0')).join('');
-function glyph(bytes, over){
-  const key = toHex(bytes) + ':' + JSON.stringify(over || {}); let c = cache.get(key); if(c) return c;
-  const d = Object.assign(decode(bytes), over || {});
+function glyph(bits, over){
+  const key = toHex(bits) + ':' + JSON.stringify(over || {}); let c = cache.get(key); if(c) return c;
+  const d = Object.assign(decode(bits), over || {});
   c = document.createElement('canvas'); c.width = 2*S; c.height = S; drawNetrunner(c.getContext('2d'), d);
   if(cache.size > 400) cache.clear(); cache.set(key, c); return c;
 }
-function pairCanvas(bytes){
-  const key = 'pair:' + toHex(bytes); let c = cache.get(key); if(c) return c;
-  const t = THEMES[decode(bytes.slice(0,32)).theme], g = [glyph(bytes.slice(0,32)), glyph(bytes.slice(32))], w = g[0].width, h = g[0].height;
+function pairCanvas(mixed){
+  const key = 'pair:' + toHex(mixed[0]) + toHex(mixed[1]); let c = cache.get(key); if(c) return c;
+  const t = THEMES[decode(mixed[0]).theme], g = [glyph(mixed[0]), glyph(mixed[1])], w = g[0].width, h = g[0].height;
   const pad = S*.22, gap = S*.15, foot = S*.26, W = w + 2*pad, H = 2*h + gap + 2*pad + foot, fg = t.pairFg;
   c = document.createElement('canvas'); c.width = Math.round(W); c.height = Math.round(H); const ctx = c.getContext('2d');
   ctx.beginPath(); rr(ctx,0,0,W,H,S*.1); ctx.fillStyle = t.pairBg; ctx.fill();
@@ -611,7 +617,8 @@ function pairCanvas(bytes){
   ctx.fillText('SHA-512 · 2 PARTS · READ 1 THEN 2', W/2, H - pad*.35 - foot/2);
   if(cache.size > 400) cache.clear(); cache.set(key, c); return c;
 }
-const art = bytes => bytes.length === 64 ? pairCanvas(bytes) : glyph(bytes);
+/* art takes the mixed badge bits: one 32-byte array per part */
+const art = mixed => mixed.length === 2 ? pairCanvas(mixed) : glyph(mixed[0]);
 function paint(cv, src, cssW, forceDpr){
   const cssH = Math.round(cssW * src.height / src.width), dpr = forceDpr || Math.min(window.devicePixelRatio || 1, 3);
   const pw = Math.round(cssW * dpr), ph = Math.round(cssH * dpr);
@@ -620,81 +627,82 @@ function paint(cv, src, cssW, forceDpr){
   while(sw > pw * 2){ const nw = Math.ceil(sw/2), nh = Math.ceil(sh/2), tc0 = document.createElement('canvas'); tc0.width = nw; tc0.height = nh; const tc = tc0.getContext('2d'); tc.imageSmoothingQuality = 'high'; tc.drawImage(s,0,0,nw,nh); s = tc0; sw = nw; sh = nh; }
   const ctx = cv.getContext('2d'); ctx.imageSmoothingQuality = 'high'; ctx.clearRect(0,0,pw,ph); ctx.drawImage(s,0,0,pw,ph);
 }
-const parts = bytes => bytes.length === 64 ? [bytes.slice(0,32), bytes.slice(32)] : [bytes];
 
 /* ---------- page state and rendering ---------- */
-const state = { text:'release-2.4.1.tar.gz', lastText:'release-2.4.1.tar.gz', algo:'SHA-256', hex:false, bytes:null, flip:{bit:90}, gallery:[] };
+const state = { text:'release-2.4.1.tar.gz', lastText:'release-2.4.1.tar.gz', algo:'SHA-256', hex:false, bytes:null, mixed:null, flip:{bit:200}, gallery:[] };
 const SAMPLES = ['release-2.4.2.tar.gz','release-2.4.1.tar.gz.sig','ubuntu-26.04-desktop-amd64.iso','id_ed25519.pub','backup-2026-11-01.zip','invoice-0417.pdf','firmware-v3.1.bin'];
-async function digest(str, algo){ return new Uint8Array(await crypto.subtle.digest(algo, typeof str === 'string' ? new TextEncoder().encode(str) : str)); }
+async function digest(data, algo){ return new Uint8Array(await crypto.subtle.digest(algo, typeof data === 'string' ? new TextEncoder().encode(data) : data)); }
+/* mirrors visual256.spec.mix: badge part i = SHA-256(MIX_TAG || i || whole checksum) */
+async function mix(checksum){
+  const tag = new TextEncoder().encode(MIX_TAG), n = checksum.length / 32, out = [];
+  for(let i=0;i<n;i++){ const buf = new Uint8Array(tag.length + 1 + checksum.length); buf.set(tag); buf[tag.length] = i; buf.set(checksum, tag.length + 1); out.push(await digest(buf, 'SHA-256')); }
+  return out;
+}
 function parseHex(s){ const t = s.replace(/[\s:-]/g,'').toLowerCase(); if(!/^[0-9a-f]*$/.test(t) || (t.length !== 64 && t.length !== 128)) return null; return new Uint8Array(t.match(/../g).map(h => parseInt(h, 16))); }
-const fieldAt = bit => FIELDS.find(f => bit >= f.off && bit < f.off + f[1]);
+const hamming = (a, b) => a.reduce((n, x, i) => { let v = x ^ b[i]; while(v){ n += v & 1; v >>= 1; } return n; }, 0);
+const hexRow = (bytes, attr) => `<div class="hex">${Array.from(bytes, (v, j) => `<span ${attr ? `data-byte="${j}" title="badge byte ${j}, bits ${j*8}–${j*8+7}"` : `title="checksum byte ${j}"`}>${v.toString(16).padStart(2,'0')}</span>`).join('')}</div>`;
 
 function buildStatic(){
   $('#ruler').innerHTML = FIELDS.map((f, i) => `<i data-field="${i}" title="${f[2]} · ${f[1]} bits" style="flex:${f[1]} 0 0;background:${f[0]==='bars'?'var(--seg-bars)':(f[0]==='chars'||f[0]==='chips')?'var(--seg-chars)':f[0]==='cells'?'var(--seg-dots)':(i%2?'var(--seg-b)':'var(--seg-a)')}"></i>`).join('');
   let html = '<thead><tr><th>Bits</th><th>Feature</th><th>This hash</th></tr></thead><tbody>';
   FIELDS.forEach((f, i) => {
-    if(i === 0) html += '<tr class="group"><td colspan="3">Headline · 80 bits</td></tr>';
-    if(f[0] === 'bars') html += '<tr class="group"><td colspan="3">Detail · 176 bits</td></tr>';
+    if(i === 0) html += `<tr class="group"><td colspan="3">Headline · ${HEADLINE_BITS} bits</td></tr>`;
+    if(f[0] === 'bars') html += `<tr class="group"><td colspan="3">Detail · ${256 - HEADLINE_BITS} bits</td></tr>`;
     html += `<tr tabindex="0" data-field="${i}"><td class="bits">${f.off}–${f.off+f[1]-1}</td><td class="what"><strong>${f[2]}</strong><span>${f[3]}</span></td><td class="val" data-val="${i}"></td></tr>`;
   });
   $('#fields').innerHTML = html + '</tbody>';
 }
 function renderHex(){
-  const ps = parts(state.bytes);
-  $('#hex').innerHTML = ps.map((p, i) => `<div class="hexblock"><span class="hexlabel">${ps.length > 1 ? `Part ${i+1} · hash bytes ${i*32}–${i*32+31}` : 'Hash bytes 0–31'}</span><div class="hex">${Array.from(p, (v, j) => `<span data-byte="${j}" title="byte ${j}, bits ${j*8}–${j*8+7}">${v.toString(16).padStart(2,'0')}</span>`).join('')}</div></div>`).join('');
-  $('#hashinfo').textContent = ps.length > 1 ? 'SHA-512 · 512 bits · two badges in one frame' : 'SHA-256 · 256 bits · one badge';
+  const two = state.bytes.length === 64;
+  let html = `<div class="hexblock"><span class="hexlabel">Checksum${two ? ' · 64 bytes' : ' · 32 bytes'}</span>${hexRow(state.bytes.slice(0,32), false)}${two ? hexRow(state.bytes.slice(32), false) : ''}</div>`;
+  state.mixed.forEach((m, i) => { html += `<div class="hexblock"><span class="hexlabel">Badge bits${two ? ` · part ${i+1}` : ''} · SHA-256(tag · ${i} · checksum)</span>${hexRow(m, true)}</div>`; });
+  $('#hex').innerHTML = html;
+  $('#hashinfo').textContent = two ? 'SHA-512 · two badges in one frame · each badge depends on the whole checksum' : 'SHA-256 · one badge · drawn from the mixed badge bits';
 }
 function renderHero(){
-  const two = state.bytes.length === 64, src = art(state.bytes);
+  const two = state.mixed.length === 2, src = art(state.mixed);
   paint($('#heroCanvas'), src, two ? 360 : 400);
   const minis = two ? [[128,0,'128 wide']] : [[128,0,'128 × 64'],[128,1,'128 × 64 on a 1× screen']];
   $('#heroMinis').innerHTML = minis.map(m => `<div class="mini"><canvas></canvas><span class="cap">${m[2]}</span></div>`).join('');
   $('#heroMinis').querySelectorAll('canvas').forEach((cv, i) => paint(cv, src, minis[i][0], minis[i][1] || 0));
-  const d = decode(parts(state.bytes)[0]);
+  const d = decode(state.mixed[0]);
   document.querySelectorAll('[data-val]').forEach(td => { td.textContent = FIELDS[+td.dataset.val][4](d, THEMES[d.theme]); });
   $('#partnote').hidden = !two;
 }
-function renderLayouts(){
-  const p = parts(state.bytes)[0], real = decode(p).layout;
-  $('#layouts').innerHTML = LAYOUTS.map((name, i) => `<figure class="${i === real ? 'real' : ''}"><canvas></canvas><figcaption><strong>${i} · ${name}</strong>${i === real ? '<br>This hash' : '<br>Preview'}</figcaption></figure>`).join('');
-  $('#layouts').querySelectorAll('canvas').forEach((cv, i) => paint(cv, glyph(p, {layout:i}), 250));
+function previews(host, names, key, width){
+  const p = state.mixed[0], real = decode(p)[key];
+  $(host).innerHTML = names.map((name, i) => `<figure class="${i === real ? 'real' : ''}"><canvas></canvas><figcaption><strong>${i} · ${name}</strong>${i === real ? '<br>This hash' : '<br>Preview'}</figcaption></figure>`).join('');
+  $(host).querySelectorAll('canvas').forEach((cv, i) => paint(cv, glyph(p, {[key]: i}), width));
 }
-function renderDisplays(){
-  const p = parts(state.bytes)[0], real = decode(p).display;
-  $('#displays').innerHTML = DISPLAYS.map((name, i) => `<figure class="${i === real ? 'real' : ''}"><canvas></canvas><figcaption><strong>${i} · ${name}</strong>${i === real ? '<br>This hash' : '<br>Preview'}</figcaption></figure>`).join('');
-  $('#displays').querySelectorAll('canvas').forEach((cv, i) => paint(cv, glyph(p, {display:i}), 250));
-}
-function renderThemes(){
-  const p = parts(state.bytes)[0], real = decode(p).theme;
-  $('#themes').innerHTML = THEMES.map((th, i) => `<figure class="${i === real ? 'real' : ''}"><canvas></canvas><figcaption><strong>${i} · ${th.name}</strong>${i === real ? '<br>This hash' : '<br>Preview'}</figcaption></figure>`).join('');
-  $('#themes').querySelectorAll('canvas').forEach((cv, i) => paint(cv, glyph(p, {theme:i}), 250));
-}
-function renderAll(){ renderHero(); renderLayouts(); renderDisplays(); renderThemes(); renderFlip(); renderGallery(); }
-function renderFlip(){
-  const bit = state.flip.bit, two = state.bytes.length === 64, part = bit >> 8, local = bit & 255;
+const renderLayouts = () => previews('#layouts', LAYOUTS, 'layout', 250);
+const renderDisplays = () => previews('#displays', DISPLAYS, 'display', 250);
+const renderThemes = () => previews('#themes', THEMES.map(t => t.name), 'theme', 230);
+let flipToken = 0;
+async function renderFlip(){
+  const my = ++flipToken, bit = state.flip.bit % (state.bytes.length * 8);
   const after = state.bytes.slice(); after[bit >> 3] ^= (1 << (7 - (bit & 7)));
-  const w = two ? 210 : 240;
-  paint($('#flipA'), art(state.bytes), w); paint($('#flipB'), art(after), w);
-  const f = fieldAt(local);
-  let what = f[2];
-  const k = local - f.off;
-  if(f[0] === 'bars') what += `, bar ${(k/3|0) + 1}`;
-  if(f[0] === 'chips') what += `, chip ${(k/4|0) + 1}`;
-  if(f[0] === 'chars') what += `, character ${(k/5|0) + 1} of 12`;
-  if(f[0] === 'cells') what += `, cell ${(k/8|0) + 1} of 10`;
-  $('#flipmsg').innerHTML = `Flipped bit ${local}${two ? ` of part ${part+1}` : ''}. Changed: <strong>${esc(what)}</strong>. ${local < HEADLINE_BITS ? 'This is a headline feature.' : 'This is a detail feature.'}`;
+  const mixedAfter = await mix(after);
+  if(my !== flipToken) return;
+  const w = state.mixed.length === 2 ? 210 : 240;
+  paint($('#flipA'), art(state.mixed), w); paint($('#flipB'), art(mixedAfter), w);
+  const total = state.mixed.length * 256, changedBits = state.mixed.reduce((n, m, i) => n + hamming(m, mixedAfter[i]), 0);
+  const d0 = decode(state.mixed[0]), d1 = decode(mixedAfter[0]);
+  const heads = FIELDS.filter(f => !['bars','chips','chars','cells'].includes(f[0]));
+  const changedHeads = heads.filter(f => d0[f[0]] !== d1[f[0]]).length;
+  $('#flipmsg').innerHTML = `Flipped checksum bit ${bit} of ${state.bytes.length * 8}. <strong>${changedBits} of ${total} badge bits changed</strong>, and ${changedHeads} of ${heads.length} headline features${state.mixed.length === 2 ? ' in part 1' : ''}. The theme ${d0.theme === d1.theme ? 'stayed the same by chance (1 in 16)' : `changed from ${THEMES[d0.theme].name} to ${THEMES[d1.theme].name}`}.`;
 }
 function renderGallery(){
   const host = $('#gallery');
   host.innerHTML = state.gallery.map(g => `<figure><canvas></canvas><figcaption title="${esc(g.label)}">${esc(g.label)}</figcaption></figure>`).join('');
-  host.querySelectorAll('canvas').forEach((cv, i) => paint(cv, art(state.gallery[i].bytes), 128));
+  host.querySelectorAll('canvas').forEach((cv, i) => paint(cv, art(state.gallery[i].mixed), 128));
 }
+function renderAll(){ renderHero(); renderLayouts(); renderDisplays(); renderThemes(); renderFlip(); renderGallery(); }
 async function bip39Words(bytes32){
   const cs = (await digest(bytes32, 'SHA-256'))[0], all = new Uint8Array(33); all.set(bytes32); all[32] = cs;
   const out = []; for(let i=0;i<24;i++) out.push(BIP39[readBits(all, i*11, 11)]); return out;
 }
 async function renderSpoken(my){
-  const ps = parts(state.bytes), lists = await Promise.all(ps.map(bip39Words));
+  const ps = state.bytes.length === 64 ? [state.bytes.slice(0,32), state.bytes.slice(32)] : [state.bytes], lists = await Promise.all(ps.map(bip39Words));
   if(my !== token) return;
   $('#spoken').innerHTML = lists.map((ws, i) => `${ps.length > 1 ? `<p class="meta">Part ${i+1}</p>` : ''}<ol class="words">${ws.map((w, j) => `<li class="${j === 23 ? 'cs' : ''}"><i>${j+1}</i>${w}</li>`).join('')}</ol>`).join('');
 }
@@ -709,14 +717,14 @@ async function update(){
     try { bytes = await digest(state.text, state.algo); }
     catch(e){ err.textContent = 'This browser could not compute the hash. Turn on "Input is a hex hash" and paste a hash instead.'; err.hidden = false; return; }
   }
+  const mixed = await mix(bytes);
   if(my !== token) return;
-  err.hidden = true; state.bytes = bytes;
-  if(state.flip.bit >= bytes.length * 8) state.flip.bit &= 255;
+  err.hidden = true; state.bytes = bytes; state.mixed = mixed;
   renderHex(); renderHero(); renderLayouts(); renderDisplays(); renderThemes(); renderFlip(); renderSpoken(my);
   const algo = bytes.length === 64 ? 'SHA-512' : 'SHA-256';
-  let rest; try { rest = await Promise.all(SAMPLES.map(async s => ({ label:s, bytes:await digest(s, algo) }))); } catch(e){ rest = []; }
+  let rest; try { rest = await Promise.all(SAMPLES.map(async s => ({ label:s, mixed:await mix(await digest(s, algo)) }))); } catch(e){ rest = []; }
   if(my !== token) return;
-  state.gallery = [{ label: state.hex ? 'your hash' : (state.text || '(empty)'), bytes }, ...rest];
+  state.gallery = [{ label: state.hex ? 'your hash' : (state.text || '(empty)'), mixed }, ...rest];
   renderGallery();
 }
 
@@ -733,27 +741,26 @@ $('#hexmode').addEventListener('change', e => {
 });
 document.querySelectorAll('[data-flip]').forEach(bt => bt.addEventListener('click', () => {
   if(!state.bytes) return;
-  const r = Math.random, kind = bt.dataset.flip;
-  const local = kind === 'head' ? Math.floor(r()*HEADLINE_BITS) : kind === 'detail' ? HEADLINE_BITS + Math.floor(r()*(256-HEADLINE_BITS)) : Math.floor(r()*256);
-  state.flip = { bit: Math.floor(r() * (state.bytes.length/32)) * 256 + local }; renderFlip();
+  const n = state.bytes.length * 8;
+  state.flip = { bit: bt.dataset.flip === 'last' ? n - 1 : Math.floor(Math.random() * n) }; renderFlip();
 }));
 function clearHl(){ document.querySelectorAll('.on').forEach(x => x.classList.remove('on')); }
 function hlField(i){
   clearHl(); const f = FIELDS[i], a = f.off >> 3, z = (f.off + f[1] - 1) >> 3;
   document.querySelectorAll(`[data-field="${i}"]`).forEach(x => x.classList.add('on'));
-  document.querySelectorAll('.hex span').forEach(s => { const j = +s.dataset.byte; if(j >= a && j <= z) s.classList.add('on'); });
+  document.querySelectorAll('.hex span[data-byte]').forEach(s => { const j = +s.dataset.byte; if(j >= a && j <= z) s.classList.add('on'); });
 }
 function hlByte(span){
   clearHl(); const j = +span.dataset.byte, a = j*8, z = a+7; span.classList.add('on');
   FIELDS.forEach((f, i) => { if(f.off <= z && f.off + f[1] - 1 >= a) document.querySelectorAll(`[data-field="${i}"]`).forEach(x => x.classList.add('on')); });
 }
-document.addEventListener('mouseover', e => { const r = e.target.closest('[data-field]'); if(r) return hlField(+r.dataset.field); const sp = e.target.closest('.hex span'); if(sp) return hlByte(sp); });
+document.addEventListener('mouseover', e => { const r = e.target.closest('[data-field]'); if(r) return hlField(+r.dataset.field); const sp = e.target.closest('.hex span[data-byte]'); if(sp) return hlByte(sp); });
 document.addEventListener('mouseout', e => { if(e.target.closest('[data-field], .hex span')) clearHl(); });
 document.addEventListener('focusin', e => { const r = e.target.closest('tr[data-field]'); if(r) hlField(+r.dataset.field); });
 document.addEventListener('focusout', e => { if(e.target.closest('tr[data-field]')) clearHl(); });
 if(document.fonts && document.fonts.load){
   Promise.all(['700 12px "Chakra Petch"','600 12px "JetBrains Mono"','600 12px Spectral','400 12px Audiowide','700 12px Silkscreen','400 12px "Saira Stencil One"'].map(f => document.fonts.load(f).catch(() => null)))
-    .then(() => { cache.clear(); if(state.bytes) renderAll(); });
+    .then(() => { cache.clear(); if(state.mixed) renderAll(); });
 }
 update();
 })();

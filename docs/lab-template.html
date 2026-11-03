@@ -1,0 +1,767 @@
+<title>Netrunner ID Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Chakra+Petch:wght@600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Spectral:wght@600&family=Audiowide&family=Silkscreen:wght@700&family=Saira+Stencil+One&display=swap">
+<style>
+/* Layout: one-style workbench. Input, hero badge beside its field readout, bit ruler, layout previews, test bench, spoken backup, notes. */
+:root{
+  --paper:#EBEEF2; --card:#F9FAFB; --ink:#161B26; --muted:#556072; --line:#CAD1DB;
+  --accent:#4B3FB8; --on-accent:#F5F4FF; --accent-soft:#E2DFF8; --hl:#F5DC8E; --warn:#A33A2B;
+  --seg-a:#6C61D6; --seg-b:#9C93E8; --seg-bars:#2E9C8F; --seg-chars:#D08A2E; --seg-dots:#A8B2C0;
+  --display:'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --body:'Atkinson Hyperlegible', system-ui, -apple-system, sans-serif;
+  --mono:'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1016; --card:#171A23; --ink:#E5E8F0; --muted:#98A1B3; --line:#2A2F3D;
+    --accent:#A69CFF; --on-accent:#14112E; --accent-soft:#272250; --hl:#5E4C17; --warn:#F09A8A;
+    --seg-a:#8D82F0; --seg-b:#5D53B8; --seg-bars:#3DBBAA; --seg-chars:#E0A04A; --seg-dots:#4A5263; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1016; --card:#171A23; --ink:#E5E8F0; --muted:#98A1B3; --line:#2A2F3D;
+  --accent:#A69CFF; --on-accent:#14112E; --accent-soft:#272250; --hl:#5E4C17; --warn:#F09A8A;
+  --seg-a:#8D82F0; --seg-b:#5D53B8; --seg-bars:#3DBBAA; --seg-chars:#E0A04A; --seg-dots:#4A5263; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:16px/1.55 var(--body);padding-block:40px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(2.2rem,5.5vw,3.3rem);line-height:1.02;font-weight:700}
+h2{font-size:1.5rem;line-height:1.15;font-weight:700}
+h3{font-size:1.15rem;line-height:1.2;font-weight:700}
+p{margin:0}
+a{color:var(--accent)}
+.eyebrow{font:600 .72rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.lede{max-width:68ch;color:var(--muted);font-size:1.05rem}
+header{display:flex;flex-direction:column;gap:14px}
+section{display:flex;flex-direction:column;gap:16px}
+.sec-head{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;justify-content:space-between}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:6px;flex:1 1 320px;min-width:0;font-weight:700;font-size:.9rem}
+input[type=text]{font:15px/1.3 var(--mono);padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);width:100%;min-width:0}
+input:focus-visible,button:focus-visible,li:focus-visible,tr:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{font:600 .82rem/1 var(--mono);padding:11px 14px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.seg button:disabled{cursor:not-allowed;opacity:.45}
+.check{display:flex;gap:8px;align-items:center;font-size:.92rem;color:var(--muted);padding-bottom:9px;cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.err{color:var(--warn);font-size:.88rem}
+.meta{font:500 .78rem var(--mono);color:var(--muted)}
+.note{font-size:.88rem;color:var(--muted);max-width:68ch}
+.cap{font:500 .68rem/1.2 var(--mono);color:var(--muted)}
+.hexwrap{display:flex;flex-direction:column;gap:12px}
+.hexblock{display:flex;flex-direction:column;gap:6px}
+.hexlabel{font:600 .7rem/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.hex{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:3px;font:500 12px/1 var(--mono);font-variant-numeric:tabular-nums}
+.hex span{padding:7px 0;text-align:center;border-radius:4px;background:var(--paper);color:var(--ink);cursor:default;transition:background .12s}
+.hex span.on{background:var(--hl)}
+.hero{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:860px){.hero{grid-template-columns:minmax(0,1fr)}}
+.stage{display:flex;flex-direction:column;align-items:center;gap:14px}
+canvas{display:block;max-width:100%;height:auto}
+.minis{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:12px 18px}
+.mini{display:flex;flex-direction:column;align-items:center;gap:4px}
+.ruler{display:flex;height:14px;border-radius:4px;overflow:hidden;gap:1px;background:var(--line)}
+.ruler i{display:block;min-width:2px;transition:filter .12s, transform .12s}
+.ruler i.on{filter:brightness(1.35);box-shadow:inset 0 0 0 2px var(--hl)}
+.rulerkey{display:flex;flex-wrap:wrap;gap:6px 16px}
+.rulerkey span{display:inline-flex;align-items:center;gap:6px;font:500 .74rem var(--mono);color:var(--muted)}
+.rulerkey b{display:inline-block;width:12px;height:12px;border-radius:3px}
+.tablewrap{overflow-x:auto}
+table.fields{width:100%;border-collapse:collapse;font-size:.88rem}
+table.fields th{text-align:left;font:600 .68rem/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line)}
+table.fields td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+table.fields tr{transition:background .12s}
+table.fields tr.on{background:var(--hl)}
+table.fields tr.group td{font:600 .7rem/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);padding-top:14px;border-bottom:0}
+table.fields td.bits{font:500 .74rem var(--mono);color:var(--muted);white-space:nowrap}
+table.fields td.val{font:500 .78rem var(--mono);overflow-wrap:anywhere}
+table.fields td.what span{display:block;color:var(--muted);font-size:.8rem}
+.layouts{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:16px}
+.layouts figure{margin:0;display:flex;flex-direction:column;gap:8px;align-items:center;min-width:0}
+.layouts figcaption{font-size:.84rem;color:var(--muted);text-align:center}
+.layouts figcaption strong{color:var(--ink)}
+.layouts figure.real figcaption strong{color:var(--accent)}
+.bench{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:20px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.btn{font:600 .78rem/1 var(--mono);padding:10px 12px;border-radius:8px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer}
+.btn:hover{background:var(--accent-soft)}
+.flipview{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+.flipview figure,.gallery figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+.flipmsg{font-size:.92rem}
+.flipmsg strong{color:var(--accent)}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:14px 10px}
+.gallery figcaption{font:500 .68rem/1.3 var(--mono);color:var(--muted);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gallery figure:first-child figcaption{color:var(--accent);font-weight:600}
+.spoken{display:flex;flex-direction:column;gap:14px}
+.words{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px}
+.words li{display:flex;gap:8px;align-items:baseline;padding:6px 8px;border-radius:6px;background:var(--paper);font:500 .86rem var(--mono)}
+.words li i{font-style:normal;color:var(--muted);font-size:.7rem;min-width:1.4em;text-align:right}
+.words li.cs{box-shadow:inset 0 0 0 1px var(--accent)}
+.twocol{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:20px}
+.twocol ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:10px;max-width:70ch}
+code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-radius:4px;overflow-wrap:anywhere}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Version 0.1 · in development</span>
+    <h1>Netrunner ID Lab</h1>
+    <p class="lede">Development version 0.1. The checksum is mixed through SHA-256 before drawing, so changing a single bit of the input changes the whole badge. The badge bits then pick one of sixteen themes, one of eight layouts, a face, colors, a two-word handle, signal bars, colored character chips and ten detail cells. This page mirrors the Python package in <a href="https://github.com/xTheBearx/visual256" target="_blank" rel="noopener">xTheBearx/visual256</a>.</p>
+  </header>
+
+  <section class="panel" aria-label="Input">
+    <div class="row">
+      <label class="field" for="src">Text to hash
+        <input id="src" type="text" value="release-2.4.1.tar.gz" autocomplete="off" spellcheck="false">
+      </label>
+      <div class="seg" id="algo" role="group" aria-label="Hash algorithm">
+        <button type="button" data-algo="SHA-256" aria-pressed="true">SHA-256</button>
+        <button type="button" data-algo="SHA-512" aria-pressed="false">SHA-512</button>
+      </div>
+      <label class="check" for="hexmode"><input id="hexmode" type="checkbox"> Input is a hex hash</label>
+    </div>
+    <p class="err" id="err" hidden></p>
+    <div class="hexwrap" id="hex"></div>
+    <p class="meta" id="hashinfo"></p>
+  </section>
+
+  <section class="panel">
+    <div class="hero">
+      <div class="stage">
+        <canvas id="heroCanvas" role="img" aria-label="Netrunner ID badge"></canvas>
+        <div class="minis" id="heroMinis"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <div class="ruler" id="ruler" aria-hidden="true"></div>
+        <div class="rulerkey">
+          <span><b style="background:var(--seg-a)"></b>Headline · 83 bits</span>
+          <span><b style="background:var(--seg-bars)"></b>Signal bars · 21 bits</span>
+          <span><b style="background:var(--seg-chars)"></b>Chips and characters · 72 bits</span>
+          <span><b style="background:var(--seg-dots)"></b>Detail cells · 80 bits</span>
+        </div>
+        <p class="cap" id="partnote" hidden>Readout shows part 1.</p>
+        <div class="tablewrap"><table class="fields" id="fields"></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Eight card layouts</h2>
+      <p class="note">The first 3 bits pick the layout. These previews force each layout onto the same hash so you can compare them. Only the highlighted one is this hash's real badge.</p>
+    </div>
+    <div class="panel"><div class="layouts" id="layouts"></div></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Four detail displays</h2>
+      <p class="note">Bits 6–7 pick how the 10 detail cells are drawn. Each cell is one byte: a colored tile with a symbol (4 + 4 bits), a gem (16 colors × 4 shapes × 4 fills), two hex digits, or an arrow (8 directions × 16 colors × solid or outline).</p>
+    </div>
+    <div class="panel"><div class="layouts" id="displays"></div></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Sixteen themes</h2>
+      <p class="note">The first 4 badge bits pick the theme: 8 dark and 8 light backgrounds, each a different hue, so the theme alone is recognizable. These previews force each theme onto the same badge bits; only the highlighted one is real.</p>
+    </div>
+    <div class="panel"><div class="layouts" id="themes"></div></div>
+  </section>
+
+  <section>
+    <h2>Test bench</h2>
+    <div class="bench">
+      <div class="panel">
+        <h3>One-bit change</h3>
+        <p class="note">Flip a single bit of the checksum. Because the badge is drawn from SHA-256 of the whole checksum, about half of all badge bits change, so the two badges look unrelated.</p>
+        <div class="btns">
+          <button class="btn" type="button" data-flip="any">Flip a random checksum bit</button>
+          <button class="btn" type="button" data-flip="last">Flip the last bit</button>
+        </div>
+        <div class="flipview">
+          <figure><canvas id="flipA"></canvas><span class="cap">Before</span></figure>
+          <figure><canvas id="flipB"></canvas><span class="cap">After</span></figure>
+        </div>
+        <p class="flipmsg" id="flipmsg"></p>
+      </div>
+      <div class="panel">
+        <h3>Side by side</h3>
+        <p class="note">Your input next to seven other files, at true badge size.</p>
+        <div class="gallery" id="gallery"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel spoken">
+    <div class="sec-head">
+      <h2>Spoken backup</h2>
+      <p class="meta">Not on the badge · a Python output</p>
+    </div>
+    <p class="note">Standard BIP-39 encoding of the same 256 bits: 24 words, where the last word also carries an 8-bit checksum. Useful for reading a hash over the phone or checking it by hand. The Python package will offer it as an output next to the image. A 512-bit hash gives two lists.</p>
+    <div id="spoken"></div>
+  </section>
+
+  <section class="panel">
+    <div class="twocol">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <h3>About BIP-39</h3>
+        <ul>
+          <li>Bitcoin's mnemonic standard. The English list has <strong>2,048 words</strong>, so each word carries exactly 11 bits.</li>
+          <li>Every word is 3 to 8 letters, and the first four letters identify a word uniquely, which helps when reading aloud or typing.</li>
+          <li>For 256 bits of data it adds an 8-bit checksum (the first byte of the data's SHA-256), giving 264 bits, or 24 words. The spec notes that this checksum misses 1 in 256 errors.</li>
+          <li>The list used here is the official <code>english.txt</code>, verified by its SHA-256 <code>2f5eed53…3b24dbda</code>. Source: <a href="https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki" target="_blank" rel="noopener">bitcoin/bips, BIP-0039</a>.</li>
+        </ul>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <h3>Open questions</h3>
+        <ul>
+          <li><strong>Theme recognition.</strong> Are all sixteen easy to tell apart at true size? Any pair that looks alike weakens the strongest feature.</li>
+          <li><strong>Fingerprint, not encoding.</strong> Mixing means the picture can no longer be read back into the checksum. The 24-word backup still can. Is that the right trade?</li>
+          <li><strong>Release.</strong> Everything stays at version 0.1 until you decide to publish a release.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const BIP39 = '__BIP39__'.split(' ');
+if(BIP39.length !== 2048) console.error('BIP-39 list has ' + BIP39.length + ' words');
+const B32 = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+/* ---------- spec 0.1 (mirrors visual256/spec.py): 83 headline + 21 bars + 12 chip colors + 60 characters + 80 detail = 256 ---------- */
+const MIX_TAG = 'visual256/netrunner/0.1';
+const BAR_STYLES=['segmented','solid','lollipops','chevrons'];
+const SYM = ['circle','square','triangle','diamond','star','plus','saltire','heart','crescent','sun','drop','bolt','hexagon','ring','arrow','clover'];
+const STATUS=['ONLINE','GHOST','ROGUE','SYNCED','ROOTED','DARK','LIVE','BURNED','CLEAN','HOT','ZERO','LOCKED','SPOOFED','MIRROR','IDLE','VOID'];
+const LAYOUTS=['Face left, stacked','Face right, stacked','Face center, bars on top','Face left, grid','Face right, grid','Banner on top, face left','Banner at bottom, face right','Face center, detail on top'];
+const CORNERS=['top-left and bottom-right cut','top-right and bottom-left cut','all four cut','both top corners cut'];
+const FRAME_STYLES=['single','double','dashed','corner brackets'];
+const DISPLAYS=['tiles','gems','hex pairs','arrows'];
+const ARROW_DIRS=['up','up-right','right','down-right','down','down-left','left','up-left'];
+const HEADSHAPES=['round','angular','boxy','dome','capsule','bucket','shield','skull'];
+const VISORS=['band','twin-lens','slit','mono-eye','goggles','chevron','triple-lens','grid'];
+const MOUTHS=['vents','teeth','dots','LED','zigzag','speaker','fangs','stitches'];
+const MODS=['antenna','ear discs','cable','fin'];
+const CHEEKS=['stripes','dots','circuit','bolts'];
+const HSTYLES=['clean','horizontal split','vertical split','slice shift','inverted','underline','boxed','shadow'];
+const GEM_SHAPES=['circle','square','triangle','diamond'], GEM_FILLS=['solid','outline','dotted','half'];
+
+/* ---------- themes: generated from visual256/themes.py by docs/build_lab.py; the hash picks one ---------- */
+const THEMES = __THEMES_JSON__;
+const FONTS = { cyber:'"Chakra Petch", "JetBrains Mono", monospace', mono:'"JetBrains Mono", ui-monospace, monospace', serif:'Spectral, Georgia, serif', retro:'Audiowide, "Chakra Petch", sans-serif', pixel:'Silkscreen, "JetBrains Mono", monospace', stencil:'"Saira Stencil One", "Chakra Petch", sans-serif' };
+const FONT_WEIGHT = { cyber:700, mono:600, serif:600, retro:400, pixel:700, stencil:400 };
+const tcol = (t, i) => t.palette[i&15][1], tname = (t, i) => t.palette[i&15][0];
+function lum(h){ const n = parseInt(h.slice(1,7),16); const ch = [n>>16&255, n>>8&255, n&255].map(v => { v /= 255; return v <= 0.03928 ? v/12.92 : ((v+0.055)/1.055)**2.4; }); return 0.2126*ch[0] + 0.7152*ch[1] + 0.0722*ch[2]; }
+const chipInk = (t, c) => lum(c) > 0.3 ? t.inkDark : t.inkLight;
+
+const FIELDS = [
+  ['theme',4,'Theme','16 looks: background, pattern, fonts, palette', d => THEMES[d.theme].name],
+  ['layout',3,'Card layout','8 arrangements', d => `${d.layout} · ${LAYOUTS[d.layout].toLowerCase()}`],
+  ['display',2,'Detail display','tiles · gems · hex pairs · arrows', d => DISPLAYS[d.display]],
+  ['corners',2,'Frame corners','which corners are cut', d => CORNERS[d.corners]],
+  ['framestyle',2,'Frame style','single · double · dashed · brackets', d => FRAME_STYLES[d.framestyle]],
+  ['barstyle',2,'Bar style','segmented · solid · lollipops · chevrons', d => BAR_STYLES[d.barstyle]],
+  ['frame',4,'Frame color','frame and dividers', (d,t) => tname(t, d.frame)],
+  ['visor',4,'Visor color','visor', (d,t) => tname(t, d.visor)],
+  ['trim',4,'Trim color','head outline, mods, mouth, cheeks, decal', (d,t) => tname(t, d.trim)],
+  ['accent',4,'Accent color','signal bars and handle effects', (d,t) => tname(t, d.accent)],
+  ['shape',3,'Head shape','8 shapes', d => HEADSHAPES[d.shape]],
+  ['vstyle',3,'Visor style','8 visors', d => VISORS[d.vstyle]],
+  ['grille',3,'Mouth','8 mouths', d => MOUTHS[d.grille]],
+  ['mod',2,'Head mod','antenna · ear discs · cable · fin', d => MODS[d.mod]],
+  ['decal',4,'Forehead decal','16 symbols', d => SYM[d.decal]],
+  ['cheek',2,'Cheek marks','stripes · dots · circuit · bolts', d => CHEEKS[d.cheek]],
+  ['status',4,'Status word','16 words', d => STATUS[d.status]],
+  ['scolor',4,'Status color','status chip', (d,t) => tname(t, d.scolor)],
+  ['rank',2,'Rank','1–4 chevrons', d => `${d.rank+1} chevron${d.rank ? 's' : ''}`],
+  ['hstyle',3,'Handle style','8 text treatments', d => HSTYLES[d.hstyle]],
+  ['word1',11,'Handle word 1','BIP-39 word, 1 of 2,048', d => `${BIP39[d.word1]} (#${d.word1+1})`],
+  ['word2',11,'Handle word 2','BIP-39 word, 1 of 2,048', d => `${BIP39[d.word2]} (#${d.word2+1})`],
+  ['bars',21,'Signal bars','7 bars × 1–8 levels', d => d.bars.map(v => v+1).join(' ')],
+  ['chips',12,'Chip colors','3 chips × 16 colors', (d,t) => d.chips.map(c => tname(t, c)).join(', ')],
+  ['chars',60,'Characters','12 characters on 3 chips', d => charGroups(d).join(' ')],
+  ['cells',80,'Detail cells','10 cells × 8 bits, drawn in the detail display', (d,t) => describeCells(d, t)],
+];
+let off = 0; for(const f of FIELDS){ f.off = off; off += f[1]; }
+if(off !== 256) console.error('bit layout sums to ' + off);
+const HEADLINE_BITS = 83;
+function readBits(b, pos, n){ let v = 0; for(let i=0;i<n;i++){ const p = pos+i; v = v*2 + ((b[p>>3] >> (7-(p&7))) & 1); } return v; }
+function decode(b){
+  const d = {};
+  for(const f of FIELDS){
+    const [k, n] = f;
+    if(k === 'bars'){ d.bars = []; for(let i=0;i<7;i++) d.bars.push(readBits(b, f.off+3*i, 3)); }
+    else if(k === 'chips'){ d.chips = []; for(let i=0;i<3;i++) d.chips.push(readBits(b, f.off+4*i, 4)); }
+    else if(k === 'chars'){ d.chars = []; for(let i=0;i<12;i++) d.chars.push(readBits(b, f.off+5*i, 5)); }
+    else if(k === 'cells'){ d.cells = []; for(let i=0;i<10;i++) d.cells.push(readBits(b, f.off+8*i, 8)); }
+    else d[k] = readBits(b, f.off, n);
+  }
+  return d;
+}
+const charGroups = d => [0,1,2].map(g => d.chars.slice(g*4, g*4+4).map(v => B32[v]).join(''));
+const hex2 = c => c.toString(16).toUpperCase().padStart(2,'0');
+function describeCells(d, t){
+  if(d.display === 0) return d.cells.map(c => `${tname(t, c>>4)} ${SYM[c&15]}`).join(', ');
+  if(d.display === 1) return d.cells.map(c => `${tname(t, c>>4)} ${GEM_FILLS[c&3]} ${GEM_SHAPES[(c>>2)&3]}`).join(', ');
+  if(d.display === 3) return d.cells.map(c => `${tname(t, (c>>1)&15)} ${ARROW_DIRS[c>>5]}${c&1 ? ' outline' : ''}`).join(', ');
+  return d.cells.map(hex2).join(' ');
+}
+const words = d => [BIP39[d.word1].toUpperCase(), BIP39[d.word2].toUpperCase()];
+
+/* ---------- the 8 layouts (mirror visual256/draw.py layout_spec) ---------- */
+function layoutSpec(L){
+  const stacked = (x0, x1) => ({ handle:[{text:'both', x:x0, y:11.8, w:x1-x0, align:'left', size:8.4}], bars:[{ids:[0,1,2,3,4,5,6], x0, x1, y0:14.2, y1:24.2}], chips:[{ids:[0,1,2], x0, y0:26.2, x1, y1:34.6, col:false}], cells:[{ids:[0,1,2,3,4,5,6,7,8,9], x0, y0:36.8, x1, y1:60, gc:5, gr:2}] });
+  const grid = (x0, x1) => { const mid = x0 + (x1-x0)*.5; return { handle:[{text:'both', x:x0, y:11.8, w:x1-x0, align:'left', size:8.4}], cells:[{ids:[0,1,2,3,4,5,6,7,8,9], x0, y0:15, x1:mid-1.3, y1:60, gc:2, gr:5}], bars:[{ids:[0,1,2,3,4,5,6], x0:mid+1.3, x1, y0:15, y1:30.5}], chips:[{ids:[0,1,2], x0:mid+1.3, y0:33, x1, y1:60, col:true}] }; };
+  const split = top => {
+    const col = (x0, x1, side) => { const cx = (x0+x1)/2, hd = {text:side?'w2':'w1', x:cx, y:11.4, w:x1-x0, align:'center', size:7.8}, b = side ? [4,5,6] : [0,1,2,3], ch = side ? [2] : [0], cl = side ? [5,6,7,8,9] : [0,1,2,3,4];
+      return top
+        ? { handle:hd, cells:{ids:cl, x0, y0:13.8, x1, y1:36.2, gc:3, gr:2}, chips:{ids:ch, x0, y0:38.2, x1, y1:45.6, col:false}, bars:{ids:b, x0, x1, y0:47.6, y1:60, slots:4} }
+        : { handle:hd, bars:{ids:b, x0, x1, y0:13.8, y1:23.4, slots:4}, chips:{ids:ch, x0, y0:25.4, x1, y1:32.8, col:false}, cells:{ids:cl, x0, y0:35, x1, y1:60, gc:3, gr:2} }; };
+    const a = col(3.5, 40.5, 0), c = col(87.5, 124.5, 1), topChip = {ids:[1], x0:47, y0:2.6, x1:81, y1:9.8, col:false};
+    return { face:[64,34,.88], div:[[43,6,43,58],[85,6,85,58]], handle:[a.handle, c.handle], bars:[a.bars, c.bars], chips:[a.chips, topChip, c.chips], cells:[a.cells, c.cells] };
+  };
+  switch(L){
+    case 0: return { face:[21.5,31,1], div:[[42.5,6,42.5,58]], ...stacked(45.6, 123.4) };
+    case 1: return { face:[106.5,31,1], div:[[85.5,6,85.5,58]], ...stacked(4.4, 82.6) };
+    case 2: return split(false);
+    case 3: return { face:[21.5,31,1], div:[[42.5,6,42.5,58]], ...grid(45.6, 123.4) };
+    case 4: return { face:[106.5,31,1], div:[[85.5,6,85.5,58]], ...grid(4.4, 82.6) };
+    case 5: return { face:[19.5,39.5,.74], div:[[6,13.6,122,13.6],[38,17,38,60]], handle:[{text:'both', x:64, y:10.6, w:112, align:'center', size:8.6}], bars:[{ids:[0,1,2,3,4,5,6], x0:41, x1:123.4, y0:16.4, y1:24.6}], chips:[{ids:[0,1,2], x0:41, y0:26.6, x1:123.4, y1:34.4, col:false}], cells:[{ids:[0,1,2,3,4,5,6,7,8,9], x0:41, y0:36.6, x1:123.4, y1:60, gc:5, gr:2}] };
+    case 6: return { face:[108.5,26.5,.74], div:[[6,50.6,122,50.6],[89,5,89,48]], handle:[{text:'both', x:64, y:59.4, w:112, align:'center', size:8.6}], cells:[{ids:[0,1,2,3,4,5,6,7,8,9], x0:4.6, y0:4.6, x1:86, y1:25.6, gc:5, gr:2}], chips:[{ids:[0,1,2], x0:4.6, y0:27.6, x1:86, y1:35.2, col:false}], bars:[{ids:[0,1,2,3,4,5,6], x0:4.6, x1:86, y0:37.4, y1:48}] };
+    default: return split(true);
+  }
+}
+
+/* ---------- drawing helpers ---------- */
+const S = 480, U = S/64, TAU = Math.PI*2;
+function poly(ctx, pts){ pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); }
+function rr(ctx, x, y, w, h, r){ r = Math.min(r, w/2, h/2); ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y); ctx.arc(x+w-r, y+r, r, -Math.PI/2, 0); ctx.lineTo(x+w, y+h-r); ctx.arc(x+w-r, y+h-r, r, 0, Math.PI/2); ctx.lineTo(x+r, y+h); ctx.arc(x+r, y+h-r, r, Math.PI/2, Math.PI); ctx.lineTo(x, y+r); ctx.arc(x+r, y+r, r, Math.PI, 1.5*Math.PI); ctx.closePath(); }
+function starPts(n, R, r){ const p=[]; for(let k=0;k<2*n;k++){ const a=-Math.PI/2+Math.PI*k/n, q=k%2?r:R; p.push([Math.cos(a)*q, Math.sin(a)*q]); } return p; }
+const PLUS = (() => { const w=.34; return [[-w,-1],[w,-1],[w,-w],[1,-w],[1,w],[w,w],[w,1],[-w,1],[-w,w],[-1,w],[-1,-w],[-w,-w]]; })();
+const SALT = PLUS.map(([x, y]) => [(x - y) * Math.SQRT1_2, (x + y) * Math.SQRT1_2]);
+function symPath(ctx, id){
+  ctx.beginPath();
+  switch(id & 15){
+    case 0: ctx.arc(0,0,.92,0,TAU); break;
+    case 1: ctx.rect(-.8,-.8,1.6,1.6); break;
+    case 2: poly(ctx,[[0,-1],[.98,.78],[-.98,.78]]); break;
+    case 3: poly(ctx,[[0,-1.05],[.78,0],[0,1.05],[-.78,0]]); break;
+    case 4: poly(ctx,starPts(5,1.05,.44)); break;
+    case 5: poly(ctx,PLUS); break;
+    case 6: poly(ctx,SALT); break;
+    case 7: ctx.moveTo(0,.95); ctx.bezierCurveTo(-1.35,.05,-.8,-1.1,0,-.42); ctx.bezierCurveTo(.8,-1.1,1.35,.05,0,.95); ctx.closePath(); break;
+    case 8: { const phi=Math.atan2(.8496,.5275), psi=Math.atan2(.8496,.0275); ctx.arc(.1,0,1,phi,TAU-phi,false); ctx.arc(.6,0,.85,-psi,psi,true); ctx.closePath(); break; }
+    case 9: poly(ctx,starPts(12,1.02,.74)); break;
+    case 10: ctx.moveTo(0,-1.05); ctx.bezierCurveTo(.2,-.6,.72,-.15,.72,.3); ctx.arc(0,.3,.72,0,Math.PI,false); ctx.bezierCurveTo(-.72,-.15,-.2,-.6,0,-1.05); ctx.closePath(); break;
+    case 11: poly(ctx,[[.2,-1.05],[-.62,.14],[-.04,.14],[-.24,1.05],[.62,-.2],[.06,-.2]]); break;
+    case 12: { const p=[]; for(let k=0;k<6;k++){ const a=-Math.PI/2+k*Math.PI/3; p.push([Math.cos(a)*.98,Math.sin(a)*.98]); } poly(ctx,p); break; }
+    case 13: ctx.arc(0,0,.95,0,TAU); ctx.moveTo(.5,0); ctx.arc(0,0,.5,0,TAU,true); break;
+    case 14: poly(ctx,[[0,-1.05],[.88,-.08],[.34,-.08],[.34,1],[-.34,1],[-.34,-.08],[-.88,-.08]]); break;
+    case 15: for(const [x,y] of [[0,-.5],[.5,0],[0,.5],[-.5,0]]){ ctx.moveTo(x+.46,y); ctx.arc(x,y,.46,0,TAU); } ctx.moveTo(.4,0); ctx.arc(0,0,.4,0,TAU); break;
+  }
+}
+function drawSymbol(ctx, id, x, y, r, fill){ ctx.save(); ctx.translate(x, y); ctx.scale(r, r); symPath(ctx, id); ctx.fillStyle = fill; ctx.fill(); ctx.restore(); }
+const setFont = (ctx, key, s) => { ctx.font = `${FONT_WEIGHT[key]} ${s}px ${FONTS[key]}`; };
+function fitFont(ctx, text, maxW, key, size){ let s = size; setFont(ctx, key, s); while(s > 3 && ctx.measureText(text).width > maxW){ s -= .25; setFont(ctx, key, s); } return s; }
+function framePoly(k, inset){
+  const c = 5, a = .6 + (inset||0), x1 = 127.4 - (inset||0), y1 = 63.4 - (inset||0), cut = [[1,0,1,0],[0,1,0,1],[1,1,1,1],[1,1,0,0]][k], p = [];
+  if(cut[0]) p.push([a,a+c],[a+c,a]); else p.push([a,a]);
+  if(cut[1]) p.push([x1-c,a],[x1,a+c]); else p.push([x1,a]);
+  if(cut[2]) p.push([x1,y1-c],[x1-c,y1]); else p.push([x1,y1]);
+  if(cut[3]) p.push([a+c,y1],[a,y1-c]); else p.push([a,y1]);
+  return p;
+}
+function background(ctx, t){
+  const k = t.grid; ctx.beginPath();
+  if(k === 'grid'){ for(let x=2;x<128;x+=4){ ctx.moveTo(x,0); ctx.lineTo(x,64); } for(let y=2;y<64;y+=4){ ctx.moveTo(0,y); ctx.lineTo(128,y); } ctx.lineWidth=.15; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
+  else if(k === 'hatch'){ for(let x=-64;x<128;x+=3.2){ ctx.moveTo(x,64); ctx.lineTo(x+64,0); } ctx.lineWidth=.18; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
+  else if(k === 'dots'){ for(let y=1.5;y<64;y+=3) for(let x=1.5;x<128;x+=3) ctx.rect(x-.25,y-.25,.5,.5); ctx.fillStyle=t.gridColor; ctx.fill(); }
+  else if(k === 'horizon'){ for(let i=0;i<7;i++){ const y = 30+i*i*.85; ctx.moveTo(0,y); ctx.lineTo(128,y); } for(let xb=-56;xb<185;xb+=12){ ctx.moveTo(64+(xb-64)*.15,30); ctx.lineTo(xb,64); } ctx.lineWidth=.25; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
+  else if(k === 'scanlines'){ for(let y=.6;y<64;y+=1.3){ ctx.moveTo(0,y); ctx.lineTo(128,y); } ctx.lineWidth=.35; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
+  else if(k === 'pixels'){ let s = 7; for(let i=0;i<70;i++){ s = (s*75+74) % 65537; const x = s % 1280 / 10; s = (s*75+74) % 65537; const y = s % 640 / 10; ctx.rect(x,y,.7,.7); } ctx.fillStyle=t.gridColor; ctx.fill(); }
+  else if(k === 'polka'){ let j = 0; for(let y=3;y<64;y+=5, j++) for(let x=3+(j%2?3:0);x<128;x+=6){ ctx.moveTo(x+.7,y); ctx.arc(x,y,.7,0,TAU); } ctx.fillStyle=t.gridColor; ctx.fill(); }
+  else if(k === 'waves'){ for(let y0=3;y0<66;y0+=5) for(let i=0;i<65;i++){ const x=i*2, y=y0+.8*Math.sin(x/6); i ? ctx.lineTo(x,y) : ctx.moveTo(x,y); } ctx.lineWidth=.3; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
+  else if(k === 'zigzag'){ for(let y0=3;y0<66;y0+=5) for(let i=0;i<33;i++){ const y = y0 + (i%2 ? 1 : -1); i ? ctx.lineTo(i*4,y) : ctx.moveTo(i*4,y); } ctx.lineWidth=.3; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
+  else if(k === 'rays'){ for(let i=0;i<16;i++){ const a = -Math.PI/2 + i*Math.PI/30; ctx.moveTo(0,64); ctx.lineTo(170*Math.cos(a), 64+170*Math.sin(a)); } ctx.lineWidth=.5; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
+  else if(k === 'lattice'){ for(let x=-64;x<128;x+=6){ ctx.moveTo(x,64); ctx.lineTo(x+64,0); ctx.moveTo(x,0); ctx.lineTo(x+64,64); } ctx.lineWidth=.2; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
+  else if(k === 'bubbles'){ let s = 11; for(let i=0;i<40;i++){ s=(s*75+74)%65537; const x=s%1280/10; s=(s*75+74)%65537; const y=s%640/10; s=(s*75+74)%65537; const r=.6+(s%10)/10; ctx.moveTo(x+r,y); ctx.arc(x,y,r,0,TAU); } ctx.lineWidth=.25; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
+  else { for(let y=3;y<64;y+=6) for(let x=3;x<128;x+=6){ ctx.rect(x-.8,y-.1,1.6,.2); ctx.rect(x-.1,y-.8,.2,1.6); } ctx.fillStyle=t.gridColor; ctx.fill(); }
+}
+
+/* ---------- the badge (mirrors visual256/draw.py draw_badge) ---------- */
+function drawNetrunner(ctx, d){
+  const t = THEMES[d.theme];
+  ctx.save(); ctx.scale(U,U);
+  const acc = tcol(t, d.accent), vis = tcol(t, d.visor), trim = tcol(t, d.trim), fcol = tcol(t, d.frame);
+  const glow = (c, blur) => { if(t.glow){ ctx.shadowColor = c; ctx.shadowBlur = (blur || 2) * U; } }, noglow = () => { ctx.shadowBlur = 0; };
+  const fr = framePoly(d.corners);
+  ctx.beginPath(); poly(ctx, fr); ctx.fillStyle = t.bg; ctx.fill();
+  ctx.save(); ctx.clip(); background(ctx, t); ctx.restore();
+  drawFrame(ctx, d, fr, fcol, glow, noglow);
+  const spec = layoutSpec(d.layout);
+  ctx.lineWidth = .3; ctx.strokeStyle = fcol; ctx.globalAlpha = .55; ctx.beginPath();
+  for(const [a,b,c2,e] of spec.div){ ctx.moveTo(a,b); ctx.lineTo(c2,e); }
+  ctx.stroke(); ctx.globalAlpha = 1;
+  const [fx, fy, fs] = spec.face;
+  ctx.save(); ctx.translate(fx, fy); ctx.scale(fs, fs); ctx.translate(-21.5, -31); drawFace(ctx, d, 21.5, glow, noglow, vis, trim, t); ctx.restore();
+  const w = words(d);
+  for(const h of spec.handle){ const text = h.text === 'both' ? `${w[0]}·${w[1]}` : h.text === 'w1' ? w[0] : w[1]; handleText(ctx, text, h.x, h.y, h.w, h.align, d.hstyle, acc, h.size, glow, noglow, t); }
+  for(const b of spec.bars) drawBars(ctx, b.ids.map(i => d.bars[i]), b.x0, b.x1, b.y0, b.y1, b.slots || 0, d.barstyle, acc, glow, noglow, t);
+  for(const c of spec.chips) drawChips(ctx, d, c, t);
+  for(const c of spec.cells) drawCells(ctx, d, c, vis, glow, noglow, t);
+  ctx.restore();
+}
+function drawFrame(ctx, d, fr, fcol, glow, noglow){
+  const st = d.framestyle;
+  glow(fcol, 1.5); ctx.beginPath(); poly(ctx, fr); ctx.strokeStyle = fcol; ctx.lineJoin = 'miter';
+  if(st === 2){ ctx.setLineDash([3,1.6]); ctx.lineWidth = .9; ctx.stroke(); ctx.setLineDash([]); }
+  else if(st === 3){
+    ctx.lineWidth = .3; ctx.globalAlpha = .7; ctx.stroke(); ctx.globalAlpha = 1;
+    ctx.beginPath(); const n = fr.length;
+    fr.forEach(([x, y], i) => { for(const j of [i-1 < 0 ? n-1 : i-1, (i+1) % n]){ const [px, py] = fr[j], dd = Math.hypot(px-x, py-y), L = Math.min(7, dd/2.5); ctx.moveTo(x, y); ctx.lineTo(x+(px-x)/dd*L, y+(py-y)/dd*L); } });
+    ctx.lineWidth = 1.6; ctx.stroke();
+  }
+  else { ctx.lineWidth = .8; ctx.stroke(); }
+  noglow();
+  if(st === 1){ ctx.beginPath(); poly(ctx, framePoly(d.corners, 1.7)); ctx.lineWidth = .35; ctx.stroke(); }
+}
+function drawFace(ctx, d, hx, glow, noglow, vis, trim, t){
+  const shape = d.shape;
+  const headPath = () => { ctx.beginPath();
+    if(shape===0) ctx.ellipse(hx,30,13,17,0,0,TAU);
+    else if(shape===1) poly(ctx,[[hx,12],[hx+13,19],[hx+12,42],[hx,49],[hx-12,42],[hx-13,19]]);
+    else if(shape===2) poly(ctx,[[hx-8,13],[hx+8,13],[hx+13,18],[hx+13,42],[hx+8,47],[hx-8,47],[hx-13,42],[hx-13,18]]);
+    else if(shape===3){ ctx.moveTo(hx-13,27); ctx.arc(hx,27,13,Math.PI,TAU); ctx.lineTo(hx+13,38); ctx.lineTo(hx+6,48); ctx.lineTo(hx-6,48); ctx.lineTo(hx-13,38); ctx.closePath(); }
+    else if(shape===4) rr(ctx,hx-12,12,24,36,10);
+    else if(shape===5) poly(ctx,[[hx-9,13],[hx+9,13],[hx+14,46],[hx-14,46]]);
+    else if(shape===6) poly(ctx,[[hx-13,13],[hx+13,13],[hx+13,34],[hx,50],[hx-13,34]]);
+    else { ctx.arc(hx,25,14,Math.PI*.72,Math.PI*2.28); ctx.lineTo(hx+7.5,43); ctx.lineTo(hx+6.5,49); ctx.lineTo(hx-6.5,49); ctx.lineTo(hx-7.5,43); ctx.closePath(); } };
+  ctx.lineCap = 'round';
+  glow(trim,1.2); ctx.strokeStyle = trim; ctx.fillStyle = trim;
+  if(d.mod===0){ ctx.beginPath(); ctx.moveTo(hx+7,18); ctx.lineTo(hx+14,5.5); ctx.lineWidth=.7; ctx.stroke(); ctx.beginPath(); ctx.arc(hx+14,5.5,1.4,0,TAU); ctx.fill(); }
+  else if(d.mod===2){ ctx.beginPath(); ctx.moveTo(hx-11,36); ctx.bezierCurveTo(hx-17,40,hx-12,50,hx-17.5,53); ctx.lineWidth=1.1; ctx.stroke(); }
+  else if(d.mod===3){ ctx.beginPath(); poly(ctx,[[hx-3.5,15],[hx+3.5,15],[hx+1.5,4]]); ctx.fill(); }
+  noglow();
+  headPath(); ctx.fillStyle = t.panel; ctx.fill(); glow(trim,1); ctx.lineWidth=.7; ctx.strokeStyle=trim; ctx.lineJoin='round'; ctx.stroke(); noglow();
+  if(d.mod===1) for(const s of [-1,1]){ ctx.beginPath(); ctx.arc(hx+s*13.6,30,3.2,0,TAU); ctx.fillStyle=t.panel; ctx.fill(); glow(trim,1); ctx.lineWidth=.6; ctx.strokeStyle=trim; ctx.stroke(); noglow(); ctx.beginPath(); ctx.arc(hx+s*13.6,30,1,0,TAU); ctx.fillStyle=trim; ctx.fill(); }
+  drawSymbol(ctx, d.decal, hx, 19.6, 2.7, trim);
+  drawVisor(ctx, d.vstyle, hx, headPath, glow, noglow, vis, t);
+  drawMouth(ctx, d.grille, hx, glow, noglow, vis, trim);
+  drawCheeks(ctx, d.cheek, hx, trim);
+  ctx.lineCap = 'butt';
+  drawStatus(ctx, d, hx, glow, noglow, t);
+}
+function drawVisor(ctx, v, hx, headPath, glow, noglow, vis, t){
+  glow(vis,2); ctx.fillStyle = vis;
+  if(v===0){ ctx.save(); headPath(); ctx.clip(); ctx.fillRect(hx-14,25,28,6); ctx.restore(); }
+  else if(v===1){ ctx.beginPath(); ctx.arc(hx-6,28,4.2,0,TAU); ctx.moveTo(hx+10.2,28); ctx.arc(hx+6,28,4.2,0,TAU); ctx.fill(); noglow(); ctx.beginPath(); ctx.arc(hx-6,28,1.3,0,TAU); ctx.moveTo(hx+7.3,28); ctx.arc(hx+6,28,1.3,0,TAU); ctx.fillStyle=t.bg; ctx.fill(); }
+  else if(v===2){ ctx.fillRect(hx-10,27,20,1.9); noglow(); ctx.fillStyle='#FFFFFF'; ctx.fillRect(hx-1.2,27,2.4,1.9); }
+  else if(v===3){ ctx.beginPath(); ctx.arc(hx,28,5.6,0,TAU); ctx.fill(); noglow(); ctx.beginPath(); ctx.arc(hx,28,2.7,0,TAU); ctx.fillStyle=t.bg; ctx.fill(); ctx.beginPath(); ctx.arc(hx,28,1.2,0,TAU); ctx.fillStyle=vis; ctx.fill(); }
+  else if(v===4){ ctx.beginPath(); rr(ctx,hx-11.5,24.6,9.6,7,2.2); rr(ctx,hx+1.9,24.6,9.6,7,2.2); ctx.fill(); ctx.beginPath(); ctx.moveTo(hx-2.2,27.4); ctx.lineTo(hx+2.2,27.4); ctx.lineWidth=.9; ctx.strokeStyle=vis; ctx.stroke(); }
+  else if(v===5){ ctx.save(); headPath(); ctx.clip(); ctx.beginPath(); poly(ctx,[[hx-14,23.5],[hx,28.5],[hx+14,23.5],[hx+14,27.5],[hx,32.5],[hx-14,27.5]]); ctx.fill(); ctx.restore(); }
+  else if(v===6){ ctx.beginPath(); for(const dx of [-7.2,0,7.2]){ ctx.moveTo(hx+dx+3,28); ctx.arc(hx+dx,28,3,0,TAU); } ctx.fill(); noglow(); ctx.beginPath(); for(const dx of [-7.2,0,7.2]){ ctx.moveTo(hx+dx+.9,28); ctx.arc(hx+dx,28,.9,0,TAU); } ctx.fillStyle=t.bg; ctx.fill(); }
+  else { ctx.save(); headPath(); ctx.clip(); ctx.fillRect(hx-14,25,28,6); noglow(); ctx.fillStyle=t.bg; for(const dx of [-8,-4,0,4,8]) ctx.fillRect(hx+dx-.4,25,.8,6); ctx.restore(); }
+  noglow();
+}
+function drawMouth(ctx, m, hx, glow, noglow, vis, trim){
+  ctx.strokeStyle = trim; ctx.fillStyle = trim; ctx.lineWidth = .6; ctx.beginPath();
+  if(m===0){ for(const y of [37.5,39.6,41.7]){ ctx.moveTo(hx-6,y); ctx.lineTo(hx+6,y); } ctx.stroke(); }
+  else if(m===1){ for(let k=0;k<6;k++){ const x=-6+k*2.4; ctx.moveTo(hx+x,37); ctx.lineTo(hx+x,43); } ctx.stroke(); }
+  else if(m===2){ for(const y of [38.3,41.3]) for(let k=0;k<5;k++){ const x=-6+k*3; ctx.moveTo(hx+x+.6,y); ctx.arc(hx+x,y,.6,0,TAU); } ctx.fill(); }
+  else if(m===3){ glow(vis,1.5); ctx.fillStyle=vis; ctx.fillRect(hx-7,39,14,1.7); noglow(); }
+  else if(m===4){ for(let k=0;k<7;k++){ const x=hx-6+k*2, y=k%2===0?38.8:41.2; k ? ctx.lineTo(x,y) : ctx.moveTo(x,y); } ctx.stroke(); }
+  else if(m===5){ ctx.arc(hx,40,3,0,TAU); ctx.stroke(); ctx.beginPath(); ctx.arc(hx,40,1.2,0,TAU); ctx.fill(); }
+  else if(m===6){ ctx.moveTo(hx-6,38.4); ctx.lineTo(hx+6,38.4); ctx.stroke(); ctx.beginPath(); for(const c of [hx-3,hx+3]) poly(ctx,[[c-1.3,38.4],[c+1.3,38.4],[c,42.6]]); ctx.fill(); }
+  else { ctx.moveTo(hx-6,40); ctx.lineTo(hx+6,40); for(let k=0;k<5;k++){ const x=hx-5+k*2.5; ctx.moveTo(x,38.4); ctx.lineTo(x,41.6); } ctx.stroke(); }
+}
+function drawCheeks(ctx, c, hx, trim){
+  ctx.strokeStyle = trim; ctx.fillStyle = trim; ctx.lineWidth = .55;
+  for(const s of [-1,1]){ const cx = hx + s*8.8; ctx.beginPath();
+    if(c===0){ for(const k of [0,1]){ const x = cx+(k-.5)*1.6*s; ctx.moveTo(x,32.8); ctx.lineTo(x-s*1.2,35.8); } ctx.stroke(); }
+    else if(c===1){ for(const dx of [-1.5,0,1.5]){ ctx.moveTo(cx+dx+.5,34.4); ctx.arc(cx+dx,34.4,.5,0,TAU); } ctx.fill(); }
+    else if(c===2){ ctx.moveTo(cx-s*1.8,33); ctx.lineTo(cx,33); ctx.lineTo(cx+s*1.2,35.4); ctx.stroke(); ctx.beginPath(); ctx.arc(cx+s*1.2,35.4,.6,0,TAU); ctx.fill(); }
+    else { const p = []; for(let k=0;k<6;k++){ const a = k*Math.PI/3; p.push([cx+1.2*Math.cos(a), 34.2+1.2*Math.sin(a)]); } poly(ctx,p); ctx.lineWidth=.45; ctx.stroke(); ctx.beginPath(); ctx.arc(cx,34.2,.35,0,TAU); ctx.fill(); }
+  }
+}
+function drawStatus(ctx, d, hx, glow, noglow, t){
+  const st = STATUS[d.status], sc = tcol(t, d.scolor), rank = d.rank + 1;
+  setFont(ctx, 'mono', 4.6); const tw = ctx.measureText(st).width, rw = rank*1.9 + .4, total = rw + 1.2 + tw, x0 = hx - total/2 - 1.6;
+  ctx.beginPath(); ctx.rect(x0,52.4,total+3.2,6); glow(sc,1); ctx.lineWidth=.45; ctx.strokeStyle=sc; ctx.stroke(); noglow();
+  ctx.beginPath(); for(let k=0;k<rank;k++){ const cx = x0+1.6+k*1.9+.9; ctx.moveTo(cx-.85,56.6); ctx.lineTo(cx,54.4); ctx.lineTo(cx+.85,56.6); }
+  ctx.lineWidth=.5; ctx.lineJoin='miter'; ctx.stroke();
+  ctx.fillStyle = sc; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(st, x0+1.6+rw+1.2, 55.6);
+}
+function handleText(ctx, text, x, y, maxW, align, style, acc, size, glow, noglow, t){
+  const fs = fitFont(ctx, text, maxW - (style === 4 || style === 6 ? 2.4 : 0), t.font, size); ctx.textAlign = align; ctx.textBaseline = 'alphabetic';
+  const w = ctx.measureText(text).width; let left = align === 'left' ? x : align === 'center' ? x - w/2 : x - w;
+  if((style === 4 || style === 6) && align === 'left'){ x += 1.2; left += 1.2; }
+  const o = .55;
+  if(style === 1){ ctx.fillStyle=t.chroma[0]; ctx.fillText(text,x-o,y); ctx.fillStyle=t.chroma[1]; ctx.fillText(text,x+o,y); }
+  else if(style === 2){ ctx.fillStyle=t.chroma[0]; ctx.fillText(text,x,y-o); ctx.fillStyle=t.chroma[1]; ctx.fillText(text,x,y+o); }
+  else if(style === 4){ ctx.fillStyle = acc; ctx.fillRect(left-1.2, y-fs*.82, w+2.4, fs*1.04); ctx.fillStyle = chipInk(t, acc); ctx.fillText(text, x, y); return; }
+  else if(style === 7){ ctx.fillStyle = acc; ctx.fillText(text, x+.7, y+.7); }
+  glow(acc,1.4); ctx.fillStyle=t.handle; ctx.fillText(text,x,y); noglow();
+  if(style === 3){ ctx.save(); ctx.beginPath(); ctx.rect(left-2, y-fs*.5, w+4, fs*.16); ctx.clip(); ctx.fillStyle = t.bg; ctx.fillRect(left-2, y-fs, w+4, fs*1.2); ctx.fillStyle = acc; ctx.fillText(text, x+.9, y); ctx.restore(); }
+  else if(style === 5){ ctx.fillStyle = acc; ctx.fillRect(left, y+fs*.16, w, fs*.13); }
+  else if(style === 6){ ctx.beginPath(); ctx.rect(left-1.2, y-fs*.82, w+2.4, fs*1.04); ctx.lineWidth = .45; ctx.strokeStyle = acc; ctx.stroke(); }
+}
+function drawBars(ctx, vals, x0, x1, y0, y1, slots, style, acc, glow, noglow, t){
+  const n = vals.length, gap = 1.4, k = Math.max(n, slots), bw = (x1-x0-(k-1)*gap)/k, bh = y1-y0, seg = bh/8, ox = x0 + (k-n)*(bw+gap)/2;
+  vals.forEach((v, i) => {
+    const x = ox + i*(bw+gap);
+    if(style === 1){
+      for(let s=0;s<8;s++){ ctx.fillStyle = t.unlit; ctx.fillRect(x, y0+bh-(s+1)*seg+.15, bw, seg-.35); }
+      const top = y0+bh-(v+1)*seg; glow(acc,.8); ctx.fillStyle = acc; ctx.fillRect(x, top+.15, bw, (v+1)*seg-.15); noglow();
+      ctx.fillStyle = t.peak; ctx.fillRect(x, top+.15, bw, .6); return;
+    }
+    if(style === 2){
+      const cx = x+bw/2, top = y0+bh-(v+.5)*seg, sw = Math.min(bw*.22, .8), r = Math.min(bw*.42, 1.7);
+      ctx.fillStyle = t.unlit; ctx.fillRect(cx-sw/2, y0, sw, bh);
+      glow(acc,.8); ctx.fillStyle = acc; ctx.fillRect(cx-sw/2, top, sw, y0+bh-top);
+      ctx.beginPath(); ctx.arc(cx, top, r, 0, TAU); ctx.fillStyle = t.peak; ctx.fill(); noglow(); return;
+    }
+    for(let s=0;s<8;s++){
+      const y = y0+bh-(s+1)*seg, lit = s <= v, color = lit ? (s === v ? t.peak : acc) : t.unlit;
+      if(lit) glow(acc,.8);
+      if(style === 3){ ctx.beginPath(); ctx.moveTo(x+.2, y+seg-.25); ctx.lineTo(x+bw/2, y+.3); ctx.lineTo(x+bw-.2, y+seg-.25); ctx.lineWidth = .55; ctx.strokeStyle = color; ctx.lineJoin = 'miter'; ctx.stroke(); }
+      else { ctx.fillStyle = color; ctx.fillRect(x, y+.15, bw, seg-.35); }
+      noglow();
+    }
+  });
+}
+function drawChips(ctx, d, r, t){
+  const ids = r.ids, gap = 1.6, n = ids.length, groups = charGroups(d);
+  const cw = r.col ? r.x1-r.x0 : (r.x1-r.x0-(n-1)*gap)/n, ch = r.col ? (r.y1-r.y0-(n-1)*gap)/n : r.y1-r.y0;
+  ids.forEach((i, j) => {
+    const x = r.x0 + (r.col ? 0 : j*(cw+gap)), y = r.y0 + (r.col ? j*(ch+gap) : 0), color = tcol(t, d.chips[i]);
+    ctx.beginPath(); rr(ctx, x, y, cw, ch, Math.min(1.6, ch/3)); ctx.fillStyle = color; ctx.fill();
+    fitFont(ctx, groups[i], cw-2.4, t.code, Math.min(ch*.8, 7.6));
+    ctx.fillStyle = chipInk(t, color); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(groups[i], x+cw/2, y+ch/2+.2);
+  });
+}
+/* ---------- detail cells: 4 displays of the same 10 bytes ---------- */
+function drawCells(ctx, d, r, vis, glow, noglow, t){
+  const ids = r.ids, gc = r.gc, gr = r.gr, gap = 1.6, cw = (r.x1-r.x0-(gc-1)*gap)/gc, ch = (r.y1-r.y0-(gr-1)*gap)/gr;
+  ids.forEach((i, j) => { const row = Math.floor(j/gc), col = j % gc, inRow = Math.min(gc, ids.length - row*gc);
+    const x = r.x0 + (gc-inRow)*(cw+gap)/2 + col*(cw+gap), y = r.y0 + row*(ch+gap);
+    drawCell(ctx, d.display, d.cells[i], x, y, cw, ch, vis, glow, noglow, t); });
+}
+function brackets(ctx, x, y, w, h, t){
+  const k = Math.min(1.6, w/4, h/4); ctx.beginPath();
+  for(const [cx,cy,dx,dy] of [[x,y,1,1],[x+w,y,-1,1],[x+w,y+h,-1,-1],[x,y+h,1,-1]]){ ctx.moveTo(cx+dx*k,cy); ctx.lineTo(cx,cy); ctx.lineTo(cx,cy+dy*k); }
+  ctx.lineWidth = .3; ctx.strokeStyle = t.bracket; ctx.stroke();
+}
+function drawCell(ctx, display, c, x, y, w, h, vis, glow, noglow, t){
+  const cx = x+w/2, cy = y+h/2;
+  if(display === 0){ const color = tcol(t, c>>4); ctx.beginPath(); rr(ctx, x, y, w, h, Math.min(1.2, h/4)); ctx.fillStyle = color; ctx.fill(); drawSymbol(ctx, c&15, cx, cy, Math.min(w,h)*.32, chipInk(t, color)); return; }
+  brackets(ctx, x, y, w, h, t);
+  if(display === 1) drawGem(ctx, (c>>2)&3, c&3, cx, cy, Math.min(w,h)*.33, tcol(t, c>>4), glow, noglow);
+  else if(display === 2){ const dh = h*.72, dw = Math.min(w*.34, dh*.58); [c>>4, c&15].forEach((n, k) => { const sx = cx + (k-.5)*dw*1.45; sevenSeg(ctx, n, sx-dw/2, cy-dh/2, dw, dh, vis, glow, noglow, t); }); }
+  else {
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate((c>>5)*Math.PI/4); const r = Math.min(w,h)*.36; ctx.scale(r, r); symPath(ctx, 14);
+    const color = tcol(t, (c>>1)&15); glow(color,.8);
+    if(c & 1){ ctx.lineWidth = .22; ctx.strokeStyle = color; ctx.lineJoin = 'round'; ctx.stroke(); } else { ctx.fillStyle = color; ctx.fill(); }
+    noglow(); ctx.restore();
+  }
+}
+function drawGem(ctx, kind, fill, cx, cy, r, color, glow, noglow){
+  const path = () => { ctx.beginPath();
+    if(kind===0) ctx.arc(cx,cy,r,0,TAU);
+    else if(kind===1) ctx.rect(cx-r*.86,cy-r*.86,r*1.72,r*1.72);
+    else if(kind===2) poly(ctx,[[cx,cy-r*1.05],[cx+r*1.05,cy+r*.8],[cx-r*1.05,cy+r*.8]]);
+    else poly(ctx,[[cx,cy-r*1.15],[cx+r,cy],[cx,cy+r*1.15],[cx-r,cy]]); };
+  glow(color,.8); ctx.fillStyle = ctx.strokeStyle = color; ctx.lineWidth = r*.26; ctx.lineJoin = 'round';
+  path(); if(fill===0) ctx.fill(); else ctx.stroke(); noglow();
+  if(fill===2){ ctx.beginPath(); ctx.arc(cx, cy+(kind===2?r*.12:0), r*.32, 0, TAU); ctx.fill(); }
+  else if(fill===3){ ctx.save(); ctx.beginPath(); ctx.rect(cx-r*1.3, cy, r*2.6, r*1.4); ctx.clip(); path(); ctx.fill(); ctx.restore(); }
+}
+const SEGMENTS = ['abcdef','bc','abdeg','abcdg','bcfg','acdfg','acdefg','abc','abcdefg','abcdfg','abcefg','cdefg','adef','bcdeg','adefg','aefg'];
+function sevenSeg(ctx, n, x, y, w, h, vis, glow, noglow, t){
+  const k = w*.22, hh = h/2;
+  const R = { a:[x+k*.6,y,w-k*1.2,k], g:[x+k*.6,y+hh-k/2,w-k*1.2,k], d:[x+k*.6,y+h-k,w-k*1.2,k], f:[x,y+k*.6,k,hh-k*.9], b:[x+w-k,y+k*.6,k,hh-k*.9], e:[x,y+hh+k*.3,k,hh-k*.9], c:[x+w-k,y+hh+k*.3,k,hh-k*.9] };
+  for(const [name, r] of Object.entries(R)){ if(SEGMENTS[n].includes(name)){ glow(vis,.8); ctx.fillStyle = vis; } else ctx.fillStyle = t.unlit; ctx.fillRect(...r); noglow(); }
+}
+
+/* ---------- canvases, 512-bit pairs, painting ---------- */
+const cache = new Map();
+const toHex = u => Array.from(u, x => x.toString(16).padStart(2,'0')).join('');
+function glyph(bits, over){
+  const key = toHex(bits) + ':' + JSON.stringify(over || {}); let c = cache.get(key); if(c) return c;
+  const d = Object.assign(decode(bits), over || {});
+  c = document.createElement('canvas'); c.width = 2*S; c.height = S; drawNetrunner(c.getContext('2d'), d);
+  if(cache.size > 400) cache.clear(); cache.set(key, c); return c;
+}
+function pairCanvas(mixed){
+  const key = 'pair:' + toHex(mixed[0]) + toHex(mixed[1]); let c = cache.get(key); if(c) return c;
+  const t = THEMES[decode(mixed[0]).theme], g = [glyph(mixed[0]), glyph(mixed[1])], w = g[0].width, h = g[0].height;
+  const pad = S*.22, gap = S*.15, foot = S*.26, W = w + 2*pad, H = 2*h + gap + 2*pad + foot, fg = t.pairFg;
+  c = document.createElement('canvas'); c.width = Math.round(W); c.height = Math.round(H); const ctx = c.getContext('2d');
+  ctx.beginPath(); rr(ctx,0,0,W,H,S*.1); ctx.fillStyle = t.pairBg; ctx.fill();
+  ctx.beginPath(); rr(ctx,S*.04,S*.04,W-S*.08,H-S*.08,S*.08); ctx.lineWidth = S*.016; ctx.strokeStyle = fg; ctx.globalAlpha = .6; ctx.stroke(); ctx.globalAlpha = 1;
+  const pos = [[pad,pad],[pad,pad+h+gap]], badges = pos.map(([x,y]) => [pad/2, y+S*.2]);
+  ctx.beginPath(); ctx.moveTo(...badges[0]); ctx.lineTo(...badges[1]); ctx.lineWidth = S*.026; ctx.strokeStyle = fg; ctx.stroke();
+  pos.forEach(([x,y],i) => ctx.drawImage(g[i], x, y));
+  badges.forEach(([x,y],i) => { ctx.beginPath(); ctx.arc(x,y,S*.075,0,TAU); ctx.fillStyle = fg; ctx.fill(); ctx.fillStyle = t.pairBg; setFont(ctx, 'mono', S*.1); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(i+1), x, y+S*.006); });
+  ctx.fillStyle = fg; setFont(ctx, 'mono', S*.11); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('SHA-512 · 2 PARTS · READ 1 THEN 2', W/2, H - pad*.35 - foot/2);
+  if(cache.size > 400) cache.clear(); cache.set(key, c); return c;
+}
+/* art takes the mixed badge bits: one 32-byte array per part */
+const art = mixed => mixed.length === 2 ? pairCanvas(mixed) : glyph(mixed[0]);
+function paint(cv, src, cssW, forceDpr){
+  const cssH = Math.round(cssW * src.height / src.width), dpr = forceDpr || Math.min(window.devicePixelRatio || 1, 3);
+  const pw = Math.round(cssW * dpr), ph = Math.round(cssH * dpr);
+  cv.width = pw; cv.height = ph; cv.style.width = cssW + 'px'; cv.style.aspectRatio = `${cssW} / ${cssH}`;
+  let s = src, sw = src.width, sh = src.height;
+  while(sw > pw * 2){ const nw = Math.ceil(sw/2), nh = Math.ceil(sh/2), tc0 = document.createElement('canvas'); tc0.width = nw; tc0.height = nh; const tc = tc0.getContext('2d'); tc.imageSmoothingQuality = 'high'; tc.drawImage(s,0,0,nw,nh); s = tc0; sw = nw; sh = nh; }
+  const ctx = cv.getContext('2d'); ctx.imageSmoothingQuality = 'high'; ctx.clearRect(0,0,pw,ph); ctx.drawImage(s,0,0,pw,ph);
+}
+
+/* ---------- page state and rendering ---------- */
+const state = { text:'release-2.4.1.tar.gz', lastText:'release-2.4.1.tar.gz', algo:'SHA-256', hex:false, bytes:null, mixed:null, flip:{bit:200}, gallery:[] };
+const SAMPLES = ['release-2.4.2.tar.gz','release-2.4.1.tar.gz.sig','ubuntu-26.04-desktop-amd64.iso','id_ed25519.pub','backup-2026-11-01.zip','invoice-0417.pdf','firmware-v3.1.bin'];
+async function digest(data, algo){ return new Uint8Array(await crypto.subtle.digest(algo, typeof data === 'string' ? new TextEncoder().encode(data) : data)); }
+/* mirrors visual256.spec.mix: badge part i = SHA-256(MIX_TAG || i || whole checksum) */
+async function mix(checksum){
+  const tag = new TextEncoder().encode(MIX_TAG), n = checksum.length / 32, out = [];
+  for(let i=0;i<n;i++){ const buf = new Uint8Array(tag.length + 1 + checksum.length); buf.set(tag); buf[tag.length] = i; buf.set(checksum, tag.length + 1); out.push(await digest(buf, 'SHA-256')); }
+  return out;
+}
+function parseHex(s){ const t = s.replace(/[\s:-]/g,'').toLowerCase(); if(!/^[0-9a-f]*$/.test(t) || (t.length !== 64 && t.length !== 128)) return null; return new Uint8Array(t.match(/../g).map(h => parseInt(h, 16))); }
+const hamming = (a, b) => a.reduce((n, x, i) => { let v = x ^ b[i]; while(v){ n += v & 1; v >>= 1; } return n; }, 0);
+const hexRow = (bytes, attr) => `<div class="hex">${Array.from(bytes, (v, j) => `<span ${attr ? `data-byte="${j}" title="badge byte ${j}, bits ${j*8}–${j*8+7}"` : `title="checksum byte ${j}"`}>${v.toString(16).padStart(2,'0')}</span>`).join('')}</div>`;
+
+function buildStatic(){
+  $('#ruler').innerHTML = FIELDS.map((f, i) => `<i data-field="${i}" title="${f[2]} · ${f[1]} bits" style="flex:${f[1]} 0 0;background:${f[0]==='bars'?'var(--seg-bars)':(f[0]==='chars'||f[0]==='chips')?'var(--seg-chars)':f[0]==='cells'?'var(--seg-dots)':(i%2?'var(--seg-b)':'var(--seg-a)')}"></i>`).join('');
+  let html = '<thead><tr><th>Bits</th><th>Feature</th><th>This hash</th></tr></thead><tbody>';
+  FIELDS.forEach((f, i) => {
+    if(i === 0) html += `<tr class="group"><td colspan="3">Headline · ${HEADLINE_BITS} bits</td></tr>`;
+    if(f[0] === 'bars') html += `<tr class="group"><td colspan="3">Detail · ${256 - HEADLINE_BITS} bits</td></tr>`;
+    html += `<tr tabindex="0" data-field="${i}"><td class="bits">${f.off}–${f.off+f[1]-1}</td><td class="what"><strong>${f[2]}</strong><span>${f[3]}</span></td><td class="val" data-val="${i}"></td></tr>`;
+  });
+  $('#fields').innerHTML = html + '</tbody>';
+}
+function renderHex(){
+  const two = state.bytes.length === 64;
+  let html = `<div class="hexblock"><span class="hexlabel">Checksum${two ? ' · 64 bytes' : ' · 32 bytes'}</span>${hexRow(state.bytes.slice(0,32), false)}${two ? hexRow(state.bytes.slice(32), false) : ''}</div>`;
+  state.mixed.forEach((m, i) => { html += `<div class="hexblock"><span class="hexlabel">Badge bits${two ? ` · part ${i+1}` : ''} · SHA-256(tag · ${i} · checksum)</span>${hexRow(m, true)}</div>`; });
+  $('#hex').innerHTML = html;
+  $('#hashinfo').textContent = two ? 'SHA-512 · two badges in one frame · each badge depends on the whole checksum' : 'SHA-256 · one badge · drawn from the mixed badge bits';
+}
+function renderHero(){
+  const two = state.mixed.length === 2, src = art(state.mixed);
+  paint($('#heroCanvas'), src, two ? 360 : 400);
+  const minis = two ? [[128,0,'128 wide']] : [[128,0,'128 × 64'],[128,1,'128 × 64 on a 1× screen']];
+  $('#heroMinis').innerHTML = minis.map(m => `<div class="mini"><canvas></canvas><span class="cap">${m[2]}</span></div>`).join('');
+  $('#heroMinis').querySelectorAll('canvas').forEach((cv, i) => paint(cv, src, minis[i][0], minis[i][1] || 0));
+  const d = decode(state.mixed[0]);
+  document.querySelectorAll('[data-val]').forEach(td => { td.textContent = FIELDS[+td.dataset.val][4](d, THEMES[d.theme]); });
+  $('#partnote').hidden = !two;
+}
+function previews(host, names, key, width){
+  const p = state.mixed[0], real = decode(p)[key];
+  $(host).innerHTML = names.map((name, i) => `<figure class="${i === real ? 'real' : ''}"><canvas></canvas><figcaption><strong>${i} · ${name}</strong>${i === real ? '<br>This hash' : '<br>Preview'}</figcaption></figure>`).join('');
+  $(host).querySelectorAll('canvas').forEach((cv, i) => paint(cv, glyph(p, {[key]: i}), width));
+}
+const renderLayouts = () => previews('#layouts', LAYOUTS, 'layout', 250);
+const renderDisplays = () => previews('#displays', DISPLAYS, 'display', 250);
+const renderThemes = () => previews('#themes', THEMES.map(t => t.name), 'theme', 230);
+let flipToken = 0;
+async function renderFlip(){
+  const my = ++flipToken, bit = state.flip.bit % (state.bytes.length * 8);
+  const after = state.bytes.slice(); after[bit >> 3] ^= (1 << (7 - (bit & 7)));
+  const mixedAfter = await mix(after);
+  if(my !== flipToken) return;
+  const w = state.mixed.length === 2 ? 210 : 240;
+  paint($('#flipA'), art(state.mixed), w); paint($('#flipB'), art(mixedAfter), w);
+  const total = state.mixed.length * 256, changedBits = state.mixed.reduce((n, m, i) => n + hamming(m, mixedAfter[i]), 0);
+  const d0 = decode(state.mixed[0]), d1 = decode(mixedAfter[0]);
+  const heads = FIELDS.filter(f => !['bars','chips','chars','cells'].includes(f[0]));
+  const changedHeads = heads.filter(f => d0[f[0]] !== d1[f[0]]).length;
+  $('#flipmsg').innerHTML = `Flipped checksum bit ${bit} of ${state.bytes.length * 8}. <strong>${changedBits} of ${total} badge bits changed</strong>, and ${changedHeads} of ${heads.length} headline features${state.mixed.length === 2 ? ' in part 1' : ''}. The theme ${d0.theme === d1.theme ? 'stayed the same by chance (1 in 16)' : `changed from ${THEMES[d0.theme].name} to ${THEMES[d1.theme].name}`}.`;
+}
+function renderGallery(){
+  const host = $('#gallery');
+  host.innerHTML = state.gallery.map(g => `<figure><canvas></canvas><figcaption title="${esc(g.label)}">${esc(g.label)}</figcaption></figure>`).join('');
+  host.querySelectorAll('canvas').forEach((cv, i) => paint(cv, art(state.gallery[i].mixed), 128));
+}
+function renderAll(){ renderHero(); renderLayouts(); renderDisplays(); renderThemes(); renderFlip(); renderGallery(); }
+async function bip39Words(bytes32){
+  const cs = (await digest(bytes32, 'SHA-256'))[0], all = new Uint8Array(33); all.set(bytes32); all[32] = cs;
+  const out = []; for(let i=0;i<24;i++) out.push(BIP39[readBits(all, i*11, 11)]); return out;
+}
+async function renderSpoken(my){
+  const ps = state.bytes.length === 64 ? [state.bytes.slice(0,32), state.bytes.slice(32)] : [state.bytes], lists = await Promise.all(ps.map(bip39Words));
+  if(my !== token) return;
+  $('#spoken').innerHTML = lists.map((ws, i) => `${ps.length > 1 ? `<p class="meta">Part ${i+1}</p>` : ''}<ol class="words">${ws.map((w, j) => `<li class="${j === 23 ? 'cs' : ''}"><i>${j+1}</i>${w}</li>`).join('')}</ol>`).join('');
+}
+
+let token = 0;
+async function update(){
+  const my = ++token, err = $('#err'); let bytes;
+  if(state.hex){
+    bytes = parseHex(state.text);
+    if(!bytes){ err.textContent = 'Paste a hash as 64 hex characters (256 bits) or 128 hex characters (512 bits). Spaces, colons and dashes are ignored.'; err.hidden = false; return; }
+  } else {
+    try { bytes = await digest(state.text, state.algo); }
+    catch(e){ err.textContent = 'This browser could not compute the hash. Turn on "Input is a hex hash" and paste a hash instead.'; err.hidden = false; return; }
+  }
+  const mixed = await mix(bytes);
+  if(my !== token) return;
+  err.hidden = true; state.bytes = bytes; state.mixed = mixed;
+  renderHex(); renderHero(); renderLayouts(); renderDisplays(); renderThemes(); renderFlip(); renderSpoken(my);
+  const algo = bytes.length === 64 ? 'SHA-512' : 'SHA-256';
+  let rest; try { rest = await Promise.all(SAMPLES.map(async s => ({ label:s, mixed:await mix(await digest(s, algo)) }))); } catch(e){ rest = []; }
+  if(my !== token) return;
+  state.gallery = [{ label: state.hex ? 'your hash' : (state.text || '(empty)'), mixed }, ...rest];
+  renderGallery();
+}
+
+/* ---------- wiring ---------- */
+buildStatic();
+let deb; $('#src').addEventListener('input', e => { state.text = e.target.value; if(!state.hex) state.lastText = state.text; clearTimeout(deb); deb = setTimeout(update, 140); });
+$('#algo').addEventListener('click', e => { const bt = e.target.closest('button[data-algo]'); if(!bt || bt.disabled) return; state.algo = bt.dataset.algo; document.querySelectorAll('#algo button').forEach(x => x.setAttribute('aria-pressed', String(x === bt))); update(); });
+$('#hexmode').addEventListener('change', e => {
+  state.hex = e.target.checked; const src = $('#src');
+  document.querySelectorAll('#algo button').forEach(x => x.disabled = state.hex);
+  if(state.hex){ state.text = state.bytes ? toHex(state.bytes) : ''; src.placeholder = '64 or 128 hex characters'; }
+  else { state.text = state.lastText; src.placeholder = ''; }
+  src.value = state.text; update();
+});
+document.querySelectorAll('[data-flip]').forEach(bt => bt.addEventListener('click', () => {
+  if(!state.bytes) return;
+  const n = state.bytes.length * 8;
+  state.flip = { bit: bt.dataset.flip === 'last' ? n - 1 : Math.floor(Math.random() * n) }; renderFlip();
+}));
+function clearHl(){ document.querySelectorAll('.on').forEach(x => x.classList.remove('on')); }
+function hlField(i){
+  clearHl(); const f = FIELDS[i], a = f.off >> 3, z = (f.off + f[1] - 1) >> 3;
+  document.querySelectorAll(`[data-field="${i}"]`).forEach(x => x.classList.add('on'));
+  document.querySelectorAll('.hex span[data-byte]').forEach(s => { const j = +s.dataset.byte; if(j >= a && j <= z) s.classList.add('on'); });
+}
+function hlByte(span){
+  clearHl(); const j = +span.dataset.byte, a = j*8, z = a+7; span.classList.add('on');
+  FIELDS.forEach((f, i) => { if(f.off <= z && f.off + f[1] - 1 >= a) document.querySelectorAll(`[data-field="${i}"]`).forEach(x => x.classList.add('on')); });
+}
+document.addEventListener('mouseover', e => { const r = e.target.closest('[data-field]'); if(r) return hlField(+r.dataset.field); const sp = e.target.closest('.hex span[data-byte]'); if(sp) return hlByte(sp); });
+document.addEventListener('mouseout', e => { if(e.target.closest('[data-field], .hex span')) clearHl(); });
+document.addEventListener('focusin', e => { const r = e.target.closest('tr[data-field]'); if(r) hlField(+r.dataset.field); });
+document.addEventListener('focusout', e => { if(e.target.closest('tr[data-field]')) clearHl(); });
+if(document.fonts && document.fonts.load){
+  Promise.all(['700 12px "Chakra Petch"','600 12px "JetBrains Mono"','600 12px Spectral','400 12px Audiowide','700 12px Silkscreen','400 12px "Saira Stencil One"'].map(f => document.fonts.load(f).catch(() => null)))
+    .then(() => { cache.clear(); if(state.mixed) renderAll(); });
+}
+update();
+})();
+</script>

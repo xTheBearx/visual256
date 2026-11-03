@@ -152,7 +152,7 @@ def layout_spec(L: int) -> dict:
     """Regions for each of the 8 layouts, in badge units."""
     def stacked(x0, x1):
         return dict(handle=[dict(text="both", x=x0, y=11.8, w=x1 - x0, align="left", size=8.4)],
-                    bars=[dict(ids=list(range(8)), x0=x0, x1=x1, y0=14.2, y1=24.2)],
+                    bars=[dict(ids=list(range(7)), x0=x0, x1=x1, y0=14.2, y1=24.2)],
                     chips=[dict(ids=[0, 1, 2], x0=x0, y0=26.2, x1=x1, y1=34.6, col=False)],
                     cells=[dict(ids=list(range(10)), x0=x0, y0=36.8, x1=x1, y1=60, gc=5, gr=2)])
 
@@ -160,21 +160,21 @@ def layout_spec(L: int) -> dict:
         mid = x0 + (x1 - x0) * .5
         return dict(handle=[dict(text="both", x=x0, y=11.8, w=x1 - x0, align="left", size=8.4)],
                     cells=[dict(ids=list(range(10)), x0=x0, y0=15, x1=mid - 1.3, y1=60, gc=2, gr=5)],
-                    bars=[dict(ids=list(range(8)), x0=mid + 1.3, x1=x1, y0=15, y1=30.5)],
+                    bars=[dict(ids=list(range(7)), x0=mid + 1.3, x1=x1, y0=15, y1=30.5)],
                     chips=[dict(ids=[0, 1, 2], x0=mid + 1.3, y0=33, x1=x1, y1=60, col=True)])
 
     def split(detail_top):
         def col(x0, x1, side):
             cx = (x0 + x1) / 2
             hd = dict(text="w2" if side else "w1", x=cx, y=11.4, w=x1 - x0, align="center", size=7.8)
-            b = [4, 5, 6, 7] if side else [0, 1, 2, 3]
+            b = [4, 5, 6] if side else [0, 1, 2, 3]
             ch = [2] if side else [0]
             cl = [5, 6, 7, 8, 9] if side else [0, 1, 2, 3, 4]
             if detail_top:
                 return dict(handle=hd, cells=dict(ids=cl, x0=x0, y0=13.8, x1=x1, y1=36.2, gc=3, gr=2),
                             chips=dict(ids=ch, x0=x0, y0=38.2, x1=x1, y1=45.6, col=False),
-                            bars=dict(ids=b, x0=x0, x1=x1, y0=47.6, y1=60))
-            return dict(handle=hd, bars=dict(ids=b, x0=x0, x1=x1, y0=13.8, y1=23.4),
+                            bars=dict(ids=b, x0=x0, x1=x1, y0=47.6, y1=60, slots=4))
+            return dict(handle=hd, bars=dict(ids=b, x0=x0, x1=x1, y0=13.8, y1=23.4, slots=4),
                         chips=dict(ids=ch, x0=x0, y0=25.4, x1=x1, y1=32.8, col=False),
                         cells=dict(ids=cl, x0=x0, y0=35, x1=x1, y1=60, gc=3, gr=2))
         a, c = col(3.5, 40.5, 0), col(87.5, 124.5, 1)
@@ -196,7 +196,7 @@ def layout_spec(L: int) -> dict:
     if L == 5:
         return dict(face=(19.5, 39.5, .74), div=[(6, 13.6, 122, 13.6), (38, 17, 38, 60)],
                     handle=[dict(text="both", x=64, y=10.6, w=112, align="center", size=8.6)],
-                    bars=[dict(ids=list(range(8)), x0=41, x1=123.4, y0=16.4, y1=24.6)],
+                    bars=[dict(ids=list(range(7)), x0=41, x1=123.4, y0=16.4, y1=24.6)],
                     chips=[dict(ids=[0, 1, 2], x0=41, y0=26.6, x1=123.4, y1=34.4, col=False)],
                     cells=[dict(ids=list(range(10)), x0=41, y0=36.6, x1=123.4, y1=60, gc=5, gr=2)])
     if L == 6:
@@ -204,7 +204,7 @@ def layout_spec(L: int) -> dict:
                     handle=[dict(text="both", x=64, y=59.4, w=112, align="center", size=8.6)],
                     cells=[dict(ids=list(range(10)), x0=4.6, y0=4.6, x1=86, y1=25.6, gc=5, gr=2)],
                     chips=[dict(ids=[0, 1, 2], x0=4.6, y0=27.6, x1=86, y1=35.2, col=False)],
-                    bars=[dict(ids=list(range(8)), x0=4.6, x1=86, y0=37.4, y1=48)])
+                    bars=[dict(ids=list(range(7)), x0=4.6, x1=86, y0=37.4, y1=48)])
     return split(True)
 
 
@@ -247,7 +247,8 @@ def draw_badge(ctx: Canvas, f: Features, theme: Theme | None = None) -> None:
         text = f"{w1}·{w2}" if h["text"] == "both" else (w1 if h["text"] == "w1" else w2)
         handle_text(ctx, text, h["x"], h["y"], h["w"], h["align"], f.hstyle, acc, h["size"], glow, t)
     for b in spec["bars"]:
-        draw_bars(ctx, [f.bars[i] for i in b["ids"]], b["x0"], b["x1"], b["y0"], b["y1"], acc, glow, t)
+        draw_bars(ctx, [f.bars[i] for i in b["ids"]], b["x0"], b["x1"], b["y0"], b["y1"], b.get("slots", 0),
+                  f.barstyle, acc, glow, t)
     for c in spec["chips"]:
         draw_chips(ctx, f, c, t)
     for c in spec["cells"]:
@@ -313,6 +314,56 @@ def background(ctx: Canvas, t: Theme) -> None:
             ctx.rect(x, y, .7, .7)
         ctx.fill_style = t.grid_color
         ctx.fill()
+    elif k == "polka":
+        for j, y in enumerate(range(3, 64, 5)):
+            for x in range(3 + (3 if j % 2 else 0), 128, 6):
+                ctx.move_to(x + .7, y)
+                ctx.arc(x, y, .7, 0, TAU)
+        ctx.fill_style = t.grid_color
+        ctx.fill()
+    elif k == "waves":
+        for y0 in range(3, 66, 5):
+            for i in range(65):
+                x = i * 2
+                (ctx.line_to if i else ctx.move_to)(x, y0 + .8 * math.sin(x / 6))
+        ctx.line_width, ctx.stroke_style = .3, t.grid_color
+        ctx.stroke()
+    elif k == "zigzag":
+        for y0 in range(3, 66, 5):
+            for i in range(33):
+                (ctx.line_to if i else ctx.move_to)(i * 4, y0 + (1 if i % 2 else -1))
+        ctx.line_width, ctx.stroke_style = .3, t.grid_color
+        ctx.stroke()
+    elif k == "rays":
+        for i in range(16):
+            a = -math.pi / 2 + i * math.pi / 30
+            ctx.move_to(0, 64)
+            ctx.line_to(170 * math.cos(a), 64 + 170 * math.sin(a))
+        ctx.line_width, ctx.stroke_style = .5, t.grid_color
+        ctx.stroke()
+    elif k == "lattice":
+        x = -64.0
+        while x < 128:
+            ctx.move_to(x, 64)
+            ctx.line_to(x + 64, 0)
+            ctx.move_to(x, 0)
+            ctx.line_to(x + 64, 64)
+            x += 6
+        ctx.line_width, ctx.stroke_style = .2, t.grid_color
+        ctx.stroke()
+    elif k == "bubbles":
+        s = 11
+        for _ in range(40):
+            s = (s * 75 + 74) % 65537
+            x = s % 1280 / 10
+            s = (s * 75 + 74) % 65537
+            y = s % 640 / 10
+            s = (s * 75 + 74) % 65537
+            r = .6 + (s % 10) / 10
+            ctx.move_to(x + r, y)
+            ctx.arc(x, y, r, 0, TAU)
+        ctx.line_width, ctx.stroke_style = .25, t.grid_color
+        ctx.stroke()
     else:  # crosses
         for y in range(3, 64, 6):
             for x in range(3, 128, 6):
@@ -693,19 +744,58 @@ def handle_text(ctx: Canvas, text, x, y, max_w, align, style, acc, size, glow: G
         ctx.stroke()
 
 
-def draw_bars(ctx: Canvas, vals, x0, x1, y0, y1, acc, glow: Glow, t: Theme) -> None:
+def draw_bars(ctx: Canvas, vals, x0, x1, y0, y1, slots, style, acc, glow: Glow, t: Theme) -> None:
+    """Signal bars, 1-8 lit levels each, in one of 4 styles. `slots` keeps bar widths equal
+    when a side holds fewer bars; the bars are then centered."""
     n, gap = len(vals), 1.4
-    bw, bh = (x1 - x0 - (n - 1) * gap) / n, y1 - y0
+    k = max(n, slots)
+    bw, bh = (x1 - x0 - (k - 1) * gap) / k, y1 - y0
     seg = bh / 8
+    ox = x0 + (k - n) * (bw + gap) / 2
     for i, v in enumerate(vals):
-        x = x0 + i * (bw + gap)
+        x = ox + i * (bw + gap)
+        if style == 1:  # solid column over faint level cells, with a peak line
+            for s in range(8):
+                ctx.fill_style = t.unlit
+                ctx.fill_rect(x, y0 + bh - (s + 1) * seg + .15, bw, seg - .35)
+            top = y0 + bh - (v + 1) * seg
+            glow(acc, .8)
+            ctx.fill_style = acc
+            ctx.fill_rect(x, top + .15, bw, (v + 1) * seg - .15)
+            glow.off()
+            ctx.fill_style = t.peak
+            ctx.fill_rect(x, top + .15, bw, .6)
+            continue
+        if style == 2:  # lollipops: a stem to the level with a dot on top
+            cx, top = x + bw / 2, y0 + bh - (v + .5) * seg
+            sw, r = min(bw * .22, .8), min(bw * .42, 1.7)
+            ctx.fill_style = t.unlit
+            ctx.fill_rect(cx - sw / 2, y0, sw, bh)
+            glow(acc, .8)
+            ctx.fill_style = acc
+            ctx.fill_rect(cx - sw / 2, top, sw, y0 + bh - top)
+            ctx.begin_path()
+            ctx.arc(cx, top, r, 0, TAU)
+            ctx.fill_style = t.peak
+            ctx.fill()
+            glow.off()
+            continue
         for s in range(8):
             y = y0 + bh - (s + 1) * seg
             lit = s <= v
-            ctx.fill_style = (t.peak if s == v else acc) if lit else t.unlit
+            color = (t.peak if s == v else acc) if lit else t.unlit
             if lit:
                 glow(acc, .8)
-            ctx.fill_rect(x, y + .15, bw, seg - .35)
+            if style == 3:  # chevrons
+                ctx.begin_path()
+                ctx.move_to(x + .2, y + seg - .25)
+                ctx.line_to(x + bw / 2, y + .3)
+                ctx.line_to(x + bw - .2, y + seg - .25)
+                ctx.line_width, ctx.stroke_style, ctx.line_join = .55, color, "miter"
+                ctx.stroke()
+            else:  # segmented
+                ctx.fill_style = color
+                ctx.fill_rect(x, y + .15, bw, seg - .35)
             glow.off()
 
 

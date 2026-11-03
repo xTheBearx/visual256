@@ -10,7 +10,7 @@ from pathlib import Path
 from . import bip39
 from .canvas import Canvas
 from .draw import H, PAIR_H, PAIR_W, W, draw_badge, draw_pair
-from .spec import Features, decode, describe
+from .spec import Features, decode, describe, mix
 from .themes import get as get_theme
 
 BADGE_ASPECT = W / H  # 2:1, drawn at 128 x 64 units
@@ -18,7 +18,10 @@ BADGE_ASPECT = W / H  # 2:1, drawn at 128 x 64 units
 
 @dataclass(frozen=True)
 class Badge:
-    """A 256-bit or 512-bit digest and the badge(s) that show it."""
+    """A 256-bit or 512-bit checksum and the badge(s) that show it.
+
+    The badges show `mix(digest)`, a SHA-256 of the whole checksum per part, so a one-bit change in
+    the checksum changes everything. The spoken backup (`mnemonic`) encodes the checksum itself."""
 
     digest: bytes
 
@@ -57,8 +60,14 @@ class Badge:
 
     # ---- data ----
     @property
-    def parts(self) -> list[bytes]:
+    def checksum_parts(self) -> list[bytes]:
+        """The checksum split into 256-bit parts."""
         return [self.digest[i:i + 32] for i in range(0, len(self.digest), 32)]
+
+    @property
+    def parts(self) -> list[bytes]:
+        """Badge bits, one 32-byte value per badge (see spec.mix)."""
+        return mix(self.digest)
 
     @property
     def features(self) -> list[Features]:
@@ -69,8 +78,8 @@ class Badge:
         return self.digest.hex()
 
     def mnemonic(self) -> list[list[str]]:
-        """Spoken backup: 24 standard BIP-39 words per 256-bit part."""
-        return [bip39.to_mnemonic(p) for p in self.parts]
+        """Spoken backup of the checksum itself: 24 standard BIP-39 words per 256-bit part."""
+        return [bip39.to_mnemonic(p) for p in self.checksum_parts]
 
     def describe(self) -> list[list[tuple[str, str, str]]]:
         """Every feature in plain language, per 256-bit part. Color names come from the badge's theme."""
