@@ -152,8 +152,8 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
 
   <section>
     <div class="sec-head">
-      <h2>Thirty-two subjects</h2>
-      <p class="note">Bits 37–41 pick the portrait: 8 android heads, 12 buildings or 12 animals. The same bits that pick a visor, mouth, head mod and cheek marks pick windows, a door, a roof add-on and ground details for a building, or eyes, a nose and mouth, an accessory and markings for an animal.</p>
+      <h2>Sixty-four subjects</h2>
+      <p class="note">Bits 36–41 pick the portrait: 8 android heads, 12 buildings, 12 animals, 16 vehicles or 16 plants. The same four detail fields and symbol mean something that fits each kind: a visor, windows, eyes, vehicle windows or blooms; a mouth, door, nose, exhaust trail or pot; a head mod, roof add-on, accessory, vehicle add-on or visiting creature; cheek marks, ground details, markings, a livery stripe or ground extras.</p>
     </div>
     <div class="panel"><div class="layouts" id="subjects"></div></div>
   </section>
@@ -161,7 +161,7 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
   <section>
     <div class="sec-head">
       <h2>Eight card layouts</h2>
-      <p class="note">Bits 10–12 pick the layout. These previews force each layout onto the same hash so you can compare them. Only the highlighted one is this hash's real badge.</p>
+      <p class="note">Bits 9–11 pick the layout. These previews force each layout onto the same hash so you can compare them. Only the highlighted one is this hash's real badge.</p>
     </div>
     <div class="panel"><div class="layouts" id="layouts"></div></div>
   </section>
@@ -169,15 +169,15 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
   <section>
     <div class="sec-head">
       <h2>Four detail displays</h2>
-      <p class="note">Bits 13–14 pick how the 10 detail cells are drawn. Each cell is one byte: a colored tile with a symbol (4 + 4 bits), a gem (16 colors × 4 shapes × 4 fills), two hex digits, or an arrow (8 directions × 16 colors × solid or outline).</p>
+      <p class="note">Bits 12–13 pick how the 10 detail cells are drawn. Each cell is one byte: a colored tile with a symbol (4 + 4 bits), a gem (16 colors × 4 shapes × 4 fills), two hex digits, or an arrow (8 directions × 16 colors × solid or outline).</p>
     </div>
     <div class="panel"><div class="layouts" id="displays"></div></div>
   </section>
 
   <section>
     <div class="sec-head">
-      <h2>Sixteen themes</h2>
-      <p class="note">The first 4 badge bits pick the theme: 8 dark and 8 light backgrounds, each a different hue, so the theme alone is recognizable. These previews force each theme onto the same badge bits; only the highlighted one is real.</p>
+      <h2>Eight themes</h2>
+      <p class="note">Bits 0–2 pick the theme: 4 dark and 4 light backgrounds, each a clearly different hue with its own pattern, so the theme alone is recognizable. These previews force each theme onto the same badge bits; only the highlighted one is real.</p>
     </div>
     <div class="panel"><div class="layouts" id="themes"></div></div>
   </section>
@@ -185,7 +185,7 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
   <section>
     <div class="sec-head">
       <h2>Sixty-four backgrounds per theme</h2>
-      <p class="note">Bits 4–9 pick the background: 4 directions × 2 tones × 8 hues. The tone is either the theme color fading into the hue, or the hue itself from light to dark. A highlight streak runs along the direction (a ring for radial). Shown in this hash's theme: the 4 directions, the other tone, then the other hues.</p>
+      <p class="note">Bits 3–8 pick the background: 4 directions × 2 tones × 8 hues. The tone is either the theme color fading into the hue, or the hue itself from light to dark. A highlight streak runs along the direction (a ring for radial). Shown in this hash's theme: the 4 directions, the other tone, then the other hues.</p>
     </div>
     <div class="panel"><div class="layouts" id="backgrounds"></div></div>
   </section>
@@ -268,8 +268,13 @@ const ROOFS=['antenna','flag','chimney','satellite dish'], GROUNDS=['steps','fen
 const EYES=['dots','glossy','sleepy','happy','stern','slit','sparkle','hearts'];
 const SNOUTS=['button nose','round nose','heart nose','open mouth','tongue out','buck teeth','cat mouth','fangs'];
 const ACCESSORIES=['collar and tag','bow','party hat','scarf'], MARKINGS=['whiskers','spots','blush','stripes'];
-const kindOf = s => s < 8 ? 'face' : s < 20 ? 'building' : 'animal';
-const pickKind = (d, face, building, animal) => { const k = kindOf(d.subject); return k === 'face' ? face : k === 'building' ? building : animal; };
+const VEHICLES=['car','pickup truck','bus','race car','motorcycle','bicycle','locomotive','tram','sailboat','speedboat','submarine','airplane','helicopter','hot-air balloon','rocket','flying saucer'];
+const PLANTS=['pine','oak','palm','cactus','tulip','sunflower','daisies','mushroom','bonsai','fern','bamboo','succulent','cherry blossom','willow','wheat','lotus'];
+const TRAILS=['smoke puffs','flames','speed lines','sparks','bubbles','vapor trail','stars','zigzag'], VEHICLE_MODS=['antenna','flag','siren','fin'], LIVERIES=['stripe','double stripe','checker band','zigzag stripe'];
+const BLOOMS=['berries','blossoms','stars','hearts','apples','lemons','sparkles','bells'], POTS=['terracotta pot','square planter','round bowl','tall vase','wooden crate','soil mound','glass jar','teacup'];
+const VISITORS=['butterfly','bee','bird','ladybug'], GROUND_EXTRAS=['grass tufts','pebbles','fallen petals','seedlings'];
+const kindOf = s => s < 8 ? 'face' : s < 20 ? 'building' : s < 32 ? 'animal' : s < 48 ? 'vehicle' : 'plant';
+const pickKind = (d, face, building, animal, vehicle, plant) => ({face, building, animal, vehicle, plant})[kindOf(d.subject)];
 const SYM = ['circle','square','triangle','diamond','star','plus','saltire','heart','crescent','sun','drop','bolt','hexagon','ring','arrow','clover'];
 const STATUS=['ONLINE','GHOST','ROGUE','SYNCED','ROOTED','DARK','LIVE','BURNED','CLEAN','HOT','ZERO','LOCKED','SPOOFED','MIRROR','IDLE','VOID'];
 const LAYOUTS=['Face left, stacked','Face right, stacked','Face center, bars on top','Face left, grid','Face right, grid','Banner on top, face left','Banner at bottom, face right','Face center, detail on top'];
@@ -278,6 +283,7 @@ const FRAME_STYLES=['single','double','dashed','corner brackets'];
 const DISPLAYS=['tiles','gems','hex pairs','arrows'];
 const ARROW_DIRS=['up','up-right','right','down-right','down','down-left','left','up-left'];
 const HEADSHAPES=['round','angular','boxy','dome','capsule','bucket','shield','skull'];
+const SUBJECTS = [...HEADSHAPES.map(h => `android, ${h} head`), ...BUILDINGS, ...ANIMALS, ...VEHICLES, ...PLANTS];
 const VISORS=['band','twin-lens','slit','mono-eye','goggles','chevron','triple-lens','grid'];
 const MOUTHS=['vents','teeth','dots','LED','zigzag','speaker','fangs','stitches'];
 const MODS=['antenna','ear discs','cable','fin'];
@@ -286,7 +292,7 @@ const HSTYLES=['clean','horizontal split','vertical split','slice shift','invert
 const GEM_SHAPES=['circle','square','triangle','diamond'], GEM_FILLS=['solid','outline','dotted','half'];
 
 /* ---------- themes: generated from visual256/themes.py by docs/build_lab.py; the hash picks one ---------- */
-const THEMES = [{"id":"cyberpunk","name":"Cyberpunk","bg":"#0A0913","panel":"#16132C","grid":"grid","gridColor":"rgba(120,140,255,.12)","glow":true,"handle":"#F4F7FF","chroma":["rgba(0,229,255,.8)","rgba(255,43,241,.8)"],"peak":"#FFFFFF","unlit":"rgba(255,255,255,.08)","bracket":"rgba(255,255,255,.35)","font":"cyber","code":"mono","palette":[["Hot pink","#FF2E88"],["Magenta","#FF2BF1"],["Violet","#B04DFF"],["Ultraviolet","#6E5BFF"],["Electric blue","#2F7BFF"],["Cyan","#00E5FF"],["Aqua","#00FFC3"],["Neon green","#39FF14"],["Acid","#C6FF00"],["Yellow","#FFF200"],["Amber","#FFB000"],["Orange","#FF6A00"],["Red","#FF2A3D"],["Rose","#FF8FB8"],["Ice","#A8E6FF"],["White","#F4F7FF"]],"pairBg":"#0A0913","pairFg":"#00E5FF","inkDark":"#111318","inkLight":"#FFFFFF","gradients":[["red","#550404"],["orange","#301803"],["yellow","#1F1C02"],["green","#022405"],["cyan","#022124"],["blue","#041D49"],["violet","#35066B"],["magenta","#4B0436"]],"sheen":"rgba(255,255,255,0.22)","tones":[["#550404","#050000"],["#301803","#050200"],["#1F1C02","#050400"],["#022405","#000501"],["#022124","#000405"],["#041D49","#000205"],["#35066B","#020005"],["#4B0436","#050003"]]},{"id":"daylight","name":"Daylight","bg":"#F5F6F9","panel":"#FFFFFF","grid":"dots","gridColor":"rgba(30,40,70,.16)","glow":false,"handle":"#14161C","chroma":["rgba(27,163,198,.85)","rgba(194,24,91,.85)"],"peak":"#14161C","unlit":"rgba(20,22,28,.09)","bracket":"rgba(20,22,28,.35)","font":"cyber","code":"mono","palette":[["Red","#D7263D"],["Orange","#F26419"],["Amber","#C78A00"],["Lime","#5E9A0E"],["Green","#2E9E44"],["Teal","#0F8B8D"],["Cyan","#1BA3C6"],["Blue","#2563EB"],["Navy","#1E3A8A"],["Indigo","#5B4BD8"],["Purple","#8E3FC0"],["Magenta","#C2185B"],["Pink","#EC6FA6"],["Brown","#8D5524"],["Slate","#64748B"],["Black","#111318"]],"pairBg":"#F5F6F9","pairFg":"#1E3A8A","inkDark":"#111318","inkLight":"#FFFFFF","gradients":[["red","#FCCFCF"],["orange","#FBD1AD"],["yellow","#F8E777"],["green","#77F882"],["cyan","#77EDF8"],["blue","#C7DBFC"],["violet","#E5D1FD"],["magenta","#FCCAED"]],"sheen":"rgba(255,255,255,0.6)","tones":[["#FFFAFA","#FCCFCF"],["#FFFCFA","#FBD1AD"],["#FFFEFA","#F5DC3D"],["#FAFFFB","#58F665"],["#FAFEFF","#66EBF7"],["#FAFCFF","#C7DBFC"],["#FCFAFF","#E5D1FD"],["#FFFAFD","#FCCAED"]]},{"id":"paper","name":"Paper","bg":"#F3ECD9","panel":"#FBF6E9","grid":"hatch","gridColor":"rgba(90,60,30,.10)","glow":false,"handle":"#1E1B16","chroma":["rgba(35,70,184,.75)","rgba(200,32,47,.75)"],"peak":"#1E1B16","unlit":"rgba(30,27,22,.09)","bracket":"rgba(30,27,22,.35)","font":"serif","code":"mono","palette":[["Navy","#1F3A6B"],["Oxblood","#7A1F2B"],["Forest","#23573A"],["Plum","#6B2A6E"],["Teal","#1F6E73"],["Sepia","#6B4A2B"],["Slate","#55606E"],["Crimson","#C0272F"],["Royal","#2F55C8"],["Olive","#6B7022"],["Ochre","#B07A12"],["Indigo","#4A2F9A"],["Moss","#4F8A2B"],["Rust","#B5501F"],["Charcoal","#232323"],["Rose","#B8426E"]],"pairBg":"#F3ECD9","pairFg":"#1F3A6B","inkDark":"#1E1B16","inkLight":"#FBF6E9","gradients":[["red","#FBAAAA"],["orange","#F8B377"],["yellow","#F8E777"],["green","#77F882"],["cyan","#77EDF8"],["blue","#9EC0FA"],["violet","#D4B1FB"],["magenta","#FAA3E0"]],"sheen":"rgba(255,255,255,0.6)","tones":[["#FFFAFA","#FBAAAA"],["#FFFCFA","#F7AF70"],["#FFFEFA","#F5DC3D"],["#FAFFFB","#3DF54D"],["#FAFEFF","#3DE6F5"],["#FAFCFF","#9EC0FA"],["#FCFAFF","#D4B1FB"],["#FFFAFD","#FAA3E0"]]},{"id":"blueprint","name":"Blueprint","bg":"#0F3A68","panel":"#164A80","grid":"grid","gridColor":"rgba(255,255,255,.14)","glow":false,"handle":"#F4F8FF","chroma":["rgba(143,211,255,.85)","rgba(255,158,207,.85)"],"peak":"#FFFFFF","unlit":"rgba(255,255,255,.12)","bracket":"rgba(255,255,255,.45)","font":"mono","code":"mono","palette":[["White","#F4F8FF"],["Silver","#B9C6D8"],["Sky","#8FD3FF"],["Cyan","#3FE0E8"],["Teal","#2EC4B6"],["Mint","#8DF5B5"],["Lime","#C6F25A"],["Yellow","#FFE45E"],["Sand","#E9D7A5"],["Amber","#FFB547"],["Orange","#FF8A4C"],["Coral","#FF6B6B"],["Pink","#FF9ECF"],["Peach","#FFC9A3"],["Lilac","#C9A7FF"],["Violet","#9D8CFF"]],"pairBg":"#0F3A68","pairFg":"#F4F8FF","inkDark":"#0F3A68","inkLight":"#FFFFFF","gradients":[["red","#B30909"],["orange","#743A06"],["yellow","#524804"],["green","#05570B"],["cyan","#055057"],["blue","#0945AC"],["violet","#720CE6"],["magenta","#A50976"]],"sheen":"rgba(255,255,255,0.22)","tones":[["#B30909","#050000"],["#743A06","#050200"],["#524804","#050400"],["#05570B","#000501"],["#055057","#000405"],["#0945AC","#000205"],["#720CE6","#020005"],["#A50976","#050003"]]},{"id":"candy","name":"Candy","bg":"#FCE6F0","panel":"#FFF7FB","grid":"polka","gridColor":"rgba(194,24,91,.10)","glow":false,"handle":"#3A0F24","chroma":["rgba(0,168,132,.8)","rgba(57,73,171,.8)"],"peak":"#3A0F24","unlit":"rgba(58,15,36,.09)","bracket":"rgba(58,15,36,.35)","font":"retro","code":"mono","palette":[["Raspberry","#C2185B"],["Cherry","#E53935"],["Tangerine","#F4511E"],["Honey","#B87700"],["Lime","#689F38"],["Mint","#00A884"],["Teal","#00796B"],["Sky","#0288D1"],["Blueberry","#3949AB"],["Grape","#7B1FA2"],["Lavender","#9575CD"],["Bubblegum","#F06292"],["Chocolate","#6D4C41"],["Licorice","#212121"],["Slate","#546E7A"],["Forest","#2E6B30"]],"pairBg":"#FCE6F0","pairFg":"#C2185B","inkDark":"#3A0F24","inkLight":"#FFFFFF","gradients":[["red","#FCC5C5"],["orange","#FAC99E"],["yellow","#F8E777"],["green","#77F882"],["cyan","#77EDF8"],["blue","#BED4FC"],["violet","#E1CAFC"],["magenta","#FCC2EB"]],"sheen":"rgba(255,255,255,0.6)","tones":[["#FFFAFA","#FCC5C5"],["#FFFCFA","#FAC99E"],["#FFFEFA","#F5DC3D"],["#FAFFFB","#3DF54D"],["#FAFEFF","#42E6F5"],["#FAFCFF","#BED4FC"],["#FCFAFF","#E1CAFC"],["#FFFAFD","#FCC2EB"]]},{"id":"mint","name":"Mint","bg":"#E3F4EC","panel":"#F7FFFB","grid":"waves","gridColor":"rgba(0,90,60,.16)","glow":false,"handle":"#0E2E22","chroma":["rgba(211,47,47,.75)","rgba(21,101,192,.75)"],"peak":"#0E2E22","unlit":"rgba(14,46,34,.09)","bracket":"rgba(14,46,34,.35)","font":"mono","code":"mono","palette":[["Red","#D32F2F"],["Orange","#EF6C00"],["Gold","#C98A00"],["Olive","#827717"],["Green","#2E7D32"],["Teal","#00796B"],["Cyan","#0097A7"],["Blue","#1565C0"],["Navy","#1A237E"],["Indigo","#4527A0"],["Purple","#6A1B9A"],["Magenta","#AD1457"],["Pink","#E91E63"],["Brown","#5D4037"],["Gray","#546E7A"],["Black","#1B1B1B"]],"pairBg":"#E3F4EC","pairFg":"#00796B","inkDark":"#0E2E22","inkLight":"#FFFFFF","gradients":[["red","#FCCACA"],["orange","#FACDA5"],["yellow","#F8E777"],["green","#77F882"],["cyan","#77EDF8"],["blue","#C0D6FC"],["violet","#E3CCFC"],["magenta","#FCC5EB"]],"sheen":"rgba(255,255,255,0.6)","tones":[["#FFFAFA","#FCCACA"],["#FFFCFA","#FACDA5"],["#FFFEFA","#F5DC3D"],["#FAFFFB","#3DF54D"],["#FAFEFF","#53E8F6"],["#FAFCFF","#C0D6FC"],["#FCFAFF","#E3CCFC"],["#FFFAFD","#FCC5EB"]]},{"id":"arcade","name":"Arcade","bg":"#17175A","panel":"#24247A","grid":"pixels","gridColor":"rgba(255,255,255,.35)","glow":false,"handle":"#FFFFFF","chroma":["#FF004D","#29ADFF"],"peak":"#FFFFFF","unlit":"rgba(255,255,255,.11)","bracket":"rgba(255,255,255,.45)","font":"pixel","code":"pixel","palette":[["Red","#FF004D"],["Orange","#FFA300"],["Yellow","#FFEC27"],["Green","#00E436"],["Blue","#29ADFF"],["Lavender","#9C8CD8"],["Pink","#FF77A8"],["Peach","#FFCCAA"],["Cream","#FFF1E8"],["Silver","#C2C3C7"],["Brown","#C2683C"],["Plum","#B03A78"],["Forest","#1FA35A"],["Cyan","#00F5FF"],["Purple","#B65CFF"],["Lime","#A8E61D"]],"pairBg":"#17175A","pairFg":"#FFEC27","inkDark":"#17175A","inkLight":"#FFFFFF","gradients":[["red","#550404"],["orange","#301803"],["yellow","#221E02"],["green","#022705"],["cyan","#022427"],["blue","#041E4B"],["violet","#340568"],["magenta","#4B0436"]],"sheen":"rgba(255,255,255,0.155)","tones":[["#550404","#050000"],["#301803","#050200"],["#221E02","#050400"],["#022705","#000501"],["#022427","#000405"],["#041E4B","#000205"],["#340568","#020005"],["#4B0436","#050003"]]},{"id":"stealth","name":"Stealth","bg":"#2C2C2A","panel":"#3B3B38","grid":"crosses","gridColor":"rgba(230,230,220,.13)","glow":false,"handle":"#ECE9DA","chroma":["rgba(255,140,0,.8)","rgba(120,200,255,.8)"],"peak":"#FFFFFF","unlit":"rgba(236,233,218,.10)","bracket":"rgba(236,233,218,.4)","font":"stencil","code":"mono","palette":[["Blaze","#FF6A13"],["Safety yellow","#FFD300"],["Signal red","#E5322D"],["Lime","#9BE22D"],["Mint","#7FE7C4"],["Sky","#7FC8F8"],["Cobalt","#4D7CFE"],["Violet","#A98BFF"],["Pink","#FF8FC8"],["Sand","#D9C9A3"],["Khaki","#B8B07A"],["Rust","#C8642D"],["Teal","#2FB5A5"],["Ivory","#F2EFE3"],["Steel","#9AA7B0"],["Amber","#FFB000"]],"pairBg":"#2C2C2A","pairFg":"#FFD300","inkDark":"#2C2C2A","inkLight":"#FFFFFF","gradients":[["red","#770606"],["orange","#4B2504"],["yellow","#332C03"],["green","#033807"],["cyan","#033338"],["blue","#062C6D"],["violet","#4A0896"],["magenta","#6B064C"]],"sheen":"rgba(255,255,255,0.175)","tones":[["#770606","#050000"],["#4B2504","#050200"],["#332C03","#050400"],["#033807","#000501"],["#033338","#000405"],["#062C6D","#000205"],["#4A0896","#020005"],["#6B064C","#050003"]]},{"id":"ember","name":"Ember","bg":"#2A0C0C","panel":"#3A1414","grid":"scanlines","gridColor":"rgba(255,120,60,.10)","glow":true,"handle":"#FFF1E0","chroma":["rgba(255,213,79,.8)","rgba(255,61,61,.8)"],"peak":"#FFFFFF","unlit":"rgba(255,220,200,.09)","bracket":"rgba(255,200,170,.38)","font":"stencil","code":"mono","palette":[["Gold","#FFD54F"],["Lemon","#FFF176"],["Amber","#FFB300"],["Orange","#FF8F00"],["Flame","#FF5722"],["Red","#FF3D3D"],["Coral","#FF8A80"],["Pink","#F48FB1"],["Orchid","#EA80FC"],["Violet","#B39DDB"],["Sky","#81D4FA"],["Cyan","#4DD0E1"],["Mint","#A5D6A7"],["Lime","#C5E1A5"],["Peach","#FFCCBC"],["White","#FFFFFF"]],"pairBg":"#2A0C0C","pairFg":"#FF8F00","inkDark":"#2A0C0C","inkLight":"#FFFFFF","gradients":[["red","#880707"],["orange","#552A04"],["yellow","#3A3303"],["green","#033F08"],["cyan","#033A3F"],["blue","#07327E"],["violet","#5609AE"],["magenta","#790657"]],"sheen":"rgba(255,255,255,0.22)","tones":[["#880707","#050000"],["#552A04","#050200"],["#3A3303","#050400"],["#033F08","#000501"],["#033A3F","#000405"],["#07327E","#000205"],["#5609AE","#020005"],["#790657","#050003"]]},{"id":"abyss","name":"Abyss","bg":"#052B30","panel":"#0B3B42","grid":"bubbles","gridColor":"rgba(120,255,240,.18)","glow":true,"handle":"#E8FFFD","chroma":["rgba(0,229,255,.8)","rgba(198,255,0,.8)"],"peak":"#FFFFFF","unlit":"rgba(255,255,255,.09)","bracket":"rgba(255,255,255,.38)","font":"retro","code":"mono","palette":[["Hot pink","#FF2E88"],["Magenta","#FF2BF1"],["Violet","#B04DFF"],["Ultraviolet","#6E5BFF"],["Electric blue","#2F7BFF"],["Cyan","#00E5FF"],["Aqua","#00FFC3"],["Neon green","#39FF14"],["Acid","#C6FF00"],["Yellow","#FFF200"],["Amber","#FFB000"],["Orange","#FF6A00"],["Red","#FF2A3D"],["Rose","#FF8FB8"],["Ice","#A8E6FF"],["White","#F4F7FF"]],"pairBg":"#052B30","pairFg":"#00FFC3","inkDark":"#052B30","inkLight":"#FFFFFF","gradients":[["red","#680505"],["orange","#3D1E03"],["yellow","#2C2602"],["green","#033006"],["cyan","#022A2E"],["blue","#05255C"],["violet","#410783"],["magenta","#5C0542"]],"sheen":"rgba(255,255,255,0.19)","tones":[["#680505","#050000"],["#3D1E03","#050200"],["#2C2602","#050400"],["#033006","#000501"],["#022A2E","#000405"],["#05255C","#000205"],["#410783","#020005"],["#5C0542","#050003"]]},{"id":"sky","name":"Sky","bg":"#E1EEFA","panel":"#F8FBFF","grid":"zigzag","gridColor":"rgba(20,60,120,.15)","glow":false,"handle":"#0B1F3A","chroma":["rgba(233,30,99,.75)","rgba(0,151,167,.75)"],"peak":"#0B1F3A","unlit":"rgba(11,31,58,.09)","bracket":"rgba(11,31,58,.35)","font":"cyber","code":"mono","palette":[["Red","#D32F2F"],["Orange","#EF6C00"],["Gold","#C98A00"],["Olive","#827717"],["Green","#2E7D32"],["Teal","#00796B"],["Cyan","#0097A7"],["Blue","#1565C0"],["Navy","#1A237E"],["Indigo","#4527A0"],["Purple","#6A1B9A"],["Magenta","#AD1457"],["Pink","#E91E63"],["Brown","#5D4037"],["Gray","#546E7A"],["Black","#1B1B1B"]],"pairBg":"#E1EEFA","pairFg":"#1565C0","inkDark":"#0B1F3A","inkLight":"#FFFFFF","gradients":[["red","#FCCACA"],["orange","#FACDA5"],["yellow","#F8E777"],["green","#77F882"],["cyan","#77EDF8"],["blue","#C0D6FC"],["violet","#E3CCFC"],["magenta","#FCC5EB"]],"sheen":"rgba(255,255,255,0.6)","tones":[["#FFFAFA","#FCCACA"],["#FFFCFA","#FACDA5"],["#FFFEFA","#F5DC3D"],["#FAFFFB","#3DF54D"],["#FAFEFF","#53E8F6"],["#FAFCFF","#C0D6FC"],["#FCFAFF","#E3CCFC"],["#FFFAFD","#FCC5EB"]]},{"id":"royal","name":"Royal","bg":"#2B1145","panel":"#3A1A5C","grid":"lattice","gridColor":"rgba(242,193,78,.15)","glow":false,"handle":"#F8EED0","chroma":["rgba(242,193,78,.8)","rgba(255,59,127,.8)"],"peak":"#FFFFFF","unlit":"rgba(255,255,255,.09)","bracket":"rgba(242,193,78,.45)","font":"serif","code":"mono","palette":[["Gold","#F2C14E"],["Ruby","#FF3B7F"],["Emerald","#2ECC71"],["Sapphire","#4D8BFF"],["Amethyst","#B57BFF"],["Topaz","#FFB347"],["Pearl","#F4F1EA"],["Rose quartz","#FF9EC0"],["Turquoise","#40E0D0"],["Coral","#FF7F50"],["Citrine","#E4D00A"],["Jade","#00C27A"],["Aquamarine","#7FFFD4"],["Garnet","#FF5A4F"],["Silver","#C8C8D0"],["Peridot","#B4D335"]],"pairBg":"#2B1145","pairFg":"#F2C14E","inkDark":"#2B1145","inkLight":"#FFFFFF","gradients":[["red","#8F0808"],["orange","#5A2C05"],["yellow","#3D3503"],["green","#034109"],["cyan","#043E44"],["blue","#073585"],["violet","#5909B3"],["magenta","#80075C"]],"sheen":"rgba(255,255,255,0.22)","tones":[["#8F0808","#050000"],["#5A2C05","#050200"],["#3D3503","#050400"],["#034109","#000501"],["#043E44","#000405"],["#073585","#000205"],["#5909B3","#020005"],["#80075C","#050003"]]},{"id":"citrus","name":"Citrus","bg":"#FFF5D1","panel":"#FFFDF2","grid":"rays","gridColor":"rgba(200,140,0,.14)","glow":false,"handle":"#2E2200","chroma":["rgba(0,121,107,.75)","rgba(229,57,53,.75)"],"peak":"#2E2200","unlit":"rgba(46,34,0,.09)","bracket":"rgba(46,34,0,.35)","font":"pixel","code":"mono","palette":[["Raspberry","#C2185B"],["Cherry","#E53935"],["Tangerine","#F4511E"],["Honey","#B87700"],["Lime","#689F38"],["Mint","#00A884"],["Teal","#00796B"],["Sky","#0288D1"],["Blueberry","#3949AB"],["Grape","#7B1FA2"],["Lavender","#9575CD"],["Bubblegum","#F06292"],["Chocolate","#6D4C41"],["Licorice","#212121"],["Slate","#546E7A"],["Forest","#2E6B30"]],"pairBg":"#FFF5D1","pairFg":"#E65100","inkDark":"#2E2200","inkLight":"#FFFFFF","gradients":[["red","#FCC5C5"],["orange","#FAC99E"],["yellow","#F8E777"],["green","#77F882"],["cyan","#77EDF8"],["blue","#BED4FC"],["violet","#E1CAFC"],["magenta","#FCC2EB"]],"sheen":"rgba(255,255,255,0.6)","tones":[["#FFFAFA","#FCC5C5"],["#FFFCFA","#FAC99E"],["#FFFEFA","#F5DC3D"],["#FAFFFB","#3DF54D"],["#FAFEFF","#42E6F5"],["#FAFCFF","#BED4FC"],["#FCFAFF","#E1CAFC"],["#FFFAFD","#FCC2EB"]]},{"id":"jungle","name":"Jungle","bg":"#0B3A1C","panel":"#134A28","grid":"waves","gridColor":"rgba(180,255,180,.12)","glow":false,"handle":"#F1FFE8","chroma":["rgba(255,166,43,.8)","rgba(218,112,214,.8)"],"peak":"#FFFFFF","unlit":"rgba(255,255,255,.09)","bracket":"rgba(255,255,255,.38)","font":"cyber","code":"mono","palette":[["Parrot red","#FF4040"],["Mango","#FFA62B"],["Banana","#FFE14D"],["Lime","#B6F23C"],["Leaf","#4CD964"],["Lagoon","#2ED8C3"],["Sky","#5AC8FA"],["Blue","#4F8BFF"],["Orchid","#DA70D6"],["Hibiscus","#FF7EB6"],["Coral","#FF7F66"],["Papaya","#FFC8A2"],["Sand","#E8D8A8"],["Bone","#F5F5F0"],["Lilac","#C3A6FF"],["Toucan","#FF7A00"]],"pairBg":"#0B3A1C","pairFg":"#B6F23C","inkDark":"#0B3A1C","inkLight":"#FFFFFF","gradients":[["red","#8A0707"],["orange","#552A04"],["yellow","#3D3503"],["green","#034109"],["cyan","#033C41"],["blue","#073380"],["violet","#5709B1"],["magenta","#7E075A"]],"sheen":"rgba(255,255,255,0.22)","tones":[["#8A0707","#050000"],["#552A04","#050200"],["#3D3503","#050400"],["#034109","#000501"],["#033C41","#000405"],["#073380","#000205"],["#5709B1","#020005"],["#7E075A","#050003"]]},{"id":"lilac","name":"Lilac","bg":"#EDE7FA","panel":"#FBF9FF","grid":"hatch","gridColor":"rgba(80,50,160,.12)","glow":false,"handle":"#1F1438","chroma":["rgba(0,121,107,.75)","rgba(194,24,91,.75)"],"peak":"#1F1438","unlit":"rgba(31,20,56,.09)","bracket":"rgba(31,20,56,.35)","font":"serif","code":"mono","palette":[["Red","#D32F2F"],["Orange","#EF6C00"],["Gold","#C98A00"],["Olive","#827717"],["Green","#2E7D32"],["Teal","#00796B"],["Cyan","#0097A7"],["Blue","#1565C0"],["Navy","#1A237E"],["Indigo","#4527A0"],["Purple","#6A1B9A"],["Magenta","#AD1457"],["Pink","#E91E63"],["Brown","#5D4037"],["Gray","#546E7A"],["Black","#1B1B1B"]],"pairBg":"#EDE7FA","pairFg":"#5B4BD8","inkDark":"#1F1438","inkLight":"#FFFFFF","gradients":[["red","#FCCACA"],["orange","#FACDA5"],["yellow","#F8E777"],["green","#77F882"],["cyan","#77EDF8"],["blue","#C0D6FC"],["violet","#E3CCFC"],["magenta","#FCC5EB"]],"sheen":"rgba(255,255,255,0.6)","tones":[["#FFFAFA","#FCCACA"],["#FFFCFA","#FACDA5"],["#FFFEFA","#F5DC3D"],["#FAFFFB","#3DF54D"],["#FAFEFF","#53E8F6"],["#FAFCFF","#C0D6FC"],["#FCFAFF","#E3CCFC"],["#FFFAFD","#FCC5EB"]]},{"id":"concrete","name":"Concrete","bg":"#C9CCD1","panel":"#E4E6E9","grid":"pixels","gridColor":"rgba(30,30,30,.22)","glow":false,"handle":"#111111","chroma":["rgba(198,40,40,.8)","rgba(21,101,192,.8)"],"peak":"#111111","unlit":"rgba(17,17,17,.09)","bracket":"rgba(17,17,17,.35)","font":"mono","code":"mono","palette":[["Red","#B71C1C"],["Orange","#C43E00"],["Mustard","#8A6500"],["Moss","#3E6B1F"],["Green","#1B5E20"],["Teal","#00594F"],["Cyan","#006672"],["Blue","#0D47A1"],["Navy","#0D1B4C"],["Purple","#5B1A8A"],["Magenta","#9C1050"],["Maroon","#5E1424"],["Brown","#4E342E"],["Black","#111111"],["Olive","#555A16"],["Slate","#2F3E46"]],"pairBg":"#C9CCD1","pairFg":"#111111","inkDark":"#111111","inkLight":"#FFFFFF","gradients":[["red","#F87C7C"],["orange","#F8B377"],["yellow","#F8E777"],["green","#77F882"],["cyan","#77EDF8"],["blue","#77A6F8"],["violet","#BE8BF9"],["magenta","#F877D1"]],"sheen":"rgba(255,255,255,0.6)","tones":[["#FFFAFA","#F87C7C"],["#FFFCFA","#F5933D"],["#FFFEFA","#F5DC3D"],["#FAFFFB","#3DF54D"],["#FAFEFF","#3DE6F5"],["#FAFCFF","#70A2F7"],["#FCFAFF","#BE8BF9"],["#FFFAFD","#F76ECE"]]}];
+const THEMES = [{"id":"cyberpunk","name":"Cyberpunk","bg":"#0A0913","panel":"#16132C","grid":"grid","gridColor":"rgba(120,140,255,.12)","glow":true,"handle":"#F4F7FF","chroma":["rgba(0,229,255,.8)","rgba(255,43,241,.8)"],"peak":"#FFFFFF","unlit":"rgba(255,255,255,.08)","bracket":"rgba(255,255,255,.35)","font":"cyber","code":"mono","palette":[["Hot pink","#FF2E88"],["Magenta","#FF2BF1"],["Violet","#B04DFF"],["Ultraviolet","#6E5BFF"],["Electric blue","#2F7BFF"],["Cyan","#00E5FF"],["Aqua","#00FFC3"],["Neon green","#39FF14"],["Acid","#C6FF00"],["Yellow","#FFF200"],["Amber","#FFB000"],["Orange","#FF6A00"],["Red","#FF2A3D"],["Rose","#FF8FB8"],["Ice","#A8E6FF"],["White","#F4F7FF"]],"pairBg":"#0A0913","pairFg":"#00E5FF","inkDark":"#111318","inkLight":"#FFFFFF","gradients":[["red","#550404"],["orange","#301803"],["yellow","#1F1C02"],["green","#022405"],["cyan","#022124"],["blue","#041D49"],["violet","#35066B"],["magenta","#4B0436"]],"sheen":"rgba(255,255,255,0.22)","tones":[["#550404","#050000"],["#301803","#050200"],["#1F1C02","#050400"],["#022405","#000501"],["#022124","#000405"],["#041D49","#000205"],["#35066B","#020005"],["#4B0436","#050003"]]},{"id":"daylight","name":"Daylight","bg":"#F5F6F9","panel":"#FFFFFF","grid":"dots","gridColor":"rgba(30,40,70,.16)","glow":false,"handle":"#14161C","chroma":["rgba(27,163,198,.85)","rgba(194,24,91,.85)"],"peak":"#14161C","unlit":"rgba(20,22,28,.09)","bracket":"rgba(20,22,28,.35)","font":"cyber","code":"mono","palette":[["Red","#D7263D"],["Orange","#F26419"],["Amber","#C78A00"],["Lime","#5E9A0E"],["Green","#2E9E44"],["Teal","#0F8B8D"],["Cyan","#1BA3C6"],["Blue","#2563EB"],["Navy","#1E3A8A"],["Indigo","#5B4BD8"],["Purple","#8E3FC0"],["Magenta","#C2185B"],["Pink","#EC6FA6"],["Brown","#8D5524"],["Slate","#64748B"],["Black","#111318"]],"pairBg":"#F5F6F9","pairFg":"#1E3A8A","inkDark":"#111318","inkLight":"#FFFFFF","gradients":[["red","#FCCFCF"],["orange","#FBD1AD"],["yellow","#F8E777"],["green","#77F882"],["cyan","#77EDF8"],["blue","#C7DBFC"],["violet","#E5D1FD"],["magenta","#FCCAED"]],"sheen":"rgba(255,255,255,0.6)","tones":[["#FFFAFA","#FCCFCF"],["#FFFCFA","#FBD1AD"],["#FFFEFA","#F5DC3D"],["#FAFFFB","#58F665"],["#FAFEFF","#66EBF7"],["#FAFCFF","#C7DBFC"],["#FCFAFF","#E5D1FD"],["#FFFAFD","#FCCAED"]]},{"id":"paper","name":"Paper","bg":"#F3ECD9","panel":"#FBF6E9","grid":"hatch","gridColor":"rgba(90,60,30,.10)","glow":false,"handle":"#1E1B16","chroma":["rgba(35,70,184,.75)","rgba(200,32,47,.75)"],"peak":"#1E1B16","unlit":"rgba(30,27,22,.09)","bracket":"rgba(30,27,22,.35)","font":"serif","code":"mono","palette":[["Navy","#1F3A6B"],["Oxblood","#7A1F2B"],["Forest","#23573A"],["Plum","#6B2A6E"],["Teal","#1F6E73"],["Sepia","#6B4A2B"],["Slate","#55606E"],["Crimson","#C0272F"],["Royal","#2F55C8"],["Olive","#6B7022"],["Ochre","#B07A12"],["Indigo","#4A2F9A"],["Moss","#4F8A2B"],["Rust","#B5501F"],["Charcoal","#232323"],["Rose","#B8426E"]],"pairBg":"#F3ECD9","pairFg":"#1F3A6B","inkDark":"#1E1B16","inkLight":"#FBF6E9","gradients":[["red","#FBAAAA"],["orange","#F8B377"],["yellow","#F8E777"],["green","#77F882"],["cyan","#77EDF8"],["blue","#9EC0FA"],["violet","#D4B1FB"],["magenta","#FAA3E0"]],"sheen":"rgba(255,255,255,0.6)","tones":[["#FFFAFA","#FBAAAA"],["#FFFCFA","#F7AF70"],["#FFFEFA","#F5DC3D"],["#FAFFFB","#3DF54D"],["#FAFEFF","#3DE6F5"],["#FAFCFF","#9EC0FA"],["#FCFAFF","#D4B1FB"],["#FFFAFD","#FAA3E0"]]},{"id":"blueprint","name":"Blueprint","bg":"#0F3A68","panel":"#164A80","grid":"grid","gridColor":"rgba(255,255,255,.14)","glow":false,"handle":"#F4F8FF","chroma":["rgba(143,211,255,.85)","rgba(255,158,207,.85)"],"peak":"#FFFFFF","unlit":"rgba(255,255,255,.12)","bracket":"rgba(255,255,255,.45)","font":"mono","code":"mono","palette":[["White","#F4F8FF"],["Silver","#B9C6D8"],["Sky","#8FD3FF"],["Cyan","#3FE0E8"],["Teal","#2EC4B6"],["Mint","#8DF5B5"],["Lime","#C6F25A"],["Yellow","#FFE45E"],["Sand","#E9D7A5"],["Amber","#FFB547"],["Orange","#FF8A4C"],["Coral","#FF6B6B"],["Pink","#FF9ECF"],["Peach","#FFC9A3"],["Lilac","#C9A7FF"],["Violet","#9D8CFF"]],"pairBg":"#0F3A68","pairFg":"#F4F8FF","inkDark":"#0F3A68","inkLight":"#FFFFFF","gradients":[["red","#B30909"],["orange","#743A06"],["yellow","#524804"],["green","#05570B"],["cyan","#055057"],["blue","#0945AC"],["violet","#720CE6"],["magenta","#A50976"]],"sheen":"rgba(255,255,255,0.22)","tones":[["#B30909","#050000"],["#743A06","#050200"],["#524804","#050400"],["#05570B","#000501"],["#055057","#000405"],["#0945AC","#000205"],["#720CE6","#020005"],["#A50976","#050003"]]},{"id":"candy","name":"Candy","bg":"#FCE6F0","panel":"#FFF7FB","grid":"polka","gridColor":"rgba(194,24,91,.10)","glow":false,"handle":"#3A0F24","chroma":["rgba(0,168,132,.8)","rgba(57,73,171,.8)"],"peak":"#3A0F24","unlit":"rgba(58,15,36,.09)","bracket":"rgba(58,15,36,.35)","font":"retro","code":"mono","palette":[["Raspberry","#C2185B"],["Cherry","#E53935"],["Tangerine","#F4511E"],["Honey","#B87700"],["Lime","#689F38"],["Mint","#00A884"],["Teal","#00796B"],["Sky","#0288D1"],["Blueberry","#3949AB"],["Grape","#7B1FA2"],["Lavender","#9575CD"],["Bubblegum","#F06292"],["Chocolate","#6D4C41"],["Licorice","#212121"],["Slate","#546E7A"],["Forest","#2E6B30"]],"pairBg":"#FCE6F0","pairFg":"#C2185B","inkDark":"#3A0F24","inkLight":"#FFFFFF","gradients":[["red","#FCC5C5"],["orange","#FAC99E"],["yellow","#F8E777"],["green","#77F882"],["cyan","#77EDF8"],["blue","#BED4FC"],["violet","#E1CAFC"],["magenta","#FCC2EB"]],"sheen":"rgba(255,255,255,0.6)","tones":[["#FFFAFA","#FCC5C5"],["#FFFCFA","#FAC99E"],["#FFFEFA","#F5DC3D"],["#FAFFFB","#3DF54D"],["#FAFEFF","#42E6F5"],["#FAFCFF","#BED4FC"],["#FCFAFF","#E1CAFC"],["#FFFAFD","#FCC2EB"]]},{"id":"mint","name":"Mint","bg":"#E3F4EC","panel":"#F7FFFB","grid":"waves","gridColor":"rgba(0,90,60,.16)","glow":false,"handle":"#0E2E22","chroma":["rgba(211,47,47,.75)","rgba(21,101,192,.75)"],"peak":"#0E2E22","unlit":"rgba(14,46,34,.09)","bracket":"rgba(14,46,34,.35)","font":"mono","code":"mono","palette":[["Red","#D32F2F"],["Orange","#EF6C00"],["Gold","#C98A00"],["Olive","#827717"],["Green","#2E7D32"],["Teal","#00796B"],["Cyan","#0097A7"],["Blue","#1565C0"],["Navy","#1A237E"],["Indigo","#4527A0"],["Purple","#6A1B9A"],["Magenta","#AD1457"],["Pink","#E91E63"],["Brown","#5D4037"],["Gray","#546E7A"],["Black","#1B1B1B"]],"pairBg":"#E3F4EC","pairFg":"#00796B","inkDark":"#0E2E22","inkLight":"#FFFFFF","gradients":[["red","#FCCACA"],["orange","#FACDA5"],["yellow","#F8E777"],["green","#77F882"],["cyan","#77EDF8"],["blue","#C0D6FC"],["violet","#E3CCFC"],["magenta","#FCC5EB"]],"sheen":"rgba(255,255,255,0.6)","tones":[["#FFFAFA","#FCCACA"],["#FFFCFA","#FACDA5"],["#FFFEFA","#F5DC3D"],["#FAFFFB","#3DF54D"],["#FAFEFF","#53E8F6"],["#FAFCFF","#C0D6FC"],["#FCFAFF","#E3CCFC"],["#FFFAFD","#FCC5EB"]]},{"id":"ember","name":"Ember","bg":"#2A0C0C","panel":"#3A1414","grid":"scanlines","gridColor":"rgba(255,120,60,.10)","glow":true,"handle":"#FFF1E0","chroma":["rgba(255,213,79,.8)","rgba(255,61,61,.8)"],"peak":"#FFFFFF","unlit":"rgba(255,220,200,.09)","bracket":"rgba(255,200,170,.38)","font":"stencil","code":"mono","palette":[["Gold","#FFD54F"],["Lemon","#FFF176"],["Amber","#FFB300"],["Orange","#FF8F00"],["Flame","#FF5722"],["Red","#FF3D3D"],["Coral","#FF8A80"],["Pink","#F48FB1"],["Orchid","#EA80FC"],["Violet","#B39DDB"],["Sky","#81D4FA"],["Cyan","#4DD0E1"],["Mint","#A5D6A7"],["Lime","#C5E1A5"],["Peach","#FFCCBC"],["White","#FFFFFF"]],"pairBg":"#2A0C0C","pairFg":"#FF8F00","inkDark":"#2A0C0C","inkLight":"#FFFFFF","gradients":[["red","#880707"],["orange","#552A04"],["yellow","#3A3303"],["green","#033F08"],["cyan","#033A3F"],["blue","#07327E"],["violet","#5609AE"],["magenta","#790657"]],"sheen":"rgba(255,255,255,0.22)","tones":[["#880707","#050000"],["#552A04","#050200"],["#3A3303","#050400"],["#033F08","#000501"],["#033A3F","#000405"],["#07327E","#000205"],["#5609AE","#020005"],["#790657","#050003"]]},{"id":"jungle","name":"Jungle","bg":"#0B3A1C","panel":"#134A28","grid":"zigzag","gridColor":"rgba(180,255,180,.12)","glow":false,"handle":"#F1FFE8","chroma":["rgba(255,166,43,.8)","rgba(218,112,214,.8)"],"peak":"#FFFFFF","unlit":"rgba(255,255,255,.09)","bracket":"rgba(255,255,255,.38)","font":"pixel","code":"mono","palette":[["Parrot red","#FF4040"],["Mango","#FFA62B"],["Banana","#FFE14D"],["Lime","#B6F23C"],["Leaf","#4CD964"],["Lagoon","#2ED8C3"],["Sky","#5AC8FA"],["Blue","#4F8BFF"],["Orchid","#DA70D6"],["Hibiscus","#FF7EB6"],["Coral","#FF7F66"],["Papaya","#FFC8A2"],["Sand","#E8D8A8"],["Bone","#F5F5F0"],["Lilac","#C3A6FF"],["Toucan","#FF7A00"]],"pairBg":"#0B3A1C","pairFg":"#B6F23C","inkDark":"#0B3A1C","inkLight":"#FFFFFF","gradients":[["red","#8A0707"],["orange","#552A04"],["yellow","#3D3503"],["green","#034109"],["cyan","#033C41"],["blue","#073380"],["violet","#5709B1"],["magenta","#7E075A"]],"sheen":"rgba(255,255,255,0.22)","tones":[["#8A0707","#050000"],["#552A04","#050200"],["#3D3503","#050400"],["#034109","#000501"],["#033C41","#000405"],["#073380","#000205"],["#5709B1","#020005"],["#7E075A","#050003"]]}];
 const FONTS = { cyber:'"Chakra Petch", "JetBrains Mono", monospace', mono:'"JetBrains Mono", ui-monospace, monospace', serif:'Spectral, Georgia, serif', retro:'Audiowide, "Chakra Petch", sans-serif', pixel:'Silkscreen, "JetBrains Mono", monospace', stencil:'"Saira Stencil One", "Chakra Petch", sans-serif' };
 const FONT_WEIGHT = { cyber:700, mono:600, serif:600, retro:400, pixel:700, stencil:400 };
 const tcol = (t, i) => t.palette[i&15][1], tname = (t, i) => t.palette[i&15][0];
@@ -294,7 +300,7 @@ function lum(h){ const n = parseInt(h.slice(1,7),16); const ch = [n>>16&255, n>>
 const chipInk = (t, c) => lum(c) > 0.3 ? t.inkDark : t.inkLight;
 
 const FIELDS = [
-  ['theme',4,'Theme','16 looks: background, pattern, fonts, palette', d => THEMES[d.theme].name],
+  ['theme',3,'Theme','8 looks: background, pattern, fonts, palette', d => THEMES[d.theme].name],
   ['gradient',2,'Background gradient','left to right · top to bottom · diagonal · radial', d => GRADIENTS[d.gradient]],
   ['gtone',1,'Gradient tone','theme color into the hue · light to dark', d => GRADIENT_TONES[d.gtone]],
   ['tint',3,'Gradient color','red · orange · yellow · green · cyan · blue · violet · magenta', (d,t) => t.gradients[d.tint][0]],
@@ -307,12 +313,12 @@ const FIELDS = [
   ['visor',4,'Visor color','visor, lit windows or eyes', (d,t) => tname(t, d.visor)],
   ['trim',4,'Trim color','outlines, roofs, doors, mouths, marks, decal', (d,t) => tname(t, d.trim)],
   ['accent',4,'Accent color','signal bars and handle effects', (d,t) => tname(t, d.accent)],
-  ['subject',5,'Subject','8 android heads, 12 buildings or 12 animals', d => d.subject < 8 ? `android, ${HEADSHAPES[d.subject]} head` : d.subject < 20 ? BUILDINGS[d.subject-8] : ANIMALS[d.subject-20]],
-  ['vstyle',3,'Visor / windows / eyes','8 styles for the subject\'s kind', d => pickKind(d, VISORS, WINDOWS, EYES)[d.vstyle]],
-  ['grille',3,'Mouth / door / nose','8 styles for the subject\'s kind', d => pickKind(d, MOUTHS, DOORS, SNOUTS)[d.grille]],
-  ['mod',2,'Head mod / roof / accessory','4 styles for the subject\'s kind', d => pickKind(d, MODS, ROOFS, ACCESSORIES)[d.mod]],
-  ['decal',4,'Decal / sign / mark','16 symbols', d => SYM[d.decal]],
-  ['cheek',2,'Cheeks / grounds / markings','4 styles for the subject\'s kind', d => pickKind(d, CHEEKS, GROUNDS, MARKINGS)[d.cheek]],
+  ['subject',6,'Subject','8 android heads, 12 buildings, 12 animals, 16 vehicles or 16 plants', d => SUBJECTS[d.subject]],
+  ['vstyle',3,'Subject detail A','visor, windows, eyes, vehicle windows or blooms', d => pickKind(d, VISORS, WINDOWS, EYES, WINDOWS, BLOOMS)[d.vstyle]],
+  ['grille',3,'Subject detail B','mouth, door, nose, trail or pot', d => pickKind(d, MOUTHS, DOORS, SNOUTS, TRAILS, POTS)[d.grille]],
+  ['mod',2,'Subject detail C','head mod, roof add-on, accessory, vehicle add-on or visitor', d => pickKind(d, MODS, ROOFS, ACCESSORIES, VEHICLE_MODS, VISITORS)[d.mod]],
+  ['decal',4,'Subject symbol','decal, sign, mark, emblem or pot label', d => SYM[d.decal]],
+  ['cheek',2,'Subject detail D','cheeks, grounds, markings, livery or ground extras', d => pickKind(d, CHEEKS, GROUNDS, MARKINGS, LIVERIES, GROUND_EXTRAS)[d.cheek]],
   ['status',4,'Status word','16 words', d => STATUS[d.status]],
   ['scolor',4,'Status color','status chip', (d,t) => tname(t, d.scolor)],
   ['hstyle',3,'Handle style','8 text treatments', d => HSTYLES[d.hstyle]],
@@ -489,7 +495,9 @@ function drawFace(ctx, d, hx, glow, noglow, vis, trim, t){
   const k = kindOf(d.subject);
   if(k === 'face') drawAndroid(ctx, d, hx, glow, noglow, vis, trim, t);
   else if(k === 'building') drawBuilding(ctx, d, hx, glow, noglow, vis, trim, t);
-  else drawAnimal(ctx, d, hx, glow, noglow, vis, trim, t);
+  else if(k === 'animal') drawAnimal(ctx, d, hx, glow, noglow, vis, trim, t);
+  else if(k === 'vehicle') drawVehicle(ctx, d, hx, glow, noglow, vis, trim, t);
+  else drawPlant(ctx, d, hx, glow, noglow, vis, trim, t);
   ctx.lineCap = 'butt'; ctx.lineJoin = 'miter';
   drawStatus(ctx, d, hx, glow, noglow, t);
 }
@@ -614,6 +622,187 @@ function drawGround(ctx, style, c, door, vis, trim, glow, noglow, t){
   else if(style === 2){ for(const s of [-1,1]) for(const [dx, r] of [[13.8,1.8],[11.4,1.4],[15.6,1.2]]){ ctx.moveTo(c+s*dx+r, 50-r*.8); ctx.arc(c+s*dx, 50-r*.8, r, 0, TAU); } ctx.fill(); }
   else { for(const s of [-1,1]){ ctx.moveTo(c+s*14, 50); ctx.lineTo(c+s*14, 43); } ctx.stroke(); ctx.beginPath(); for(const s of [-1,1]){ ctx.moveTo(c+s*14+1, 42.4); ctx.arc(c+s*14, 42.4, 1, 0, TAU); } glow(vis,1); ctx.fillStyle = vis; ctx.fill(); noglow(); }
 }
+/* ---------- vehicles (mirror visual256/subjects.py) ---------- */
+function vehicleSpec(v, c){
+  const L = [-1, 0];
+  if(v === 0) return { body:[[[c-15,44],[c-15,38],[c-10,37],[c-6,31],[c+5,31],[c+10,37],[c+15,38],[c+15,44]]], wheels:[[c-9,44.5,3],[c+9,44.5,3]], win:[c-5.5,32.5,c+4.5,36.5], band:[c-15,39,c+15,41.5], emblem:[c+12,41.6], top:[c,31], trail:[c-15,41,L] };
+  if(v === 1) return { body:[[[c-15,44],[c-15,36],[c-2,36],[c-2,30],[c+7,30],[c+11,36],[c+15,37],[c+15,44]]], wheels:[[c-10,44.5,3],[c+9,44.5,3]], win:[c,31.5,c+6.5,35.5], band:[c-15,38.5,c+15,41], emblem:[c-8.5,33.5], top:[c+2,30], trail:[c-15,40,L] };
+  if(v === 2) return { body:[[[c-16,45],[c-16,28],[c+15,28],[c+16,31],[c+16,45]]], wheels:[[c-10,45.5,2.8],[c+10,45.5,2.8]], win:[c-14,30,c+14,35.5], band:[c-16,38,c+16,40.5], emblem:[c+12.5,42.4], top:[c-6,28], trail:[c-16,43,L] };
+  if(v === 3) return { body:[[[c-16,44],[c-16,40],[c-8,38],[c-4,35],[c+3,35],[c+6,38],[c+16,40],[c+16,44]],[[c-16,40],[c-16,34],[c-12,34],[c-12,38.6]]], wheels:[[c-10,44.5,3.2],[c+10,44.5,3.2]], win:[c-3.5,35.6,c+2.5,38], band:[c-16,40.6,c+16,42.6], emblem:[c+2,41.6], top:[c-14,34], trail:[c-16,42,L] };
+  if(v === 4) return { body:[[[c-6,40],[c-2,35],[c+5,35],[c+8,40],[c+3,42.5],[c-4,42.5]]], wheels:[[c-9.5,44,4.2],[c+9.5,44,4.2]], win:[c+5.5,30.5,c+9.5,35], band:[c-6,38,c+8,40], emblem:[c+.5,39], top:[c+7.5,30.5], trail:[c-14,43,L], bars:[[c+5,35],[c+9.5,44]] };
+  if(v === 5) return { body:[[[c-6,43],[c-1,35.5],[c+5.5,35.5],[c+2.5,43]],[[c+7,31],[c+13,31],[c+12,36],[c+8,36]]], wheels:[[c-9,44,5],[c+9,44,5]], rings:true, win:[c+7.6,31.6,c+12.4,35.4], band:[c-6,38,c+6,40], emblem:[c+1,39.4], top:[c-3,34], trail:[c-15,44,L], bars:[[c-9,44],[c-3.5,34.5],[c+6,33],[c+9,44]] };
+  if(v === 6) return { body:[[[c-16,45],[c-16,30],[c-8,30],[c-8,26],[c-2,26],[c-2,33],[c+10,33],[c+16,40],[c+16,45]],[[c+5,27],[c+8,27],[c+8,33],[c+5,33]]], wheels:[[c-11,45.5,3],[c-4,45.5,3],[c+4,45.5,3],[c+11,45.5,2.4]], win:[c-14.5,31.5,c-9.5,36], band:[c-16,39,c+16,41], emblem:[c+2,36.5], top:[c-12,30], trail:[c+6.5,26,[0,-1]] };
+  if(v === 7) return { body:[[[c-15,44],[c-15,27],[c+15,27],[c+15,44]]], wheels:[[c-9,45,2.4],[c+9,45,2.4]], win:[c-13,29,c+13,35], band:[c-15,37.5,c+15,40], emblem:[c,42], top:[c+9,27], trail:[c-15,41,L], bars:[[c-4,27],[c,21],[c+4,27]] };
+  if(v === 8) return { body:[[[c-15,40],[c+15,40],[c+11,46],[c-11,46]],[[c+1,13],[c+1,38],[c+13,38]],[[c-1,16],[c-1,38],[c-11,38]]], wheels:[], win:[c-9,41.4,c+9,44.6], band:[c-11,30,c+13,32.4], emblem:[c+5,34.5], top:[c,12], trail:[c-15,44,L], bars:[[c,40],[c,12]], water:true };
+  if(v === 9) return { body:[[[c-16,38],[c+10,38],[c+16,41],[c+12,46],[c-14,46]],[[c-4,38],[c,33],[c+6,33],[c+8,38]]], wheels:[], win:[c+.5,33.8,c+6,37.2], band:[c-16,41,c+16,43], emblem:[c-9,40], top:[c+3,33], trail:[c-16,44,L], water:true };
+  if(v === 10) return { body:[[[c-3,27],[c+5,27],[c+5,33],[c-3,33]]], hull:[c,38,15,6.5], wheels:[], win:[c-9,36,c+9,39.5], band:[c-15,40.5,c+15,42.5], emblem:[c+1,30], top:[c+3,27], trail:[c-15,38,L], bars:[[c-1,27],[c-1,22],[c+2,22]] };
+  if(v === 11) return { body:[[[c-15,33],[c-13,24],[c-9,33]],[[c-3,36],[c+5,36],[c+1,44],[c-5,44]]], fuselage:[c-15,33,30,6], wheels:[], win:[c-7,34.2,c+11,36.4], band:[c-15,37.2,c+15,38.6], emblem:[c-12,29.5], top:[c+4,33], trail:[c-15,36,L] };
+  if(v === 12) return { body:[[[c-6,34],[c-16,33],[c-16,35.5],[c-6,37.5]]], cabin:[c+3,36,9,6], wheels:[], win:[c+4,32,c+10.5,36.5], band:[c-6,38,c+12,40], emblem:[c-1.5,35.6], top:[c+9,30.5], trail:[c-16,38,L], bars:[[c-12,28],[c+16,28],[c+3,28],[c+3,30]], skids:true };
+  if(v === 13) return { body:[[[c-4,42],[c+4,42],[c+4,47],[c-4,47]]], envelope:[c,22,12,13], wheels:[], win:[c-8,17,c+8,25], band:[c-12,26,c+12,29], emblem:[c,12.5], top:[c+5,10.5], trail:[c,48,[0,1]], bars:[[c-9,31],[c-4,42],[c+9,31],[c+4,42]] };
+  if(v === 14) return { body:[[[c,6],[c+5,14],[c+5,38],[c-5,38],[c-5,14]],[[c-5,30],[c-10,40],[c-5,38]],[[c+5,30],[c+10,40],[c+5,38]],[[c-3,38],[c+3,38],[c+3,41],[c-3,41]]], wheels:[], win:[c-2.5,15,c+2.5,26], band:[c-5,28,c+5,30.5], emblem:[c,33.6], top:[c+4,14], trail:[c,42,[0,1]] };
+  return { body:[], saucer:[c,34,15,4.5], dome:[c,32,7], wheels:[], win:[c-12,33.6,c+12,35.6], band:[c-15,35.8,c+15,37.6], emblem:[c,28.4], top:[c+4,26], trail:[c,40,[0,1]], bars:[[c-8,37.5],[c-11,44],[c+8,37.5],[c+11,44]] };
+}
+function vehicleBodyPath(ctx, sp){
+  ctx.beginPath(); for(const pts of sp.body) poly(ctx, pts);
+  if(sp.hull){ const [x,y,rx,ry] = sp.hull; ctx.moveTo(x+rx, y); ctx.ellipse(x, y, rx, ry, 0, 0, TAU); }
+  if(sp.fuselage){ const [x,y,w,h] = sp.fuselage, r = h/2; ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y); ctx.arc(x+w-r, y+r, r, -Math.PI/2, Math.PI/2); ctx.lineTo(x+r, y+h); ctx.arc(x+r, y+r, r, Math.PI/2, 1.5*Math.PI); ctx.closePath(); }
+  if(sp.cabin){ const [x,y,rx,ry] = sp.cabin; ctx.moveTo(x+rx, y); ctx.ellipse(x, y, rx, ry, 0, 0, TAU); }
+  if(sp.envelope){ const [x,y,rx,ry] = sp.envelope; ctx.moveTo(x+rx, y); ctx.ellipse(x, y, rx, ry, 0, 0, TAU); }
+  if(sp.saucer){ let [x,y,r] = sp.dome; ctx.moveTo(x-r, y); ctx.arc(x, y, r, Math.PI, TAU); ctx.closePath(); const [sx,sy,rx,ry] = sp.saucer; ctx.moveTo(sx+rx, sy); ctx.ellipse(sx, sy, rx, ry, 0, 0, TAU); }
+}
+function drawVehicle(ctx, d, c, glow, noglow, vis, trim, t){
+  const v = d.subject - 32, sp = vehicleSpec(v, c);
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  drawTrail(ctx, d.grille, ...sp.trail, vis, trim, glow, noglow);
+  if(sp.water){ ctx.beginPath(); for(let k=0;k<9;k++){ const x = c-16+k*4, y = 47.5 + (k % 2 ? .7 : -.7); k ? ctx.lineTo(x,y) : ctx.moveTo(x,y); } ctx.lineWidth = .5; ctx.strokeStyle = trim; ctx.stroke(); }
+  const bars = sp.bars;
+  if(bars && [4,5,7,8,10,12,13,15].includes(v)){
+    ctx.beginPath();
+    if(v === 12 || v === 13 || v === 15){ ctx.moveTo(...bars[0]); ctx.lineTo(...bars[1]); ctx.moveTo(...bars[2]); ctx.lineTo(...bars[3]); }
+    else bars.forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p));
+    ctx.lineWidth = v !== 12 ? .8 : 1; ctx.strokeStyle = trim; ctx.stroke();
+  }
+  if(sp.skids){ ctx.beginPath(); ctx.moveTo(c-6,45); ctx.lineTo(c+12,45); ctx.moveTo(c-1,41.5); ctx.lineTo(c-2,45); ctx.moveTo(c+7,41.5); ctx.lineTo(c+8,45); ctx.lineWidth = .7; ctx.stroke(); ctx.beginPath(); ctx.arc(c-16, 34.2, 2, 0, TAU); ctx.lineWidth = .5; ctx.stroke(); }
+  vehicleBodyPath(ctx, sp); ctx.fillStyle = t.panel; ctx.fill(); glow(trim,1); ctx.lineWidth = .7; ctx.strokeStyle = trim; ctx.stroke(); noglow();
+  const [x0,y0,x1,y1] = sp.band;
+  ctx.save(); vehicleBodyPath(ctx, sp); ctx.clip(); drawLivery(ctx, d.cheek, x0, y0, x1, y1, trim); ctx.restore();
+  drawWindows(ctx, d.vstyle, ...sp.win, vis, glow, noglow, t);
+  for(const [x,y,r] of sp.wheels){
+    ctx.beginPath(); ctx.arc(x, y, r, 0, TAU);
+    if(sp.rings){ ctx.lineWidth = .8; ctx.strokeStyle = trim; ctx.stroke(); ctx.beginPath(); ctx.arc(x, y, .7, 0, TAU); ctx.fillStyle = trim; ctx.fill(); }
+    else { ctx.fillStyle = trim; ctx.fill(); ctx.beginPath(); ctx.arc(x, y, r*.4, 0, TAU); ctx.fillStyle = t.panel; ctx.fill(); }
+  }
+  const [ex, ey] = sp.emblem;
+  ctx.beginPath(); ctx.arc(ex, ey, 2.2, 0, TAU); ctx.fillStyle = t.panel; ctx.fill(); ctx.lineWidth = .45; ctx.strokeStyle = trim; ctx.stroke();
+  drawSymbol(ctx, d.decal, ex, ey, 1.5, trim);
+  drawVehicleMod(ctx, d.mod, ...sp.top, vis, trim, glow, noglow);
+}
+function drawLivery(ctx, style, x0, y0, x1, y1, trim){
+  const h = y1-y0; ctx.fillStyle = trim; ctx.strokeStyle = trim; ctx.beginPath();
+  if(style === 0){ ctx.rect(x0, y0, x1-x0, h); ctx.fill(); }
+  else if(style === 1){ ctx.rect(x0, y0, x1-x0, h*.35); ctx.rect(x0, y1-h*.35, x1-x0, h*.35); ctx.fill(); }
+  else if(style === 2){ let k = 0, x = x0; while(x < x1){ ctx.rect(x, y0 + (k % 2 ? 0 : h/2), h/2, h/2); x += h/2; k++; } ctx.fill(); }
+  else { let x = x0, k = 0; while(x <= x1 + 1){ const y = y0 + (k % 2 ? h*.15 : h*.85); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); x += 1.6; k++; } ctx.lineWidth = h*.32; ctx.stroke(); }
+}
+function drawTrail(ctx, style, x, y, dir, vis, trim, glow, noglow){
+  const [dx, dy] = dir, px = -dy, py = dx, at = (s, o) => [x + dx*s + px*(o||0), y + dy*s + py*(o||0)];
+  ctx.lineWidth = .5; ctx.strokeStyle = trim; ctx.fillStyle = trim; ctx.beginPath();
+  if(style === 0){ for(const [s, r] of [[1.6,.9],[3.6,1.2],[5.8,1.5]]){ const [cx, cy] = at(s, .4*s); ctx.moveTo(cx+r, cy); ctx.arc(cx, cy, r, 0, TAU); } ctx.globalAlpha = .55; ctx.fill(); ctx.globalAlpha = 1; }
+  else if(style === 1){ glow(vis,1); for(const o of [-1.4,0,1.4]) poly(ctx, [at(.2, o-.7), at(.2, o+.7), at(o === 0 ? 5.6 : 4, o)]); ctx.fillStyle = vis; ctx.fill(); noglow(); }
+  else if(style === 2){ for(const o of [-1.6,0,1.6]){ ctx.moveTo(...at(.8, o)); ctx.lineTo(...at(5.5-Math.abs(o), o)); } ctx.stroke(); }
+  else if(style === 3){ for(const [s, o] of [[1.8,-1.2],[3.8,1],[5.4,-.4]]) drawSymbol(ctx, 4, ...at(s, o), .9, vis); }
+  else if(style === 4){ for(const [s, o, r] of [[1.4,.6,.6],[3.2,-.6,.8],[5.2,.4,1]]){ const [cx, cy] = at(s, o); ctx.moveTo(cx+r, cy); ctx.arc(cx, cy, r, 0, TAU); } ctx.stroke(); }
+  else if(style === 5){ for(const o of [-.8,.8]){ ctx.moveTo(...at(.6, o)); ctx.lineTo(...at(6, o)); } ctx.globalAlpha = .6; ctx.lineWidth = .8; ctx.stroke(); ctx.globalAlpha = 1; }
+  else if(style === 6){ for(const [s, o] of [[1.6,.8],[3.4,-1],[5.4,.6]]) drawSymbol(ctx, 9, ...at(s, o), .8, vis); }
+  else { for(let k=0;k<7;k++){ const p = at(.6+k*.85, k % 2 ? .9 : -.9); k ? ctx.lineTo(...p) : ctx.moveTo(...p); } glow(vis,.8); ctx.lineWidth = .6; ctx.strokeStyle = vis; ctx.stroke(); noglow(); }
+}
+function drawVehicleMod(ctx, style, tx, ty, vis, trim, glow, noglow){
+  if(style === 0 || style === 1){ drawRoofMod(ctx, style, tx, ty, vis, trim, glow, noglow); return; }
+  ctx.beginPath();
+  if(style === 2){ ctx.moveTo(tx-1.6, ty); ctx.arc(tx, ty, 1.6, Math.PI, TAU); ctx.closePath(); glow(vis,1.4); ctx.fillStyle = vis; ctx.fill(); noglow(); ctx.lineWidth = .4; ctx.strokeStyle = trim; ctx.stroke(); }
+  else { poly(ctx, [[tx-2, ty],[tx+1.2, ty],[tx-1.4, ty-4.2]]); ctx.fillStyle = trim; ctx.fill(); }
+}
+/* ---------- plants (mirror visual256/subjects.py) ---------- */
+function plantSpec(p, c){
+  let fol = [], stems = [], blooms = [], extra = [];
+  const ang = n => Array.from({length:n}, (_, k) => k);
+  if(p === 0){ fol = [['poly',[[c-10,38],[c+10,38],[c,26]]],['poly',[[c-8,31],[c+8,31],[c,19]]],['poly',[[c-6,24],[c+6,24],[c,12]]]]; stems = [['rect',[c-1.2,38,2.4,2]]]; blooms = [[c-5,35.5],[c+4,34],[c-2,28.5],[c+3,22.5],[c-1,17]]; }
+  else if(p === 1){ fol = [['circle',[c,21,8.5]],['circle',[c-6.5,26,6]],['circle',[c+6.5,26,6]]]; stems = [['rect',[c-1.5,30,3,10]]]; blooms = [[c-4.5,18.5],[c+4,17.5],[c,25],[c+8,26],[c-8,26.5]]; }
+  else if(p === 2){ fol = [-2.8,-2.0,-1.2,-.4,.4].map(a => ['ellipse',[c+2+6*Math.cos(a), 17+4*Math.sin(a), 7, 1.8, a]]); stems = [['curve',[[c-1,40],[c-2,30],[c+2,17]],2]]; blooms = [[c+.6,19.6],[c+3.4,19.6],[c+2,21.6]]; }
+  else if(p === 3){ fol = [['rr',[c-3,14,6,26,3]],['rr',[c-9,21,3,9,1.5]],['rr',[c-9,27.5,7,3,1.5]],['rr',[c+6,17,3,11,1.5]],['rr',[c+2,25.5,7,3,1.5]]]; blooms = [[c,14],[c-7.5,21],[c+7.5,17],[c,24.5],[c,33]]; }
+  else if(p === 4){ fol = [['poly',[[c-4,15],[c-4,21],[c,24],[c+4,21],[c+4,15],[c+2,17.5],[c,14],[c-2,17.5]]],['ellipse',[c-3.4,33,1.8,6,.5]],['ellipse',[c+3.4,31,1.8,6,-.5]]]; stems = [['line',[[c,40],[c,22]],.9]]; blooms = [[c-8,22],[c+8,20],[c-7,30],[c+8,31]]; }
+  else if(p === 5){ fol = ang(12).map(k => { const a = k*Math.PI/6; return ['ellipse',[c+5.2*Math.cos(a), 16+5.2*Math.sin(a), 2.6, 1.1, a]]; }); fol.push(['ellipse',[c-3.4,32,1.8,5,.6]],['ellipse',[c+3.4,29,1.8,5,-.6]]); stems = [['line',[[c,40],[c,20]],.9]]; blooms = [[c,16],[c-1.2,15],[c+1.2,17]]; extra = [['center',[c,16,3]]]; }
+  else if(p === 6){ for(const [fx, fy] of [[c-5,21],[c+4.5,17],[c+.5,27]]) for(const k of ang(6)){ const a = k*TAU/6; fol.push(['circle',[fx+2.2*Math.cos(a), fy+2.2*Math.sin(a), 1.3]]); } stems = [['line',[[c-5,21],[c-2,40]],.7],['line',[[c+4.5,17],[c+1,40]],.7],['line',[[c+.5,27],[c,40]],.7]]; blooms = [[c-5,21],[c+4.5,17],[c+.5,27]]; }
+  else if(p === 7){ fol = [['halfellipse',[c,30,12,10]]]; stems = [['rr',[c-3,30,6,10,1.5]]]; blooms = [[c-6,25.5],[c,23],[c+6,26],[c-3,28.4],[c+3,28.4]]; }
+  else if(p === 8){ fol = [['ellipse',[c-6,24,6,3,0]],['ellipse',[c+5,18,7,3.5,0]],['ellipse',[c+1,30,5,2.5,0]]]; stems = [['curve',[[c,40],[c-4,33],[c+3,26],[c-2,20],[c+4,18]],1.8]]; blooms = [[c-8,23.5],[c-4,23],[c+3,17],[c+8,18],[c+2,29.5]]; }
+  else if(p === 9){ fol = [-1.1,-.55,0,.55,1.1].map(a => ['ellipse',[c+10*Math.sin(a), 40-13*Math.cos(a)-2, 2.6, 9, a]]); blooms = [[c-9,33],[c-5,26],[c,25],[c+5,26],[c+9,33]]; }
+  else if(p === 10){ fol = [['rect',[c-6,12,2.6,28]],['rect',[c-1.3,8,2.6,32]],['rect',[c+4,15,2.6,25]],['ellipse',[c-8,16,3,1,-.5]],['ellipse',[c+3,11,3,1,-.5]],['ellipse',[c+8.5,19,3,1,.5]]]; blooms = [[c-4.7,20],[c,14],[c+5.3,24],[c,30],[c-4.7,34]]; extra = [['nodes',[[c-6,2.6,[20,28,35]],[c-1.3,2.6,[16,24,32]],[c+4,2.6,[22,30,36]]]]]; }
+  else if(p === 11){
+    for(const k of ang(7)){ const a = Math.PI + k*Math.PI/6; fol.push(['poly',[[c,34],[c+9*Math.cos(a-.28), 34+9*Math.sin(a-.28)*.75],[c+12*Math.cos(a), 34+12*Math.sin(a)*.75],[c+9*Math.cos(a+.28), 34+9*Math.sin(a+.28)*.75]]]); }
+    for(const k of ang(4)){ const a = Math.PI*1.2 + k*Math.PI/5; fol.push(['poly',[[c,34],[c+5*Math.cos(a-.4), 34+5*Math.sin(a-.4)],[c+8*Math.cos(a), 34+8*Math.sin(a)],[c+5*Math.cos(a+.4), 34+5*Math.sin(a+.4)]]]); }
+    blooms = [[c-9,29],[c-4,26],[c+4,26],[c+9,29],[c,30]];
+  }
+  else if(p === 12){ fol = [[-10,20,4],[-5,15,4.5],[2,13,4.5],[8,17,4],[11,23,3.5],[-11,26,3]].map(([x,y,r]) => ['circle',[c+x,y,r]]); stems = [['curve',[[c,40],[c,30],[c-9,22]],1.4],['curve',[[c,30],[c+2,22],[c+10,21]],1.1],['curve',[[c+1,24],[c-3,16]],.9]]; blooms = [[c-10,19],[c-5,14],[c+2,12],[c+8,16],[c+11,22]]; }
+  else if(p === 13){ fol = [['halfellipse',[c,24,12,9]]]; stems = [['rect',[c-1.5,24,3,16]], ...[-11,-8,-5,5,8,11].map(x => ['line',[[c+x,24],[c+x*1.15, 24+12-Math.abs(x)*.5]],.6])]; blooms = [[c-6,19],[c,17],[c+6,19],[c-9,22],[c+9,22]]; }
+  else if(p === 14){ for(const [x, top] of [[c-5,14],[c,10],[c+5,15]]) for(const k of ang(4)) for(const s of [-1,1]) fol.push(['ellipse',[x+s*1.2, top+2+k*2.4, 1, 1.6, s*.5]]); stems = [['line',[[c-5,40],[c-5,14]],.7],['line',[[c,40],[c,10]],.7],['line',[[c+5,40],[c+5,15]],.7]]; blooms = [[c-5,13],[c,9],[c+5,14],[c-2.5,30],[c+2.5,30]]; }
+  else { fol = [['ellipse',[c-8,38,6,1.8,0]],['ellipse',[c+8,38.5,6,1.8,0]], ...[-1.3,-.65,0,.65,1.3].map(a => ['ellipse',[c+5*Math.sin(a), 30-4*Math.cos(a), 1.8, 4.6, a]])]; blooms = [[c,26],[c-4,28],[c+4,28],[c-8,36],[c+8,36]]; }
+  return { fol, stems, blooms, extra };
+}
+function plantShape(ctx, kind, a){
+  if(kind === 'poly') poly(ctx, a);
+  else if(kind === 'circle'){ const [x,y,r] = a; ctx.moveTo(x+r, y); ctx.arc(x, y, r, 0, TAU); }
+  else if(kind === 'ellipse'){ const [x,y,rx,ry,rot] = a; ctx.moveTo(x+rx*Math.cos(rot), y+rx*Math.sin(rot)); ctx.ellipse(x, y, rx, ry, rot, 0, TAU); }
+  else if(kind === 'rect') ctx.rect(...a);
+  else if(kind === 'rr'){ const [x,y,w,h,r] = a; ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y); ctx.arc(x+w-r, y+r, r, -Math.PI/2, 0); ctx.lineTo(x+w, y+h-r); ctx.arc(x+w-r, y+h-r, r, 0, Math.PI/2); ctx.lineTo(x+r, y+h); ctx.arc(x+r, y+h-r, r, Math.PI/2, Math.PI); ctx.lineTo(x, y+r); ctx.arc(x+r, y+r, r, Math.PI, 1.5*Math.PI); ctx.closePath(); }
+  else if(kind === 'halfellipse'){ const [x,y,rx,ry] = a; ctx.moveTo(x-rx, y); ctx.ellipse(x, y, rx, ry, 0, Math.PI, TAU); ctx.closePath(); }
+}
+function drawPlant(ctx, d, c, glow, noglow, vis, trim, t){
+  const sp = plantSpec(d.subject - 48, c);
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  drawGroundExtras(ctx, d.cheek, c, vis, trim);
+  for(const st of sp.stems){
+    const [kind, a] = st; ctx.beginPath();
+    if(kind === 'rect' || kind === 'rr'){ plantShape(ctx, kind, a); ctx.fillStyle = trim; ctx.fill(); continue; }
+    if(kind === 'curve' && a.length === 3){ ctx.moveTo(...a[0]); ctx.quadraticCurveTo(...a[1], ...a[2]); }
+    else a.forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p));
+    ctx.lineWidth = st[2]; ctx.strokeStyle = trim; ctx.stroke();
+  }
+  ctx.beginPath(); for(const [kind, a] of sp.fol) plantShape(ctx, kind, a);
+  glow(trim,1); ctx.fillStyle = trim; ctx.fill(); noglow();
+  for(const [kind, a] of sp.extra){
+    if(kind === 'center'){ const [x,y,r] = a; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fillStyle = t.panel; ctx.fill(); ctx.lineWidth = .5; ctx.strokeStyle = trim; ctx.stroke(); }
+    else if(kind === 'nodes'){ ctx.beginPath(); for(const [x, w, ys] of a) for(const y of ys){ ctx.moveTo(x, y); ctx.lineTo(x+w, y); } ctx.lineWidth = .5; ctx.strokeStyle = t.panel; ctx.stroke(); }
+  }
+  for(const [x, y] of sp.blooms) drawBloom(ctx, d.vstyle, x, y, vis, trim, glow, noglow);
+  drawPot(ctx, d.grille, c, d.decal, trim, t);
+  drawVisitor(ctx, d.mod, c+11, 12, vis, trim, glow, noglow);
+}
+function drawBloom(ctx, style, x, y, vis, trim, glow, noglow){
+  glow(vis,.8); ctx.fillStyle = vis; ctx.beginPath();
+  if(style === 0){ ctx.arc(x, y, .9, 0, TAU); ctx.fill(); }
+  else if(style === 1){ for(let k=0;k<5;k++){ const a = -Math.PI/2 + k*TAU/5; ctx.moveTo(x+.8*Math.cos(a)+.65, y+.8*Math.sin(a)); ctx.arc(x+.8*Math.cos(a), y+.8*Math.sin(a), .65, 0, TAU); } ctx.fill(); noglow(); ctx.beginPath(); ctx.arc(x, y, .4, 0, TAU); ctx.fillStyle = trim; ctx.fill(); }
+  else if(style === 2 || style === 3 || style === 6) drawSymbol(ctx, {2:4, 3:7, 6:9}[style], x, y, style !== 3 ? 1.3 : 1.15, vis);
+  else if(style === 4){ ctx.arc(x, y+.2, 1.15, 0, TAU); ctx.fill(); noglow(); ctx.beginPath(); ctx.moveTo(x, y-.9); ctx.lineTo(x+.7, y-1.6); ctx.lineWidth = .35; ctx.strokeStyle = trim; ctx.stroke(); }
+  else if(style === 5){ ctx.ellipse(x, y, 1.4, .9, .3, 0, TAU); ctx.fill(); }
+  else { ctx.save(); ctx.translate(x, y); ctx.rotate(Math.PI); drawSymbol(ctx, 10, 0, 0, 1.2, vis); ctx.restore(); }
+  noglow();
+}
+function drawPot(ctx, style, c, decal, trim, t){
+  ctx.beginPath(); let lx = c, ly = 45.2;
+  if(style === 0){ poly(ctx, [[c-6,42],[c+6,42],[c+4.6,50],[c-4.6,50]]); ctx.rect(c-6.8, 40, 13.6, 2.2); }
+  else if(style === 1) ctx.rect(c-6.5, 40.5, 13, 9.5);
+  else if(style === 2){ ctx.moveTo(c-7.5, 41); ctx.ellipse(c, 41, 7.5, 9, 0, 0, Math.PI); ctx.closePath(); ly = 44.5; }
+  else if(style === 3){ poly(ctx, [[c-3,40],[c+3,40],[c+2,42],[c+4.5,46],[c+3,50],[c-3,50],[c-4.5,46],[c-2,42]]); ly = 46; }
+  else if(style === 4) ctx.rect(c-7, 41, 14, 9);
+  else if(style === 5){ ctx.moveTo(c-10, 50); ctx.ellipse(c, 50, 10, 5, 0, Math.PI, TAU); ctx.closePath(); ly = 47.2; }
+  else if(style === 6) ctx.rect(c-6, 40.5, 12, 9.5);
+  else { ctx.moveTo(c-7, 41); ctx.ellipse(c, 41, 7, 7.5, 0, 0, Math.PI); ctx.closePath(); ly = 44.2; }
+  ctx.fillStyle = t.panel; ctx.fill(); ctx.lineWidth = .7; ctx.strokeStyle = trim; ctx.stroke();
+  ctx.beginPath();
+  if(style === 4){ for(const y of [44,47]){ ctx.moveTo(c-7, y); ctx.lineTo(c+7, y); } ctx.lineWidth = .45; ctx.stroke(); }
+  else if(style === 6){ ctx.rect(c-6.6, 39.2, 13.2, 1.4); ctx.fillStyle = trim; ctx.fill(); }
+  else if(style === 7){ ctx.moveTo(c+7, 42.5); ctx.arc(c+7.6, 44, 1.6, -Math.PI/2, Math.PI/2); ctx.lineWidth = .7; ctx.stroke(); ctx.beginPath(); ctx.moveTo(c-9, 49.6); ctx.lineTo(c+9, 49.6); ctx.stroke(); }
+  else if(style === 1){ ctx.moveTo(c-6.5, 42.5); ctx.lineTo(c+6.5, 42.5); ctx.lineWidth = .45; ctx.stroke(); }
+  drawSymbol(ctx, decal, lx, ly, 1.7, trim);
+}
+function drawVisitor(ctx, style, x, y, vis, trim, glow, noglow){
+  glow(vis,.8); ctx.fillStyle = vis; ctx.beginPath();
+  if(style === 0){ for(const s of [-1,1]){ ctx.moveTo(x+s*1.8+1.6, y-1); ctx.ellipse(x+s*1.8, y-1, 1.6, 1.9, s*.5, 0, TAU); ctx.moveTo(x+s*1.4+1.1, y+1.4); ctx.ellipse(x+s*1.4, y+1.4, 1.1, 1.2, -s*.5, 0, TAU); } ctx.fill(); noglow(); ctx.beginPath(); ctx.moveTo(x, y-2); ctx.lineTo(x, y+2.4); ctx.lineWidth = .55; ctx.strokeStyle = trim; ctx.stroke(); }
+  else if(style === 1){ ctx.ellipse(x, y, 2.2, 1.5, 0, 0, TAU); ctx.fill(); noglow(); ctx.beginPath(); for(const dx of [-.6,.6]){ ctx.moveTo(x+dx, y-1.4); ctx.lineTo(x+dx, y+1.4); } ctx.lineWidth = .45; ctx.strokeStyle = trim; ctx.stroke(); ctx.beginPath(); ctx.moveTo(x+1.2, y-1.3); ctx.ellipse(x-.2, y-2.1, 1.4, .8, -.3, 0, TAU); ctx.globalAlpha = .6; ctx.fillStyle = trim; ctx.fill(); ctx.globalAlpha = 1; }
+  else if(style === 2){ ctx.ellipse(x, y, 2.4, 1.6, 0, 0, TAU); ctx.moveTo(x+3.4, y-1.6); ctx.arc(x+2.2, y-1.6, 1.2, 0, TAU); ctx.fill(); noglow(); ctx.beginPath(); poly(ctx, [[x+3.3, y-1.9],[x+4.6, y-1.5],[x+3.3, y-1.1]]); ctx.fillStyle = trim; ctx.fill(); ctx.beginPath(); poly(ctx, [[x-1.4, y-.4],[x+.8, y-.4],[x-.6, y-2.6]]); ctx.fill(); }
+  else { ctx.arc(x, y, 1.9, 0, TAU); ctx.fill(); noglow(); ctx.beginPath(); ctx.moveTo(x, y-1.9); ctx.lineTo(x, y+1.9); ctx.lineWidth = .4; ctx.strokeStyle = trim; ctx.stroke(); ctx.beginPath(); for(const [dx, dy] of [[-.9,-.5],[.9,-.5],[-.8,.9],[.8,.9]]){ ctx.moveTo(x+dx+.35, y+dy); ctx.arc(x+dx, y+dy, .35, 0, TAU); } ctx.moveTo(x+1.2, y-2.2); ctx.arc(x, y-2.2, 1.2, 0, TAU); ctx.fillStyle = trim; ctx.fill(); }
+  noglow();
+}
+function drawGroundExtras(ctx, style, c, vis, trim){
+  ctx.lineWidth = .5; ctx.strokeStyle = trim; ctx.fillStyle = trim;
+  ctx.beginPath(); ctx.moveTo(c-16, 50); ctx.lineTo(c+16, 50); ctx.stroke();
+  ctx.beginPath();
+  if(style === 0){ for(const s of [-1,1]) for(const x of [11,13.5,16]){ ctx.moveTo(c+s*x, 50); ctx.lineTo(c+s*(x-.8), 46.8); ctx.moveTo(c+s*x, 50); ctx.lineTo(c+s*(x+.8), 47.4); } ctx.stroke(); }
+  else if(style === 1){ for(const s of [-1,1]) for(const [x, rx] of [[10.5,1.3],[13,1],[15.2,1.4]]){ ctx.moveTo(c+s*x+rx, 49.2); ctx.ellipse(c+s*x, 49.2, rx, .8, 0, 0, TAU); } ctx.fill(); }
+  else if(style === 2){ for(const s of [-1,1]) for(const [x, a] of [[10.5,.4],[12.8,-.5],[15,.2]]){ ctx.moveTo(c+s*x+1, 49.3); ctx.ellipse(c+s*x, 49.3, 1, .55, a, 0, TAU); } ctx.fillStyle = vis; ctx.fill(); }
+  else { for(const s of [-1,1]) for(const x of [11.5,15]){ ctx.moveTo(c+s*x, 50); ctx.lineTo(c+s*x, 47); ctx.moveTo(c+s*x+1.1, 46.6); ctx.ellipse(c+s*x+.6, 46.6, .7, .4, -.5, 0, TAU); ctx.moveTo(c+s*x-.1, 46.6); ctx.ellipse(c+s*x-.6, 46.6, .7, .4, .5, 0, TAU); } ctx.stroke(); ctx.fill(); }
+}
+
 const ANIMAL_SPECS = [[31,13,12,5,29,1,34.5,19],[29,11,12,4.5,27,1,34.5,17],[31,13,12,5,28,1,34.5,19],[32,11,11,4.5,30,1,35.5,21],[30,14,12,5,27,1,38,22],[30,14,13,5.5,28,1.35,38.4,17],[32,10,10,4,30,1,35,22],[31,13,12,5.5,28,1,40,19],[31,14,10,7,20.5,1.1,33,21],[30,12,13,4,29,1,37.5,17],[31,11,11,4.5,28,1,34.5,20],[31,13,12,5,29,1,34.5,19]];
 function drawAnimal(ctx, d, c, glow, noglow, vis, trim, t){
   const a = d.subject - 20, [hy, rx, ry, edx, ey, ek, ny, top] = ANIMAL_SPECS[a], panel = t.panel;
@@ -818,11 +1007,14 @@ function sevenSeg(ctx, n, x, y, w, h, vis, glow, noglow, t){
 /* ---------- canvases, 512-bit pairs, painting ---------- */
 const cache = new Map();
 const toHex = u => Array.from(u, x => x.toString(16).padStart(2,'0')).join('');
-function glyph(bits, over){
-  const key = toHex(bits) + ':' + JSON.stringify(over || {}); let c = cache.get(key); if(c) return c;
+/* k < 1 renders a smaller canvas (for preview grids) to keep memory low */
+function glyph(bits, over, k){
+  k = k || 1;
+  const key = toHex(bits) + ':' + JSON.stringify(over || {}) + ':' + k; let c = cache.get(key); if(c) return c;
   const d = Object.assign(decode(bits), over || {});
-  c = document.createElement('canvas'); c.width = 2*S; c.height = S; drawNetrunner(c.getContext('2d'), d);
-  if(cache.size > 400) cache.clear(); cache.set(key, c); return c;
+  c = document.createElement('canvas'); c.width = Math.round(2*S*k); c.height = Math.round(S*k);
+  const ctx = c.getContext('2d'); ctx.scale(k, k); drawNetrunner(ctx, d);
+  if(cache.size > 160) cache.clear(); cache.set(key, c); return c;
 }
 function pairCanvas(mixed){
   const key = 'pair:' + toHex(mixed[0]) + toHex(mixed[1]); let c = cache.get(key); if(c) return c;
@@ -837,7 +1029,7 @@ function pairCanvas(mixed){
   badges.forEach(([x,y],i) => { ctx.beginPath(); ctx.arc(x,y,S*.075,0,TAU); ctx.fillStyle = fg; ctx.fill(); ctx.fillStyle = t.pairBg; setFont(ctx, 'mono', S*.1); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(i+1), x, y+S*.006); });
   ctx.fillStyle = fg; setFont(ctx, 'mono', S*.11); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText('SHA-512 · 2 PARTS · READ 1 THEN 2', W/2, H - pad*.35 - foot/2);
-  if(cache.size > 400) cache.clear(); cache.set(key, c); return c;
+  if(cache.size > 160) cache.clear(); cache.set(key, c); return c;
 }
 /* art takes the mixed badge bits: one 32-byte array per part */
 const art = mixed => mixed.length === 2 ? pairCanvas(mixed) : glyph(mixed[0]);
@@ -894,19 +1086,19 @@ function renderHero(){
 function previews(host, names, key, width){
   const p = state.mixed[0], real = decode(p)[key];
   $(host).innerHTML = names.map((name, i) => `<figure class="${i === real ? 'real' : ''}"><canvas></canvas><figcaption><strong>${i} · ${name}</strong>${i === real ? '<br>This hash' : '<br>Preview'}</figcaption></figure>`).join('');
-  $(host).querySelectorAll('canvas').forEach((cv, i) => paint(cv, glyph(p, {[key]: i}), width));
+  $(host).querySelectorAll('canvas').forEach((cv, i) => paint(cv, glyph(p, {[key]: i}, .45), width));
 }
 const renderLayouts = () => previews('#layouts', LAYOUTS, 'layout', 250);
 const renderDisplays = () => previews('#displays', DISPLAYS, 'display', 250);
 const renderThemes = () => previews('#themes', THEMES.map(t => t.name), 'theme', 230);
-const renderSubjects = () => previews('#subjects', [...HEADSHAPES.map(h => `android, ${h}`), ...BUILDINGS, ...ANIMALS], 'subject', 200);
+const renderSubjects = () => previews('#subjects', SUBJECTS, 'subject', 200);
 function renderBackgrounds(){
   const p = state.mixed[0], d = decode(p), t = THEMES[d.theme], combos = [];
   for(let g=0;g<4;g++) combos.push({gradient:g, gtone:d.gtone, tint:d.tint});
   combos.push({gradient:d.gradient, gtone:1-d.gtone, tint:d.tint});
   for(let h=0;h<8;h++) if(h !== d.tint) combos.push({gradient:d.gradient, gtone:d.gtone, tint:h});
   $('#backgrounds').innerHTML = combos.map(c => { const real = c.gradient === d.gradient && c.tint === d.tint && c.gtone === d.gtone; return `<figure class="${real ? 'real' : ''}"><canvas></canvas><figcaption><strong>${GRADIENTS[c.gradient]} · ${t.gradients[c.tint][0]} · ${c.gtone ? 'light to dark' : 'from theme color'}</strong>${real ? '<br>This hash' : '<br>Preview'}</figcaption></figure>`; }).join('');
-  $('#backgrounds').querySelectorAll('canvas').forEach((cv, i) => paint(cv, glyph(p, combos[i]), 230));
+  $('#backgrounds').querySelectorAll('canvas').forEach((cv, i) => paint(cv, glyph(p, combos[i], .45), 230));
 }
 let flipToken = 0;
 async function renderFlip(){

@@ -11,7 +11,7 @@ from visual256.draw import H, W, draw_badge
 BASE = decode(hashlib.sha256(b"render").digest())
 
 
-@pytest.mark.parametrize("theme", range(16))
+@pytest.mark.parametrize("theme", range(8))
 @pytest.mark.parametrize("layout", range(8))
 @pytest.mark.parametrize("display", range(4))
 def test_every_layout_display_and_theme_draws_valid_svg(theme, layout, display):
@@ -57,7 +57,7 @@ def test_rendering_is_deterministic():
     assert b.svg() == b.svg()
 
 
-@pytest.mark.parametrize("field,count", [("gradient", 4), ("gtone", 2), ("tint", 8), ("subject", 32), ("vstyle", 8), ("grille", 8), ("hstyle", 8),
+@pytest.mark.parametrize("field,count", [("gradient", 4), ("gtone", 2), ("tint", 8), ("subject", 64), ("vstyle", 8), ("grille", 8), ("hstyle", 8),
                                          ("framestyle", 4), ("barstyle", 4), ("cheek", 4),
                                          ("mod", 4)])
 def test_every_value_of_each_face_feature_draws(field, count):
@@ -69,11 +69,11 @@ def test_every_value_of_each_face_feature_draws(field, count):
 
 def test_theme_comes_from_the_bits():
     svgs = set()
-    for i in range(16):
+    for i in range(8):
         c = Canvas(W, H)
-        draw_badge(c, decode(bytes([i << 4]) + bytes(31)))
+        draw_badge(c, decode(bytes([i << 5]) + bytes(31)))
         svgs.add(c.to_svg())
-    assert len(svgs) == 16
+    assert len(svgs) == 8
 
 
 def test_badge_shows_mixed_bits_and_words_show_the_checksum():
@@ -106,7 +106,7 @@ def test_background_is_a_gradient():
     assert "Gradient" in svg and 'fill="url(#lg' in svg
 
 
-@pytest.mark.parametrize("subject", range(32))
+@pytest.mark.parametrize("subject", range(64))
 def test_every_subject_detail_draws(subject):
     for field, count in (("vstyle", 8), ("grille", 8), ("mod", 4), ("cheek", 4)):
         for v in range(count):
@@ -116,7 +116,7 @@ def test_every_subject_detail_draws(subject):
 
 
 def test_subject_details_change_the_picture():
-    for subject in (0, 8, 20):
+    for subject in (0, 8, 20, 32, 48):
         for field, count in (("vstyle", 8), ("grille", 8), ("mod", 4), ("cheek", 4)):
             svgs = set()
             for v in range(count):

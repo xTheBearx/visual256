@@ -751,3 +751,691 @@ def draw_accessory(ctx: Canvas, style, c, top, vis, trim, glow) -> None:
 def _symbol(ctx: Canvas, i, x, y, r, fill) -> None:
     from .draw import draw_symbol
     draw_symbol(ctx, i, x, y, r, fill)
+
+
+# ---------------------------------------------------------------- vehicles
+def _wheel(x, y, r):
+    return (x, y, r)
+
+
+def vehicle_spec(v: int, c: float) -> dict:
+    """Shape and anchors of vehicle v (0-15) centered on x = c. Trails point away along `dir`."""
+    L = (-1, 0)
+    if v == 0:  # car
+        return dict(body=[[(c - 15, 44), (c - 15, 38), (c - 10, 37), (c - 6, 31), (c + 5, 31), (c + 10, 37), (c + 15, 38), (c + 15, 44)]],
+                    wheels=[(c - 9, 44.5, 3), (c + 9, 44.5, 3)], win=(c - 5.5, 32.5, c + 4.5, 36.5), band=(c - 15, 39, c + 15, 41.5),
+                    emblem=(c + 12, 41.6), top=(c, 31), trail=(c - 15, 41, L))
+    if v == 1:  # pickup truck
+        return dict(body=[[(c - 15, 44), (c - 15, 36), (c - 2, 36), (c - 2, 30), (c + 7, 30), (c + 11, 36), (c + 15, 37), (c + 15, 44)]],
+                    wheels=[(c - 10, 44.5, 3), (c + 9, 44.5, 3)], win=(c, 31.5, c + 6.5, 35.5), band=(c - 15, 38.5, c + 15, 41),
+                    emblem=(c - 8.5, 33.5), top=(c + 2, 30), trail=(c - 15, 40, L))
+    if v == 2:  # bus
+        return dict(body=[[(c - 16, 45), (c - 16, 28), (c + 15, 28), (c + 16, 31), (c + 16, 45)]],
+                    wheels=[(c - 10, 45.5, 2.8), (c + 10, 45.5, 2.8)], win=(c - 14, 30, c + 14, 35.5), band=(c - 16, 38, c + 16, 40.5),
+                    emblem=(c + 12.5, 42.4), top=(c - 6, 28), trail=(c - 16, 43, L))
+    if v == 3:  # race car
+        return dict(body=[[(c - 16, 44), (c - 16, 40), (c - 8, 38), (c - 4, 35), (c + 3, 35), (c + 6, 38), (c + 16, 40), (c + 16, 44)],
+                          [(c - 16, 40), (c - 16, 34), (c - 12, 34), (c - 12, 38.6)]],
+                    wheels=[(c - 10, 44.5, 3.2), (c + 10, 44.5, 3.2)], win=(c - 3.5, 35.6, c + 2.5, 38), band=(c - 16, 40.6, c + 16, 42.6),
+                    emblem=(c + 2, 41.6), top=(c - 14, 34), trail=(c - 16, 42, L))
+    if v == 4:  # motorcycle
+        return dict(body=[[(c - 6, 40), (c - 2, 35), (c + 5, 35), (c + 8, 40), (c + 3, 42.5), (c - 4, 42.5)]],
+                    wheels=[(c - 9.5, 44, 4.2), (c + 9.5, 44, 4.2)], win=(c + 5.5, 30.5, c + 9.5, 35), band=(c - 6, 38, c + 8, 40),
+                    emblem=(c + .5, 39), top=(c + 7.5, 30.5), trail=(c - 14, 43, L), bars=[(c + 5, 35), (c + 9.5, 44)])
+    if v == 5:  # bicycle
+        return dict(body=[[(c - 6, 43), (c - 1, 35.5), (c + 5.5, 35.5), (c + 2.5, 43)], [(c + 7, 31), (c + 13, 31), (c + 12, 36), (c + 8, 36)]],
+                    wheels=[(c - 9, 44, 5), (c + 9, 44, 5)], rings=True, win=(c + 7.6, 31.6, c + 12.4, 35.4),
+                    band=(c - 6, 38, c + 6, 40), emblem=(c + 1, 39.4), top=(c - 3, 34), trail=(c - 15, 44, L),
+                    bars=[(c - 9, 44), (c - 3.5, 34.5), (c + 6, 33), (c + 9, 44)])
+    if v == 6:  # locomotive
+        return dict(body=[[(c - 16, 45), (c - 16, 30), (c - 8, 30), (c - 8, 26), (c - 2, 26), (c - 2, 33), (c + 10, 33), (c + 16, 40), (c + 16, 45)],
+                          [(c + 5, 27), (c + 8, 27), (c + 8, 33), (c + 5, 33)]],
+                    wheels=[(c - 11, 45.5, 3), (c - 4, 45.5, 3), (c + 4, 45.5, 3), (c + 11, 45.5, 2.4)],
+                    win=(c - 14.5, 31.5, c - 9.5, 36), band=(c - 16, 39, c + 16, 41), emblem=(c + 2, 36.5), top=(c - 12, 30),
+                    trail=(c + 6.5, 26, (0, -1)))
+    if v == 7:  # tram
+        return dict(body=[[(c - 15, 44), (c - 15, 27), (c + 15, 27), (c + 15, 44)]], wheels=[(c - 9, 45, 2.4), (c + 9, 45, 2.4)],
+                    win=(c - 13, 29, c + 13, 35), band=(c - 15, 37.5, c + 15, 40), emblem=(c, 42), top=(c + 9, 27),
+                    trail=(c - 15, 41, L), bars=[(c - 4, 27), (c, 21), (c + 4, 27)])
+    if v == 8:  # sailboat
+        return dict(body=[[(c - 15, 40), (c + 15, 40), (c + 11, 46), (c - 11, 46)], [(c + 1, 13), (c + 1, 38), (c + 13, 38)],
+                          [(c - 1, 16), (c - 1, 38), (c - 11, 38)]],
+                    wheels=[], win=(c - 9, 41.4, c + 9, 44.6), band=(c - 11, 30, c + 13, 32.4), emblem=(c + 5, 34.5),
+                    top=(c, 12), trail=(c - 15, 44, L), bars=[(c, 40), (c, 12)], water=True)
+    if v == 9:  # speedboat
+        return dict(body=[[(c - 16, 38), (c + 10, 38), (c + 16, 41), (c + 12, 46), (c - 14, 46)], [(c - 4, 38), (c, 33), (c + 6, 33), (c + 8, 38)]],
+                    wheels=[], win=(c + .5, 33.8, c + 6, 37.2), band=(c - 16, 41, c + 16, 43), emblem=(c - 9, 40), top=(c + 3, 33),
+                    trail=(c - 16, 44, L), water=True)
+    if v == 10:  # submarine
+        return dict(body=[[(c - 3, 27), (c + 5, 27), (c + 5, 33), (c - 3, 33)]], hull=(c, 38, 15, 6.5), wheels=[],
+                    win=(c - 9, 36, c + 9, 39.5), band=(c - 15, 40.5, c + 15, 42.5), emblem=(c + 1, 30), top=(c + 3, 27),
+                    trail=(c - 15, 38, L), bars=[(c - 1, 27), (c - 1, 22), (c + 2, 22)])
+    if v == 11:  # airplane
+        return dict(body=[[(c - 15, 33), (c - 13, 24), (c - 9, 33)], [(c - 3, 36), (c + 5, 36), (c + 1, 44), (c - 5, 44)]],
+                    fuselage=(c - 15, 33, 30, 6), wheels=[], win=(c - 7, 34.2, c + 11, 36.4), band=(c - 15, 37.2, c + 15, 38.6),
+                    emblem=(c - 12, 29.5), top=(c + 4, 33), trail=(c - 15, 36, L))
+    if v == 12:  # helicopter
+        return dict(body=[[(c - 6, 34), (c - 16, 33), (c - 16, 35.5), (c - 6, 37.5)]], cabin=(c + 3, 36, 9, 6), wheels=[],
+                    win=(c + 4, 32, c + 10.5, 36.5), band=(c - 6, 38, c + 12, 40), emblem=(c - 1.5, 35.6), top=(c + 9, 30.5),
+                    trail=(c - 16, 38, L), bars=[(c - 12, 28), (c + 16, 28), (c + 3, 28), (c + 3, 30)], skids=True)
+    if v == 13:  # hot-air balloon
+        return dict(body=[[(c - 4, 42), (c + 4, 42), (c + 4, 47), (c - 4, 47)]], envelope=(c, 22, 12, 13), wheels=[],
+                    win=(c - 8, 17, c + 8, 25), band=(c - 12, 26, c + 12, 29), emblem=(c, 12.5), top=(c + 5, 10.5),
+                    trail=(c, 48, (0, 1)), bars=[(c - 9, 31), (c - 4, 42), (c + 9, 31), (c + 4, 42)])
+    if v == 14:  # rocket
+        return dict(body=[[(c, 6), (c + 5, 14), (c + 5, 38), (c - 5, 38), (c - 5, 14)], [(c - 5, 30), (c - 10, 40), (c - 5, 38)],
+                          [(c + 5, 30), (c + 10, 40), (c + 5, 38)], [(c - 3, 38), (c + 3, 38), (c + 3, 41), (c - 3, 41)]],
+                    wheels=[], win=(c - 2.5, 15, c + 2.5, 26), band=(c - 5, 28, c + 5, 30.5), emblem=(c, 33.6), top=(c + 4, 14),
+                    trail=(c, 42, (0, 1)))
+    return dict(body=[], saucer=(c, 34, 15, 4.5), dome=(c, 32, 7), wheels=[],  # flying saucer
+                win=(c - 12, 33.6, c + 12, 35.6), band=(c - 15, 35.8, c + 15, 37.6), emblem=(c, 28.4), top=(c + 4, 26),
+                trail=(c, 40, (0, 1)), bars=[(c - 8, 37.5), (c - 11, 44), (c + 8, 37.5), (c + 11, 44)])
+
+
+def _vehicle_body_path(ctx: Canvas, sp) -> None:
+    ctx.begin_path()
+    for pts in sp["body"]:
+        _poly(ctx, pts)
+    if "hull" in sp:
+        x, y, rx, ry = sp["hull"]
+        ctx.move_to(x + rx, y)
+        ctx.ellipse(x, y, rx, ry, 0, 0, TAU)
+    if "fuselage" in sp:
+        x, y, w, h = sp["fuselage"]
+        r = h / 2
+        ctx.move_to(x + r, y)
+        ctx.line_to(x + w - r, y)
+        ctx.arc(x + w - r, y + r, r, -math.pi / 2, math.pi / 2)
+        ctx.line_to(x + r, y + h)
+        ctx.arc(x + r, y + r, r, math.pi / 2, 1.5 * math.pi)
+        ctx.close_path()
+    if "cabin" in sp:
+        x, y, rx, ry = sp["cabin"]
+        ctx.move_to(x + rx, y)
+        ctx.ellipse(x, y, rx, ry, 0, 0, TAU)
+    if "envelope" in sp:
+        x, y, rx, ry = sp["envelope"]
+        ctx.move_to(x + rx, y)
+        ctx.ellipse(x, y, rx, ry, 0, 0, TAU)
+    if "saucer" in sp:
+        x, y, r = sp["dome"]
+        ctx.move_to(x - r, y)
+        ctx.arc(x, y, r, math.pi, TAU)
+        ctx.close_path()
+        x, y, rx, ry = sp["saucer"]
+        ctx.move_to(x + rx, y)
+        ctx.ellipse(x, y, rx, ry, 0, 0, TAU)
+
+
+def draw_vehicle(ctx: Canvas, f, c: float, glow, vis: str, trim: str, t: Theme) -> None:
+    v = f.subject - 32
+    sp = vehicle_spec(v, c)
+    ctx.line_join, ctx.line_cap = "round", "round"
+    draw_trail(ctx, f.grille, *sp["trail"], vis, trim, glow)
+    if sp.get("water"):
+        ctx.begin_path()
+        for k in range(9):
+            x = c - 16 + k * 4
+            (ctx.line_to if k else ctx.move_to)(x, 47.5 + (.7 if k % 2 else -.7))
+        ctx.line_width, ctx.stroke_style = .5, trim
+        ctx.stroke()
+    bars = sp.get("bars")
+    if bars and v in (4, 5, 7, 8, 10, 12, 13, 15):
+        ctx.begin_path()
+        if v == 12:
+            ctx.move_to(*bars[0])
+            ctx.line_to(*bars[1])
+            ctx.move_to(*bars[2])
+            ctx.line_to(*bars[3])
+        elif v in (13, 15):
+            ctx.move_to(*bars[0])
+            ctx.line_to(*bars[1])
+            ctx.move_to(*bars[2])
+            ctx.line_to(*bars[3])
+        else:
+            for i, p in enumerate(bars):
+                (ctx.line_to if i else ctx.move_to)(*p)
+        ctx.line_width, ctx.stroke_style = .8 if v != 12 else 1, trim
+        ctx.stroke()
+    if sp.get("skids"):
+        ctx.begin_path()
+        ctx.move_to(c - 6, 45)
+        ctx.line_to(c + 12, 45)
+        ctx.move_to(c - 1, 41.5)
+        ctx.line_to(c - 2, 45)
+        ctx.move_to(c + 7, 41.5)
+        ctx.line_to(c + 8, 45)
+        ctx.line_width = .7
+        ctx.stroke()
+        ctx.begin_path()
+        ctx.arc(c - 16, 34.2, 2, 0, TAU)
+        ctx.line_width = .5
+        ctx.stroke()
+    _vehicle_body_path(ctx, sp)
+    ctx.fill_style = t.panel
+    ctx.fill()
+    glow(trim, 1)
+    ctx.line_width, ctx.stroke_style = .7, trim
+    ctx.stroke()
+    glow.off()
+    x0, y0, x1, y1 = sp["band"]
+    ctx.save()
+    _vehicle_body_path(ctx, sp)
+    ctx.clip()
+    draw_livery(ctx, f.cheek, x0, y0, x1, y1, trim)
+    ctx.restore()
+    draw_windows(ctx, f.vstyle, *sp["win"], vis, glow, t)
+    for x, y, r in sp["wheels"]:
+        ctx.begin_path()
+        ctx.arc(x, y, r, 0, TAU)
+        if sp.get("rings"):
+            ctx.line_width, ctx.stroke_style = .8, trim
+            ctx.stroke()
+            ctx.begin_path()
+            ctx.arc(x, y, .7, 0, TAU)
+            ctx.fill_style = trim
+            ctx.fill()
+        else:
+            ctx.fill_style = trim
+            ctx.fill()
+            ctx.begin_path()
+            ctx.arc(x, y, r * .4, 0, TAU)
+            ctx.fill_style = t.panel
+            ctx.fill()
+    ex, ey = sp["emblem"]
+    ctx.begin_path()
+    ctx.arc(ex, ey, 2.2, 0, TAU)
+    ctx.fill_style = t.panel
+    ctx.fill()
+    ctx.line_width, ctx.stroke_style = .45, trim
+    ctx.stroke()
+    _symbol(ctx, f.decal, ex, ey, 1.5, trim)
+    draw_vehicle_mod(ctx, f.mod, *sp["top"], vis, trim, glow)
+
+
+def draw_livery(ctx: Canvas, style, x0, y0, x1, y1, trim) -> None:
+    h = y1 - y0
+    ctx.fill_style = ctx.stroke_style = trim
+    ctx.begin_path()
+    if style == 0:
+        ctx.rect(x0, y0, x1 - x0, h)
+        ctx.fill()
+    elif style == 1:
+        ctx.rect(x0, y0, x1 - x0, h * .35)
+        ctx.rect(x0, y1 - h * .35, x1 - x0, h * .35)
+        ctx.fill()
+    elif style == 2:
+        k, x = 0, x0
+        while x < x1:
+            ctx.rect(x, y0 + (0 if k % 2 else h / 2), h / 2, h / 2)
+            x += h / 2
+            k += 1
+        ctx.fill()
+    else:
+        x, k = x0, 0
+        while x <= x1 + 1:
+            (ctx.line_to if k else ctx.move_to)(x, y0 + (h * .15 if k % 2 else h * .85))
+            x += 1.6
+            k += 1
+        ctx.line_width = h * .32
+        ctx.stroke()
+
+
+def draw_trail(ctx: Canvas, style, x, y, d, vis, trim, glow) -> None:
+    dx, dy = d
+    px, py = -dy, dx
+
+    def at(s, o=0.0):
+        return x + dx * s + px * o, y + dy * s + py * o
+
+    ctx.line_width, ctx.stroke_style, ctx.fill_style = .5, trim, trim
+    ctx.begin_path()
+    if style == 0:
+        for s, r in ((1.6, .9), (3.6, 1.2), (5.8, 1.5)):
+            cx, cy = at(s, .4 * s)
+            ctx.move_to(cx + r, cy)
+            ctx.arc(cx, cy, r, 0, TAU)
+        ctx.global_alpha = .55
+        ctx.fill()
+        ctx.global_alpha = 1
+    elif style == 1:
+        glow(vis, 1)
+        for o in (-1.4, 0, 1.4):
+            _poly(ctx, [at(.2, o - .7), at(.2, o + .7), at(5.6 if o == 0 else 4, o)])
+        ctx.fill_style = vis
+        ctx.fill()
+        glow.off()
+    elif style == 2:
+        for o in (-1.6, 0, 1.6):
+            ctx.move_to(*at(.8, o))
+            ctx.line_to(*at(5.5 - abs(o), o))
+        ctx.stroke()
+    elif style == 3:
+        for s, o in ((1.8, -1.2), (3.8, 1), (5.4, -.4)):
+            _symbol(ctx, 4, *at(s, o), .9, vis)
+    elif style == 4:
+        for s, o, r in ((1.4, .6, .6), (3.2, -.6, .8), (5.2, .4, 1)):
+            cx, cy = at(s, o)
+            ctx.move_to(cx + r, cy)
+            ctx.arc(cx, cy, r, 0, TAU)
+        ctx.stroke()
+    elif style == 5:
+        for o in (-.8, .8):
+            ctx.move_to(*at(.6, o))
+            ctx.line_to(*at(6, o))
+        ctx.global_alpha = .6
+        ctx.line_width = .8
+        ctx.stroke()
+        ctx.global_alpha = 1
+    elif style == 6:
+        for s, o in ((1.6, .8), (3.4, -1), (5.4, .6)):
+            _symbol(ctx, 9, *at(s, o), .8, vis)
+    else:
+        for k in range(7):
+            (ctx.line_to if k else ctx.move_to)(*at(.6 + k * .85, .9 if k % 2 else -.9))
+        glow(vis, .8)
+        ctx.line_width, ctx.stroke_style = .6, vis
+        ctx.stroke()
+        glow.off()
+
+
+def draw_vehicle_mod(ctx: Canvas, style, tx, ty, vis, trim, glow) -> None:
+    if style in (0, 1):
+        draw_roof_mod(ctx, style, tx, ty, vis, trim, glow)
+        return
+    ctx.begin_path()
+    if style == 2:
+        ctx.move_to(tx - 1.6, ty)
+        ctx.arc(tx, ty, 1.6, math.pi, TAU)
+        ctx.close_path()
+        glow(vis, 1.4)
+        ctx.fill_style = vis
+        ctx.fill()
+        glow.off()
+        ctx.line_width, ctx.stroke_style = .4, trim
+        ctx.stroke()
+    else:
+        _poly(ctx, [(tx - 2, ty), (tx + 1.2, ty), (tx - 1.4, ty - 4.2)])
+        ctx.fill_style = trim
+        ctx.fill()
+
+
+# ---------------------------------------------------------------- plants
+def plant_spec(p: int, c: float) -> dict:
+    """Foliage (filled), stems (stroked), bloom points and the visitor spot for plant p (0-15)."""
+    E = []
+    if p == 0:  # pine
+        fol = [("poly", [(c - 10, 38), (c + 10, 38), (c, 26)]), ("poly", [(c - 8, 31), (c + 8, 31), (c, 19)]),
+               ("poly", [(c - 6, 24), (c + 6, 24), (c, 12)])]
+        stems = [("rect", (c - 1.2, 38, 2.4, 2))]
+        blooms = [(c - 5, 35.5), (c + 4, 34), (c - 2, 28.5), (c + 3, 22.5), (c - 1, 17)]
+    elif p == 1:  # oak
+        fol = [("circle", (c, 21, 8.5)), ("circle", (c - 6.5, 26, 6)), ("circle", (c + 6.5, 26, 6))]
+        stems = [("rect", (c - 1.5, 30, 3, 10))]
+        blooms = [(c - 4.5, 18.5), (c + 4, 17.5), (c, 25), (c + 8, 26), (c - 8, 26.5)]
+    elif p == 2:  # palm
+        fol = [("ellipse", (c + 2 + 6 * math.cos(a), 17 + 4 * math.sin(a), 7, 1.8, a)) for a in (-2.8, -2.0, -1.2, -.4, .4)]
+        stems = [("curve", [(c - 1, 40), (c - 2, 30), (c + 2, 17)], 2)]
+        blooms = [(c + .6, 19.6), (c + 3.4, 19.6), (c + 2, 21.6)]
+    elif p == 3:  # cactus
+        fol = [("rr", (c - 3, 14, 6, 26, 3)), ("rr", (c - 9, 21, 3, 9, 1.5)), ("rr", (c - 9, 27.5, 7, 3, 1.5)),
+               ("rr", (c + 6, 17, 3, 11, 1.5)), ("rr", (c + 2, 25.5, 7, 3, 1.5))]
+        stems = []
+        blooms = [(c, 14), (c - 7.5, 21), (c + 7.5, 17), (c, 24.5), (c, 33)]
+    elif p == 4:  # tulip
+        fol = [("poly", [(c - 4, 15), (c - 4, 21), (c, 24), (c + 4, 21), (c + 4, 15), (c + 2, 17.5), (c, 14), (c - 2, 17.5)]),
+               ("ellipse", (c - 3.4, 33, 1.8, 6, .5)), ("ellipse", (c + 3.4, 31, 1.8, 6, -.5))]
+        stems = [("line", [(c, 40), (c, 22)], .9)]
+        blooms = [(c - 8, 22), (c + 8, 20), (c - 7, 30), (c + 8, 31)]
+    elif p == 5:  # sunflower
+        fol = [("ellipse", (c + 5.2 * math.cos(a), 16 + 5.2 * math.sin(a), 2.6, 1.1, a)) for a in [k * math.pi / 6 for k in range(12)]]
+        fol += [("ellipse", (c - 3.4, 32, 1.8, 5, .6)), ("ellipse", (c + 3.4, 29, 1.8, 5, -.6))]
+        stems = [("line", [(c, 40), (c, 20)], .9)]
+        blooms = [(c, 16), (c - 1.2, 15), (c + 1.2, 17)]
+        E = [("center", (c, 16, 3))]
+    elif p == 6:  # daisies
+        fol = []
+        for fx, fy in ((c - 5, 21), (c + 4.5, 17), (c + .5, 27)):
+            fol += [("circle", (fx + 2.2 * math.cos(a), fy + 2.2 * math.sin(a), 1.3)) for a in [k * TAU / 6 for k in range(6)]]
+        stems = [("line", [(c - 5, 21), (c - 2, 40)], .7), ("line", [(c + 4.5, 17), (c + 1, 40)], .7), ("line", [(c + .5, 27), (c, 40)], .7)]
+        blooms = [(c - 5, 21), (c + 4.5, 17), (c + .5, 27)]
+    elif p == 7:  # mushroom
+        fol = [("halfellipse", (c, 30, 12, 10))]
+        stems = [("rr", (c - 3, 30, 6, 10, 1.5))]
+        blooms = [(c - 6, 25.5), (c, 23), (c + 6, 26), (c - 3, 28.4), (c + 3, 28.4)]
+    elif p == 8:  # bonsai
+        fol = [("ellipse", (c - 6, 24, 6, 3, 0)), ("ellipse", (c + 5, 18, 7, 3.5, 0)), ("ellipse", (c + 1, 30, 5, 2.5, 0))]
+        stems = [("curve", [(c, 40), (c - 4, 33), (c + 3, 26), (c - 2, 20), (c + 4, 18)], 1.8)]
+        blooms = [(c - 8, 23.5), (c - 4, 23), (c + 3, 17), (c + 8, 18), (c + 2, 29.5)]
+    elif p == 9:  # fern
+        fol = [("ellipse", (c + 10 * math.sin(a), 40 - 13 * math.cos(a) - 2, 2.6, 9, a)) for a in (-1.1, -.55, 0, .55, 1.1)]
+        stems = []
+        blooms = [(c - 9, 33), (c - 5, 26), (c, 25), (c + 5, 26), (c + 9, 33)]
+    elif p == 10:  # bamboo
+        fol = [("rect", (c - 6, 12, 2.6, 28)), ("rect", (c - 1.3, 8, 2.6, 32)), ("rect", (c + 4, 15, 2.6, 25)),
+               ("ellipse", (c - 8, 16, 3, 1, -.5)), ("ellipse", (c + 3, 11, 3, 1, -.5)), ("ellipse", (c + 8.5, 19, 3, 1, .5))]
+        stems = []
+        blooms = [(c - 4.7, 20), (c, 14), (c + 5.3, 24), (c, 30), (c - 4.7, 34)]
+        E = [("nodes", [(c - 6, 2.6, (20, 28, 35)), (c - 1.3, 2.6, (16, 24, 32)), (c + 4, 2.6, (22, 30, 36))])]
+    elif p == 11:  # succulent
+        fol = [("poly", [(c, 34), (c + 9 * math.cos(a - .28), 34 + 9 * math.sin(a - .28) * .75), (c + 12 * math.cos(a), 34 + 12 * math.sin(a) * .75),
+                         (c + 9 * math.cos(a + .28), 34 + 9 * math.sin(a + .28) * .75)]) for a in [math.pi + k * math.pi / 6 for k in range(7)]]
+        fol += [("poly", [(c, 34), (c + 5 * math.cos(a - .4), 34 + 5 * math.sin(a - .4)), (c + 8 * math.cos(a), 34 + 8 * math.sin(a)),
+                          (c + 5 * math.cos(a + .4), 34 + 5 * math.sin(a + .4))]) for a in [math.pi * 1.2 + k * math.pi / 5 for k in range(4)]]
+        stems = []
+        blooms = [(c - 9, 29), (c - 4, 26), (c + 4, 26), (c + 9, 29), (c, 30)]
+    elif p == 12:  # cherry blossom
+        fol = [("circle", (c + x, y, r)) for x, y, r in ((-10, 20, 4), (-5, 15, 4.5), (2, 13, 4.5), (8, 17, 4), (11, 23, 3.5), (-11, 26, 3))]
+        stems = [("curve", [(c, 40), (c, 30), (c - 9, 22)], 1.4), ("curve", [(c, 30), (c + 2, 22), (c + 10, 21)], 1.1),
+                 ("curve", [(c + 1, 24), (c - 3, 16)], .9)]
+        blooms = [(c - 10, 19), (c - 5, 14), (c + 2, 12), (c + 8, 16), (c + 11, 22)]
+    elif p == 13:  # willow
+        fol = [("halfellipse", (c, 24, 12, 9))]
+        stems = [("rect", (c - 1.5, 24, 3, 16))] + [("line", [(c + x, 24), (c + x * 1.15, 24 + 12 - abs(x) * .5)], .6) for x in (-11, -8, -5, 5, 8, 11)]
+        blooms = [(c - 6, 19), (c, 17), (c + 6, 19), (c - 9, 22), (c + 9, 22)]
+    elif p == 14:  # wheat
+        fol = []
+        for x, top in ((c - 5, 14), (c, 10), (c + 5, 15)):
+            fol += [("ellipse", (x + s * 1.2, top + 2 + k * 2.4, 1, 1.6, s * .5)) for k in range(4) for s in (-1, 1)]
+        stems = [("line", [(c - 5, 40), (c - 5, 14)], .7), ("line", [(c, 40), (c, 10)], .7), ("line", [(c + 5, 40), (c + 5, 15)], .7)]
+        blooms = [(c - 5, 13), (c, 9), (c + 5, 14), (c - 2.5, 30), (c + 2.5, 30)]
+    else:  # lotus
+        fol = [("ellipse", (c - 8, 38, 6, 1.8, 0)), ("ellipse", (c + 8, 38.5, 6, 1.8, 0))]
+        fol += [("ellipse", (c + 5 * math.sin(a), 30 - 4 * math.cos(a), 1.8, 4.6, a)) for a in (-1.3, -.65, 0, .65, 1.3)]
+        stems = []
+        blooms = [(c, 26), (c - 4, 28), (c + 4, 28), (c - 8, 36), (c + 8, 36)]
+    return dict(fol=fol, stems=stems, blooms=blooms, extra=E)
+
+
+def _shape(ctx: Canvas, kind, a) -> None:
+    if kind == "poly":
+        _poly(ctx, a)
+    elif kind == "circle":
+        x, y, r = a
+        ctx.move_to(x + r, y)
+        ctx.arc(x, y, r, 0, TAU)
+    elif kind == "ellipse":
+        x, y, rx, ry, rot = a
+        ctx.move_to(x + rx * math.cos(rot), y + rx * math.sin(rot))
+        ctx.ellipse(x, y, rx, ry, rot, 0, TAU)
+    elif kind == "rect":
+        ctx.rect(*a)
+    elif kind == "rr":
+        x, y, w, h, r = a
+        ctx.move_to(x + r, y)
+        ctx.line_to(x + w - r, y)
+        ctx.arc(x + w - r, y + r, r, -math.pi / 2, 0)
+        ctx.line_to(x + w, y + h - r)
+        ctx.arc(x + w - r, y + h - r, r, 0, math.pi / 2)
+        ctx.line_to(x + r, y + h)
+        ctx.arc(x + r, y + h - r, r, math.pi / 2, math.pi)
+        ctx.line_to(x, y + r)
+        ctx.arc(x + r, y + r, r, math.pi, 1.5 * math.pi)
+        ctx.close_path()
+    elif kind == "halfellipse":
+        x, y, rx, ry = a
+        ctx.move_to(x - rx, y)
+        ctx.ellipse(x, y, rx, ry, 0, math.pi, TAU)
+        ctx.close_path()
+
+
+def draw_plant(ctx: Canvas, f, c: float, glow, vis: str, trim: str, t: Theme) -> None:
+    p = f.subject - 48
+    sp = plant_spec(p, c)
+    ctx.line_join, ctx.line_cap = "round", "round"
+    draw_ground_extras(ctx, f.cheek, c, vis, trim)
+    for st in sp["stems"]:
+        kind, a = st[0], st[1]
+        ctx.begin_path()
+        if kind in ("rect", "rr"):
+            _shape(ctx, kind, a)
+            ctx.fill_style = trim
+            ctx.fill()
+            continue
+        if kind == "curve" and len(a) == 3:
+            ctx.move_to(*a[0])
+            ctx.quadratic_curve_to(*a[1], *a[2])
+        else:
+            for i, pt in enumerate(a):
+                (ctx.line_to if i else ctx.move_to)(*pt)
+        ctx.line_width, ctx.stroke_style = st[2], trim
+        ctx.stroke()
+    ctx.begin_path()
+    for kind, a in sp["fol"]:
+        _shape(ctx, kind, a)
+    glow(trim, 1)
+    ctx.fill_style = trim
+    ctx.fill()
+    glow.off()
+    for kind, a in sp["extra"]:
+        if kind == "center":
+            x, y, r = a
+            ctx.begin_path()
+            ctx.arc(x, y, r, 0, TAU)
+            ctx.fill_style = t.panel
+            ctx.fill()
+            ctx.line_width, ctx.stroke_style = .5, trim
+            ctx.stroke()
+        elif kind == "nodes":
+            ctx.begin_path()
+            for x, w, ys in a:
+                for y in ys:
+                    ctx.move_to(x, y)
+                    ctx.line_to(x + w, y)
+            ctx.line_width, ctx.stroke_style = .5, t.panel
+            ctx.stroke()
+    for x, y in sp["blooms"]:
+        draw_bloom(ctx, f.vstyle, x, y, vis, trim, glow)
+    draw_pot(ctx, f.grille, c, f.decal, trim, t)
+    draw_visitor(ctx, f.mod, c + 11, 12, vis, trim, glow)
+
+
+def draw_bloom(ctx: Canvas, style, x, y, vis, trim, glow) -> None:
+    glow(vis, .8)
+    ctx.fill_style = vis
+    ctx.begin_path()
+    if style == 0:
+        ctx.arc(x, y, .9, 0, TAU)
+        ctx.fill()
+    elif style == 1:
+        for k in range(5):
+            a = -math.pi / 2 + k * TAU / 5
+            ctx.move_to(x + .8 * math.cos(a) + .65, y + .8 * math.sin(a))
+            ctx.arc(x + .8 * math.cos(a), y + .8 * math.sin(a), .65, 0, TAU)
+        ctx.fill()
+        glow.off()
+        ctx.begin_path()
+        ctx.arc(x, y, .4, 0, TAU)
+        ctx.fill_style = trim
+        ctx.fill()
+    elif style in (2, 3, 6):
+        _symbol(ctx, {2: 4, 3: 7, 6: 9}[style], x, y, 1.3 if style != 3 else 1.15, vis)
+    elif style == 4:
+        ctx.arc(x, y + .2, 1.15, 0, TAU)
+        ctx.fill()
+        glow.off()
+        ctx.begin_path()
+        ctx.move_to(x, y - .9)
+        ctx.line_to(x + .7, y - 1.6)
+        ctx.line_width, ctx.stroke_style = .35, trim
+        ctx.stroke()
+    elif style == 5:
+        ctx.ellipse(x, y, 1.4, .9, .3, 0, TAU)
+        ctx.fill()
+    else:
+        ctx.save()
+        ctx.translate(x, y)
+        ctx.rotate(math.pi)
+        _symbol(ctx, 10, 0, 0, 1.2, vis)
+        ctx.restore()
+    glow.off()
+
+
+def draw_pot(ctx: Canvas, style, c, decal, trim, t: Theme) -> None:
+    ctx.begin_path()
+    lx, ly = c, 45.2
+    if style == 0:
+        _poly(ctx, [(c - 6, 42), (c + 6, 42), (c + 4.6, 50), (c - 4.6, 50)])
+        ctx.rect(c - 6.8, 40, 13.6, 2.2)
+    elif style == 1:
+        ctx.rect(c - 6.5, 40.5, 13, 9.5)
+    elif style == 2:
+        ctx.move_to(c - 7.5, 41)
+        ctx.ellipse(c, 41, 7.5, 9, 0, 0, math.pi)
+        ctx.close_path()
+        ly = 44.5
+    elif style == 3:
+        _poly(ctx, [(c - 3, 40), (c + 3, 40), (c + 2, 42), (c + 4.5, 46), (c + 3, 50), (c - 3, 50), (c - 4.5, 46), (c - 2, 42)])
+        ly = 46
+    elif style == 4:
+        ctx.rect(c - 7, 41, 14, 9)
+    elif style == 5:
+        ctx.move_to(c - 10, 50)
+        ctx.ellipse(c, 50, 10, 5, 0, math.pi, TAU)
+        ctx.close_path()
+        ly = 47.2
+    elif style == 6:
+        ctx.rect(c - 6, 40.5, 12, 9.5)
+    else:
+        ctx.move_to(c - 7, 41)
+        ctx.ellipse(c, 41, 7, 7.5, 0, 0, math.pi)
+        ctx.close_path()
+        ly = 44.2
+    ctx.fill_style = t.panel
+    ctx.fill()
+    ctx.line_width, ctx.stroke_style = .7, trim
+    ctx.stroke()
+    ctx.begin_path()
+    if style == 4:
+        for y in (44, 47):
+            ctx.move_to(c - 7, y)
+            ctx.line_to(c + 7, y)
+        ctx.line_width = .45
+        ctx.stroke()
+    elif style == 6:
+        ctx.rect(c - 6.6, 39.2, 13.2, 1.4)
+        ctx.fill_style = trim
+        ctx.fill()
+    elif style == 7:
+        ctx.move_to(c + 7, 42.5)
+        ctx.arc(c + 7.6, 44, 1.6, -math.pi / 2, math.pi / 2)
+        ctx.line_width = .7
+        ctx.stroke()
+        ctx.begin_path()
+        ctx.move_to(c - 9, 49.6)
+        ctx.line_to(c + 9, 49.6)
+        ctx.stroke()
+    elif style == 1:
+        ctx.move_to(c - 6.5, 42.5)
+        ctx.line_to(c + 6.5, 42.5)
+        ctx.line_width = .45
+        ctx.stroke()
+    _symbol(ctx, decal, lx, ly, 1.7, trim)
+
+
+def draw_visitor(ctx: Canvas, style, x, y, vis, trim, glow) -> None:
+    glow(vis, .8)
+    ctx.fill_style = vis
+    ctx.begin_path()
+    if style == 0:
+        for s in (-1, 1):
+            ctx.move_to(x + s * 1.8 + 1.6, y - 1)
+            ctx.ellipse(x + s * 1.8, y - 1, 1.6, 1.9, s * .5, 0, TAU)
+            ctx.move_to(x + s * 1.4 + 1.1, y + 1.4)
+            ctx.ellipse(x + s * 1.4, y + 1.4, 1.1, 1.2, -s * .5, 0, TAU)
+        ctx.fill()
+        glow.off()
+        ctx.begin_path()
+        ctx.move_to(x, y - 2)
+        ctx.line_to(x, y + 2.4)
+        ctx.line_width, ctx.stroke_style = .55, trim
+        ctx.stroke()
+    elif style == 1:
+        ctx.ellipse(x, y, 2.2, 1.5, 0, 0, TAU)
+        ctx.fill()
+        glow.off()
+        ctx.begin_path()
+        for dx in (-.6, .6):
+            ctx.move_to(x + dx, y - 1.4)
+            ctx.line_to(x + dx, y + 1.4)
+        ctx.line_width, ctx.stroke_style = .45, trim
+        ctx.stroke()
+        ctx.begin_path()
+        ctx.move_to(x + 1.2, y - 1.3)
+        ctx.ellipse(x - .2, y - 2.1, 1.4, .8, -.3, 0, TAU)
+        ctx.global_alpha = .6
+        ctx.fill_style = trim
+        ctx.fill()
+        ctx.global_alpha = 1
+    elif style == 2:
+        ctx.ellipse(x, y, 2.4, 1.6, 0, 0, TAU)
+        ctx.move_to(x + 3.4, y - 1.6)
+        ctx.arc(x + 2.2, y - 1.6, 1.2, 0, TAU)
+        ctx.fill()
+        glow.off()
+        ctx.begin_path()
+        _poly(ctx, [(x + 3.3, y - 1.9), (x + 4.6, y - 1.5), (x + 3.3, y - 1.1)])
+        ctx.fill_style = trim
+        ctx.fill()
+        ctx.begin_path()
+        _poly(ctx, [(x - 1.4, y - .4), (x + .8, y - .4), (x - .6, y - 2.6)])
+        ctx.fill()
+    else:
+        ctx.arc(x, y, 1.9, 0, TAU)
+        ctx.fill()
+        glow.off()
+        ctx.begin_path()
+        ctx.move_to(x, y - 1.9)
+        ctx.line_to(x, y + 1.9)
+        ctx.line_width, ctx.stroke_style = .4, trim
+        ctx.stroke()
+        ctx.begin_path()
+        for dx, dy in ((-.9, -.5), (.9, -.5), (-.8, .9), (.8, .9)):
+            ctx.move_to(x + dx + .35, y + dy)
+            ctx.arc(x + dx, y + dy, .35, 0, TAU)
+        ctx.move_to(x + 1.2, y - 2.2)
+        ctx.arc(x, y - 2.2, 1.2, 0, TAU)
+        ctx.fill_style = trim
+        ctx.fill()
+    glow.off()
+
+
+def draw_ground_extras(ctx: Canvas, style, c, vis, trim) -> None:
+    ctx.line_width, ctx.stroke_style, ctx.fill_style = .5, trim, trim
+    ctx.begin_path()
+    ctx.move_to(c - 16, 50)
+    ctx.line_to(c + 16, 50)
+    ctx.stroke()
+    ctx.begin_path()
+    if style == 0:
+        for s in (-1, 1):
+            for x in (11, 13.5, 16):
+                ctx.move_to(c + s * x, 50)
+                ctx.line_to(c + s * (x - .8), 46.8)
+                ctx.move_to(c + s * x, 50)
+                ctx.line_to(c + s * (x + .8), 47.4)
+        ctx.stroke()
+    elif style == 1:
+        for s in (-1, 1):
+            for x, rx in ((10.5, 1.3), (13, 1), (15.2, 1.4)):
+                ctx.move_to(c + s * x + rx, 49.2)
+                ctx.ellipse(c + s * x, 49.2, rx, .8, 0, 0, TAU)
+        ctx.fill()
+    elif style == 2:
+        for s in (-1, 1):
+            for x, a in ((10.5, .4), (12.8, -.5), (15, .2)):
+                ctx.move_to(c + s * x + 1, 49.3)
+                ctx.ellipse(c + s * x, 49.3, 1, .55, a, 0, TAU)
+        ctx.fill_style = vis
+        ctx.fill()
+    else:
+        for s in (-1, 1):
+            for x in (11.5, 15):
+                ctx.move_to(c + s * x, 50)
+                ctx.line_to(c + s * x, 47)
+                ctx.move_to(c + s * x + 1.1, 46.6)
+                ctx.ellipse(c + s * x + .6, 46.6, .7, .4, -.5, 0, TAU)
+                ctx.move_to(c + s * x - .1, 46.6)
+                ctx.ellipse(c + s * x - .6, 46.6, .7, .4, .5, 0, TAU)
+        ctx.stroke()
+        ctx.fill()

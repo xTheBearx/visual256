@@ -7,18 +7,16 @@ Turn a 256-bit checksum into a small picture people can recognize and compare at
 > change stays at 0.1 until the first release, so badges are not yet stable between commits.
 
 The first style is the **Netrunner ID**: a 128 × 64 badge with a portrait (an android head, a
-building or an animal), a two-word handle, a status chip, signal bars, 12 printed characters on
-colored chips and 10 detail cells.
-The badge bits pick one of sixteen themes, 8 dark and 8 light, each on a different background hue,
-and a background gradient (theme color into one of 8 hues, or that hue from light to dark) in one
-of four directions:
+building, an animal, a vehicle or a plant), a two-word handle, a status chip, signal bars, 12
+printed characters on colored chips and 10 detail cells. The badge bits pick one of eight themes,
+4 dark and 4 light, each with its own background hue, pattern, fonts and palette, and a background
+gradient (theme color into one of 8 hues, or that hue from light to dark) in one of four
+directions:
 
 | | | | |
 |---|---|---|---|
-| ![cyberpunk](docs/examples/cyberpunk.svg)<br>Cyberpunk · `release-1.2.tar.gz` | ![daylight](docs/examples/daylight.svg)<br>Daylight · `release-1.3.tar.gz` | ![paper](docs/examples/paper.svg)<br>Paper · `release-1.7.tar.gz` | ![blueprint](docs/examples/blueprint.svg)<br>Blueprint · `release-1.0.tar.gz` |
-| ![candy](docs/examples/candy.svg)<br>Candy · `release-1.15.tar.gz` | ![mint](docs/examples/mint.svg)<br>Mint · `release-1.4.tar.gz` | ![arcade](docs/examples/arcade.svg)<br>Arcade · `release-1.14.tar.gz` | ![stealth](docs/examples/stealth.svg)<br>Stealth · `release-1.25.tar.gz` |
-| ![ember](docs/examples/ember.svg)<br>Ember · `release-1.5.tar.gz` | ![abyss](docs/examples/abyss.svg)<br>Abyss · `release-1.23.tar.gz` | ![sky](docs/examples/sky.svg)<br>Sky · `release-1.6.tar.gz` | ![royal](docs/examples/royal.svg)<br>Royal · `release-1.10.tar.gz` |
-| ![citrus](docs/examples/citrus.svg)<br>Citrus · `release-1.18.tar.gz` | ![jungle](docs/examples/jungle.svg)<br>Jungle · `release-1.9.tar.gz` | ![lilac](docs/examples/lilac.svg)<br>Lilac · `release-1.1.tar.gz` | ![concrete](docs/examples/concrete.svg)<br>Concrete · `release-1.12.tar.gz` |
+| ![cyberpunk](docs/examples/cyberpunk.svg)<br>Cyberpunk · `release-1.2.tar.gz` | ![daylight](docs/examples/daylight.svg)<br>Daylight · `release-1.0.tar.gz` | ![paper](docs/examples/paper.svg)<br>Paper · `release-1.15.tar.gz` | ![blueprint](docs/examples/blueprint.svg)<br>Blueprint · `release-1.17.tar.gz` |
+| ![candy](docs/examples/candy.svg)<br>Candy · `release-1.23.tar.gz` | ![mint](docs/examples/mint.svg)<br>Mint · `release-1.6.tar.gz` | ![ember](docs/examples/ember.svg)<br>Ember · `release-1.18.tar.gz` | ![jungle](docs/examples/jungle.svg)<br>Jungle · `release-1.1.tar.gz` |
 
 Each example is the real SHA-256 badge of the file name shown.
 
@@ -84,25 +82,25 @@ checksum; the spoken backup below encodes the checksum itself.
 
 | Bits | Feature | Values |
 |---|---|---|
-| 0–3 | Theme | 16 looks: background, pattern, fonts and the 16-color palette |
-| 4–5 | Background gradient | left to right, top to bottom, diagonal or radial |
-| 6 | Gradient tone | theme color into the hue, or the hue from light to dark |
-| 7–9 | Gradient color | red, orange, yellow, green, cyan, blue, violet or magenta |
-| 10–12 | Card layout | 8 arrangements of face, handle, bars, chips and detail |
-| 13–14 | Detail display | tiles, gems, hex pairs or arrows |
-| 15–16 | Frame corners | which corners of the frame are cut |
-| 17–18 | Frame style | single, double, dashed or corner brackets |
-| 19–20 | Bar style | segmented, solid, lollipops or chevrons |
-| 21–24 | Frame color | frame and dividers |
-| 25–28 | Visor color | visor, lit windows or eyes |
-| 29–32 | Trim color | outlines, roofs, doors, mouths, marks and decal |
-| 33–36 | Accent color | signal bars and handle effects |
-| 37–41 | Subject | 8 android heads, 12 buildings or 12 animals |
-| 42–44 | Visor / windows / eyes | 8 styles for the subject's kind |
-| 45–47 | Mouth / door / nose | 8 styles for the subject's kind |
-| 48–49 | Head mod / roof / accessory | 4 styles for the subject's kind |
-| 50–53 | Decal / sign / mark | one of 16 symbols |
-| 54–55 | Cheeks / grounds / markings | 4 styles for the subject's kind |
+| 0–2 | Theme | 8 looks: background, pattern, fonts and the 16-color palette |
+| 3–4 | Background gradient | left to right, top to bottom, diagonal or radial |
+| 5 | Gradient tone | theme color into the hue, or the hue from light to dark |
+| 6–8 | Gradient color | red, orange, yellow, green, cyan, blue, violet or magenta |
+| 9–11 | Card layout | 8 arrangements of face, handle, bars, chips and detail |
+| 12–13 | Detail display | tiles, gems, hex pairs or arrows |
+| 14–15 | Frame corners | which corners of the frame are cut |
+| 16–17 | Frame style | single, double, dashed or corner brackets |
+| 18–19 | Bar style | segmented, solid, lollipops or chevrons |
+| 20–23 | Frame color | frame and dividers |
+| 24–27 | Visor color | visor, lit windows or eyes |
+| 28–31 | Trim color | outlines, roofs, doors, mouths, marks and decal |
+| 32–35 | Accent color | signal bars and handle effects |
+| 36–41 | Subject | 8 android heads, 12 buildings, 12 animals, 16 vehicles or 16 plants |
+| 42–44 | Subject detail A | visor, windows, eyes, vehicle windows or blooms (8 each) |
+| 45–47 | Subject detail B | mouth, door, nose, trail or pot (8 each) |
+| 48–49 | Subject detail C | head mod, roof add-on, accessory, vehicle add-on or visitor (4 each) |
+| 50–53 | Subject symbol | decal, sign, forehead mark, emblem or pot label (16 symbols) |
+| 54–55 | Subject detail D | cheeks, grounds, markings, livery or ground extras (4 each) |
 | 56–59 | Status word | one of 16 words |
 | 60–63 | Status color | status chip |
 | 64–66 | Handle style | clean, split, vertical split, slice, inverted, underline, boxed or shadow |
@@ -128,19 +126,26 @@ whole byte through color, shape and fill instead of many tiny marks. Every badge
 - **hex pairs**: two hex digits on a seven-segment display
 - **arrows**: 8 directions × 16 colors × solid or outline
 
-**Subjects.** Bits 37–41 pick the portrait: 8 android heads (round, angular, boxy, dome,
-capsule, bucket, shield, skull), 12 buildings (house, tower, skyscraper, castle, pagoda,
-observatory, lighthouse, factory, chapel, temple, windmill, needle tower) or 12 animals (cat, dog,
-bear, rabbit, fox, owl, mouse, pig, frog, penguin, lion, panda). The next fields mean different
-things for each kind:
+**Subjects.** Bits 36–41 pick the portrait from 64 subjects in five kinds:
 
-| Field | Android head | Building | Animal |
-|---|---|---|---|
-| Visor / windows / eyes | 8 visors | 8 window patterns | 8 eye styles |
-| Mouth / door / nose | 8 mouths | 8 doors | 8 noses and mouths |
-| Head mod / roof / accessory | antenna, ear discs, cable, fin | antenna, flag, chimney, satellite dish | collar, bow, party hat, scarf |
-| Decal / sign / mark | forehead decal | sign plaque | forehead mark |
-| Cheeks / grounds / markings | stripes, dots, circuit, bolts | steps, fence, bushes, lamp posts | whiskers, spots, blush, stripes |
+- 8 android heads: round, angular, boxy, dome, capsule, bucket, shield, skull
+- 12 buildings: house, tower, skyscraper, castle, pagoda, observatory, lighthouse, factory, chapel,
+  temple, windmill, needle tower
+- 12 animals: cat, dog, bear, rabbit, fox, owl, mouse, pig, frog, penguin, lion, panda
+- 16 vehicles: car, pickup truck, bus, race car, motorcycle, bicycle, locomotive, tram, sailboat,
+  speedboat, submarine, airplane, helicopter, hot-air balloon, rocket, flying saucer
+- 16 plants: pine, oak, palm, cactus, tulip, sunflower, daisies, mushroom, bonsai, fern, bamboo,
+  succulent, cherry blossom, willow, wheat, lotus
+
+The five subject detail fields mean different things for each kind:
+
+| Field | Android head | Building | Animal | Vehicle | Plant |
+|---|---|---|---|---|---|
+| Detail A (8) | visor | window pattern | eye style | window pattern | blooms: berries, blossoms, stars, hearts, apples, lemons, sparkles, bells |
+| Detail B (8) | mouth | door | nose and mouth | trail: smoke, flames, speed lines, sparks, bubbles, vapor, stars, zigzag | pot: terracotta, planter, bowl, vase, crate, mound, jar, teacup |
+| Detail C (4) | antenna, ear discs, cable, fin | antenna, flag, chimney, satellite dish | collar, bow, party hat, scarf | antenna, flag, siren, fin | butterfly, bee, bird, ladybug |
+| Symbol (16) | forehead decal | sign plaque | forehead mark | emblem | pot label |
+| Detail D (4) | stripes, dots, circuit, bolts | steps, fence, bushes, lamp posts | whiskers, spots, blush, stripes | stripe, double stripe, checker band, zigzag stripe | grass tufts, pebbles, fallen petals, seedlings |
 
 **Themes** set the background, its pattern, the fonts and the 16 colors that every color feature
 indexes into. The badge bits then pick one of 8 hues (red, orange, yellow, green, cyan, blue,
@@ -154,6 +159,8 @@ against the background and every gradient color, and 1.8:1 inside the narrow str
 
 **512-bit checksums** (SHA-512) are drawn as two badges in one frame, numbered 1 and 2. Both
 badges depend on the whole checksum. The frame takes its colors from badge 1's theme.
+
+![SHA-512 of "hello"](docs/examples/sha512-pair.svg)
 
 ## Spoken backup
 

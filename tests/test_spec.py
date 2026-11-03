@@ -41,7 +41,7 @@ def test_known_digest_matches_browser_preview():
     b = Badge.from_text("release-2.4.1.tar.gz")
     assert b.parts[0].hex() == "f2924e11c5dab2f02b72a9423cdfad3bb799811e53d4da75de2cccbde7008c80"
     f = b.features[0]
-    assert f.theme_id == "concrete"
+    assert f.theme_id == "jungle"
     assert f.handle == "FORTUNE·PREVENT"
     assert f.char_groups == ["4Q7Z", "VGAT", "6W8W"]
     assert len(f.bars) == 5
@@ -102,25 +102,30 @@ def test_describe_covers_every_field():
     f = decode(hashlib.sha256(b"x").digest())
     rows = describe(f, tuple(f"c{i}" for i in range(16)))
     assert len(rows) == len(HEADLINE_FIELDS) + 4
-    assert rows[0][0] == "0-3" and rows[-1][0] == "176-255"
+    assert rows[0][0] == "0-2" and rows[-1][0] == "176-255"
 
 
 def test_encode_rejects_out_of_range_values():
     f = decode(bytes(32))
     with pytest.raises(ValueError):
-        encode(with_changes(f, theme=16))
+        encode(with_changes(f, theme=8))
 
 
-def test_subjects_cover_faces_buildings_and_animals():
+def test_subjects_cover_all_five_kinds():
     from visual256.spec import SUBJECTS, subject_kind
-    kinds = [subject_kind(i) for i in range(32)]
+    kinds = [subject_kind(i) for i in range(64)]
     assert kinds.count("face") == 8 and kinds.count("building") == 12 and kinds.count("animal") == 12
-    assert len(set(SUBJECTS)) == 32
+    assert kinds.count("vehicle") == 16 and kinds.count("plant") == 16
+    assert len(set(SUBJECTS)) == 64
 
 
 def test_describe_names_subject_details_by_kind():
     f = decode(bytes(32))
     house = dict((label, value) for _, label, value in describe(with_changes(f, subject=8), tuple("c" * 16)))
     cat = dict((label, value) for _, label, value in describe(with_changes(f, subject=20), tuple("c" * 16)))
-    assert house["Subject"] == "house" and house["Visor / windows / eyes"] == "square grid"
-    assert cat["Subject"] == "cat" and cat["Mouth / door / nose"] == "button nose"
+    car = dict((label, value) for _, label, value in describe(with_changes(f, subject=32), tuple("c" * 16)))
+    pine = dict((label, value) for _, label, value in describe(with_changes(f, subject=48), tuple("c" * 16)))
+    assert house["Subject"] == "house" and house["Subject detail A"] == "square grid"
+    assert cat["Subject"] == "cat" and cat["Subject detail B"] == "button nose"
+    assert car["Subject"] == "car" and car["Subject detail B"] == "smoke puffs"
+    assert pine["Subject"] == "pine" and pine["Subject detail B"] == "terracotta pot"

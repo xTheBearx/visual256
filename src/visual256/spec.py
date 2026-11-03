@@ -33,7 +33,7 @@ MIX_TAG = b"visual256/netrunner/0.1"
 
 # (name, bits, label, what it controls)
 HEADLINE_FIELDS: tuple[tuple[str, int, str, str], ...] = (
-    ("theme", 4, "Theme", "16 looks: background, pattern, fonts and the 16-color palette"),
+    ("theme", 3, "Theme", "8 looks: background, pattern, fonts and the 16-color palette"),
     ("gradient", 2, "Background gradient", "left to right, top to bottom, diagonal or radial"),
     ("gtone", 1, "Gradient tone", "theme color into the hue, or the hue from light to dark"),
     ("tint", 3, "Gradient color", "red, orange, yellow, green, cyan, blue, violet or magenta"),
@@ -46,12 +46,12 @@ HEADLINE_FIELDS: tuple[tuple[str, int, str, str], ...] = (
     ("visor", 4, "Visor color", "visor, lit windows or eyes"),
     ("trim", 4, "Trim color", "outlines, roofs, doors, mouths, marks and decal"),
     ("accent", 4, "Accent color", "signal bars and handle effects"),
-    ("subject", 5, "Subject", "8 android heads, 12 buildings or 12 animals"),
-    ("vstyle", 3, "Visor / windows / eyes", "8 styles for the subject's kind"),
-    ("grille", 3, "Mouth / door / nose", "8 styles for the subject's kind"),
-    ("mod", 2, "Head mod / roof / accessory", "4 styles for the subject's kind"),
-    ("decal", 4, "Decal / sign / mark", "one of 16 symbols"),
-    ("cheek", 2, "Cheeks / grounds / markings", "4 styles for the subject's kind"),
+    ("subject", 6, "Subject", "8 android heads, 12 buildings, 12 animals, 16 vehicles or 16 plants"),
+    ("vstyle", 3, "Subject detail A", "visor, windows, eyes, vehicle windows or blooms (8 each)"),
+    ("grille", 3, "Subject detail B", "mouth, door, nose, trail or pot (8 each)"),
+    ("mod", 2, "Subject detail C", "head mod, roof add-on, accessory, vehicle add-on or visitor (4 each)"),
+    ("decal", 4, "Subject symbol", "decal, sign, forehead mark, emblem or pot label (16 symbols)"),
+    ("cheek", 2, "Subject detail D", "cheeks, grounds, markings, livery or ground extras (4 each)"),
     ("status", 4, "Status word", "one of 16 words"),
     ("scolor", 4, "Status color", "status chip"),
     ("hstyle", 3, "Handle style", "clean, split, vertical split, slice, inverted, underline, boxed or shadow"),
@@ -62,8 +62,7 @@ HEADLINE_BITS = sum(f[1] for f in HEADLINE_FIELDS)
 N_BARS = 5
 assert HEADLINE_BITS == 89 and HEADLINE_BITS + N_BARS * 3 == 104
 
-THEME_IDS = ("cyberpunk", "daylight", "paper", "blueprint", "candy", "mint", "arcade", "stealth",
-             "ember", "abyss", "sky", "royal", "citrus", "jungle", "lilac", "concrete")
+THEME_IDS = ("cyberpunk", "daylight", "paper", "blueprint", "candy", "mint", "ember", "jungle")
 LAYOUTS = (
     "face left, stacked",
     "face right, stacked",
@@ -85,8 +84,12 @@ HEAD_SHAPES = ("round", "angular", "boxy", "dome", "capsule", "bucket", "shield"
 BUILDINGS = ("house", "tower", "skyscraper", "castle", "pagoda", "observatory", "lighthouse", "factory",
              "chapel", "temple", "windmill", "needle tower")
 ANIMALS = ("cat", "dog", "bear", "rabbit", "fox", "owl", "mouse", "pig", "frog", "penguin", "lion", "panda")
-SUBJECTS = tuple(f"android, {s} head" for s in HEAD_SHAPES) + BUILDINGS + ANIMALS
-assert len(SUBJECTS) == 32
+VEHICLES = ("car", "pickup truck", "bus", "race car", "motorcycle", "bicycle", "locomotive", "tram",
+            "sailboat", "speedboat", "submarine", "airplane", "helicopter", "hot-air balloon", "rocket", "flying saucer")
+PLANTS = ("pine", "oak", "palm", "cactus", "tulip", "sunflower", "daisies", "mushroom",
+          "bonsai", "fern", "bamboo", "succulent", "cherry blossom", "willow", "wheat", "lotus")
+SUBJECTS = tuple(f"android, {s} head" for s in HEAD_SHAPES) + BUILDINGS + ANIMALS + VEHICLES + PLANTS
+assert len(SUBJECTS) == 64
 WINDOWS = ("square grid", "portholes", "arches", "bands", "strips", "picture window", "diamonds", "checker lights")
 DOORS = ("plain door", "arched door", "double door", "round door", "garage door", "gate", "glass door", "awning door")
 ROOFS = ("antenna", "flag", "chimney", "satellite dish")
@@ -95,10 +98,23 @@ EYES = ("dots", "glossy", "sleepy", "happy", "stern", "slit", "sparkle", "hearts
 SNOUTS = ("button nose", "round nose", "heart nose", "open mouth", "tongue out", "buck teeth", "cat mouth", "fangs")
 ACCESSORIES = ("collar and tag", "bow", "party hat", "scarf")
 MARKINGS = ("whiskers", "spots", "blush", "stripes")
+TRAILS = ("smoke puffs", "flames", "speed lines", "sparks", "bubbles", "vapor trail", "stars", "zigzag")
+VEHICLE_MODS = ("antenna", "flag", "siren", "fin")
+LIVERIES = ("stripe", "double stripe", "checker band", "zigzag stripe")
+BLOOMS = ("berries", "blossoms", "stars", "hearts", "apples", "lemons", "sparkles", "bells")
+POTS = ("terracotta pot", "square planter", "round bowl", "tall vase", "wooden crate", "soil mound", "glass jar", "teacup")
+VISITORS = ("butterfly", "bee", "bird", "ladybug")
+GROUND_EXTRAS = ("grass tufts", "pebbles", "fallen petals", "seedlings")
 
 
 def subject_kind(subject: int) -> str:
-    return "face" if subject < 8 else ("building" if subject < 20 else "animal")
+    if subject < 8:
+        return "face"
+    if subject < 20:
+        return "building"
+    if subject < 32:
+        return "animal"
+    return "vehicle" if subject < 48 else "plant"
 VISORS = ("band", "twin-lens", "slit", "mono-eye", "goggles", "chevron", "triple-lens", "grid")
 MOUTHS = ("vents", "teeth", "dots", "LED", "zigzag", "speaker", "fangs", "stitches")
 MODS = ("antenna", "ear discs", "cable", "fin")
@@ -216,6 +232,10 @@ def _subject_values(f: Features) -> dict:
         return {"vstyle": VISORS[f.vstyle], "grille": MOUTHS[f.grille], "mod": MODS[f.mod], "cheek": CHEEKS[f.cheek]}
     if kind == "building":
         return {"vstyle": WINDOWS[f.vstyle], "grille": DOORS[f.grille], "mod": ROOFS[f.mod], "cheek": GROUNDS[f.cheek]}
+    if kind == "vehicle":
+        return {"vstyle": WINDOWS[f.vstyle], "grille": TRAILS[f.grille], "mod": VEHICLE_MODS[f.mod], "cheek": LIVERIES[f.cheek]}
+    if kind == "plant":
+        return {"vstyle": BLOOMS[f.vstyle], "grille": POTS[f.grille], "mod": VISITORS[f.mod], "cheek": GROUND_EXTRAS[f.cheek]}
     return {"vstyle": EYES[f.vstyle], "grille": SNOUTS[f.grille], "mod": ACCESSORIES[f.mod], "cheek": MARKINGS[f.cheek]}
 
 

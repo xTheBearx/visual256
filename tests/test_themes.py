@@ -8,14 +8,14 @@ def contrast(a: str, b: str) -> float:
     return (max(la, lb) + 0.05) / (min(la, lb) + 0.05)
 
 
-def test_sixteen_themes_in_spec_order():
+def test_eight_themes_in_spec_order():
     assert tuple(t.id for t in THEMES_LIST) == THEME_IDS
-    assert len(THEMES_LIST) == 16
+    assert len(THEMES_LIST) == 8
 
 
 def test_half_dark_half_light():
     dark = [t.id for t in THEMES_LIST if luminance(t.bg) < 0.2]
-    assert len(dark) == 8
+    assert len(dark) == 4
 
 
 def test_backgrounds_are_distinct():
@@ -71,3 +71,17 @@ def test_light_to_dark_tones_are_readable():
             for c in (light, dark):
                 for name, p in t.palette:
                     assert contrast(p, c) >= 2.0, f"{t.id}: {name} on tone {c}"
+
+
+def test_themes_look_different():
+    """Distinct background hue or brightness, and no two themes share both font and pattern."""
+    import colorsys
+    seen = set()
+    for i, a in enumerate(THEMES_LIST):
+        assert (a.handle_font, a.grid_kind) not in seen, a.id
+        seen.add((a.handle_font, a.grid_kind))
+        for b in THEMES_LIST[i + 1:]:
+            ha, la, _ = colorsys.rgb_to_hls(*(int(a.bg[k:k + 2], 16) / 255 for k in (1, 3, 5)))
+            hb, lb, _ = colorsys.rgb_to_hls(*(int(b.bg[k:k + 2], 16) / 255 for k in (1, 3, 5)))
+            hue_gap = min(abs(ha - hb), 1 - abs(ha - hb))
+            assert hue_gap > 0.06 or abs(la - lb) > 0.04, (a.id, b.id)
