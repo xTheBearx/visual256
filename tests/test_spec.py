@@ -111,12 +111,12 @@ def test_encode_rejects_out_of_range_values():
         encode(with_changes(f, theme=8))
 
 
-def test_subjects_cover_all_twelve_kinds():
+def test_subjects_cover_all_fourteen_kinds():
     from visual256.spec import SUBJECTS, subject_kind
     kinds = [subject_kind(i) for i in range(128)]
     counts = [kinds.count(k) for k in ("face", "building", "animal", "vehicle", "plant", "furniture", "food", "sports",
-                                       "instrument", "computer", "shape", "insignia")]
-    assert counts == [3, 10, 10, 10, 10, 8, 8, 5, 16, 16, 16, 16]
+                                       "instrument", "computer", "shape", "insignia", "weather", "space")]
+    assert counts == [3, 10, 10, 10, 10, 8, 8, 5, 11, 11, 11, 11, 10, 10]
     assert kinds == sorted(kinds, key=kinds.index)  # each kind is one contiguous range
     assert len(set(SUBJECTS)) == 128
 
@@ -154,7 +154,8 @@ def test_icon_kind_details_are_named():
     assert rows["Subject"] == "guitar"
     assert (rows["Subject detail A"], rows["Subject detail B"]) == ("bands", "starburst")
     assert (rows["Subject detail C"], rows["Subject detail D"]) == ("music notes", "pedestal")
-    assert [_rows(subject=i)["Subject"] for i in (80, 96, 112, 127)] == ["floppy disk", "large circle", "winged orb", "laurel"]
+    assert [_rows(subject=i)["Subject"] for i in (75, 86, 97, 108, 118, 127)] == [
+        "floppy disk", "large circle", "winged orb", "sun", "ringed planet", "lunar lander"]
 
 
 def test_three_android_heads_remain():

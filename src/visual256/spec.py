@@ -27,7 +27,7 @@ from dataclasses import dataclass, fields as dc_fields
 
 from . import bip39
 from .bits import BitReader, BitWriter, to_alphabet
-from .icons import COMPUTER, INSIGNIA, INSTRUMENTS, SHAPES
+from .icons import COMPUTER, INSIGNIA, INSTRUMENTS, SHAPES, SPACE, WEATHER
 
 SPEC_VERSION = "0.1"
 MIX_TAG = b"visual256/netrunner/0.1"
@@ -47,7 +47,7 @@ HEADLINE_FIELDS: tuple[tuple[str, int, str, str], ...] = (
     ("visor", 4, "Visor color", "visor, lit windows, eyes, blooms and fill patterns"),
     ("trim", 4, "Trim color", "outlines, roofs, doors, mouths, marks and decal"),
     ("accent", 4, "Accent color", "signal bars and handle effects"),
-    ("subject", 7, "Subject", "128 subjects in 12 kinds (listed below)"),
+    ("subject", 7, "Subject", "128 subjects in 14 kinds (listed below)"),
     ("vstyle", 3, "Subject detail A", "visor, windows, eyes, blooms, or a fill pattern (8 each)"),
     ("grille", 3, "Subject detail B", "mouth, door, nose, trail, pot, companion, serving, gear or backdrop (8 each)"),
     ("mod", 2, "Subject detail C", "head mod, roof add-on, accessory, visitor, wall item, topper, motion or effect (4 each)"),
@@ -93,8 +93,9 @@ FOODS = ("pizza slice", "burger", "ice cream cone", "cupcake", "donut", "popsicl
 SPORTS = ("soccer ball", "tennis racket", "skateboard", "bowling pin", "boxing glove")
 SUBJECT_KINDS = (("face", HEAD_SHAPES), ("building", BUILDINGS), ("animal", ANIMALS), ("vehicle", VEHICLES),
                  ("plant", PLANTS), ("furniture", FURNITURE), ("food", FOODS), ("sports", SPORTS),
-                 ("instrument", INSTRUMENTS), ("computer", COMPUTER), ("shape", SHAPES), ("insignia", INSIGNIA))
-ICON_KINDS = ("instrument", "computer", "shape", "insignia")
+                 ("instrument", INSTRUMENTS), ("computer", COMPUTER), ("shape", SHAPES), ("insignia", INSIGNIA),
+                 ("weather", WEATHER), ("space", SPACE))
+ICON_KINDS = ("instrument", "computer", "shape", "insignia", "weather", "space")
 SUBJECT_START: dict[str, int] = {}
 _n = 0
 for _kind, _names in SUBJECT_KINDS:
@@ -132,7 +133,7 @@ SIDES = ("fork", "spoon", "chopsticks", "cup")
 GEAR = ("whistle", "water bottle", "trophy", "medal", "stopwatch", "cone", "cap", "corner flag")
 MOTIONS = ("speed lines", "sparks", "stars", "dust puffs")
 PITCHES = ("grass", "court lines", "wood floor", "ice")
-# shared by the four icon kinds (instruments, computer symbols, shapes, insignia)
+# shared by the six icon kinds (instruments, computer symbols, shapes, insignia, weather, space)
 BACKDROPS = ("circle", "square", "diamond", "hexagon", "shield", "starburst", "ring", "banner")
 EFFECTS = ("music notes", "sparkles", "rays", "orbit dots")
 BASES = ("underline", "brackets", "dotted line", "pedestal")

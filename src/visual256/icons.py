@@ -1,5 +1,5 @@
-"""Geometry for the icon-style subjects: musical instruments, computer symbols, large basic shapes
-and sci-fi insignia (an original set).
+"""Geometry for the icon-style subjects: musical instruments, computer symbols, large basic shapes,
+sci-fi insignia (an original set), weather symbols and space objects.
 
 Every icon is plain data at x = 0 (centered on y = 28), in the same part format as furniture and
 food: `body` parts are filled with the panel color, pattern-filled when flagged and outlined in trim;
@@ -15,15 +15,17 @@ from functools import lru_cache
 TAU = math.tau
 CY = 28
 
-INSTRUMENTS = ("guitar", "violin", "drum", "trumpet", "saxophone", "flute", "harp", "xylophone",
-               "maracas", "tambourine", "accordion", "harmonica", "handbell", "french horn", "cymbals", "metronome")
-COMPUTER = ("floppy disk", "monitor", "computer mouse", "keyboard", "power button", "wifi", "cursor", "folder",
-            "battery", "game controller", "chip", "padlock", "cloud", "envelope", "hourglass", "magnifier")
-SHAPES = ("circle", "square", "triangle", "diamond", "star", "hexagon", "heart", "crescent",
-          "plus", "x-cross", "arrow", "bolt", "drop", "ring", "semicircle", "chevron")
-INSIGNIA = ("winged orb", "triple chevron", "ringed star", "spread wings", "crossed blades", "banded shield",
-            "crown", "rising sun", "trident", "bolt hexagon", "atom", "ringed planet", "anchor", "compass star",
-            "cog", "laurel")
+INSTRUMENTS = ("guitar", "drum", "trumpet", "saxophone", "harp", "xylophone", "maracas", "tambourine", "accordion",
+               "handbell", "metronome")
+COMPUTER = ("floppy disk", "monitor", "computer mouse", "power button", "wifi", "cursor", "folder", "game controller",
+            "padlock", "hourglass", "magnifier")
+SHAPES = ("circle", "square", "triangle", "diamond", "star", "hexagon", "heart", "plus", "arrow", "ring", "chevron")
+INSIGNIA = ("winged orb", "triple chevron", "ringed star", "crossed blades", "banded shield", "crown", "trident", "atom",
+            "anchor", "cog", "laurel")
+WEATHER = ("sun", "rain cloud", "thunderstorm", "snowflake", "rainbow", "tornado", "umbrella", "thermometer",
+           "windsock", "snowman")
+SPACE = ("ringed planet", "crescent moon", "comet", "spiral galaxy", "astronaut helmet", "satellite", "telescope",
+         "constellation", "asteroid", "lunar lander")
 
 
 # ---------- point helpers (all rounded so the exported data stays small and exact) ----------
@@ -125,12 +127,6 @@ def _instrument(name):
         return icon([B("rect", (-1.2, 8, 2.4, 22)), B("poly", body, True)],
                     solid=[("rr", (-2, 4.5, 4, 5, 1)), ("circle", (0, 31.5, 2)), ("rect", (-2.6, 37.4, 5.2, 1))],
                     front=[([(-.6, 9), (-.6, 37.4)], .25), ([(.6, 9), (.6, 37.4)], .25)], emblem=(0, 41.4))
-    if name == "violin":
-        body = union_poly([("circle", 0, 27, 5), ("circle", 0, 36.5, 6.2), ("rect", -3.4, 27, 6.8, 9)], 0, 32)
-        return icon([B("rect", (-.9, 11, 1.8, 17)), B("poly", body, True)],
-                    solid=[("circle", (0, 9.6, 1.8)), ("rect", (-2, 35.6, 4, .9))],
-                    front=[([(-2.4, 30), (-2.8, 34)], .5), ([(2.4, 30), (2.8, 34)], .5), ([(-12, 18), (11, 43)], .7)],
-                    emblem=(0, 39.4))
     if name == "drum":
         return icon([B("rect", (-11, 26, 22, 13), True), B("ellipse", (0, 26, 11, 3, 0)), B("lowerellipse", (0, 39, 11, 3))],
                     solid=[("circle", (-9.4, 13.2, 1.3)), ("circle", (9.4, 13.2, 1.3))],
@@ -146,10 +142,6 @@ def _instrument(name):
                (1.2, 37.4), (1, 15), (3, 11.6), (1, 10)]
         return icon([B("poly", sax, True)], solid=[("circle", (-1, y, .9)) for y in (18, 22, 26, 30)],
                     lines=[([(-1, 11), (-6.5, 7.5)], 1)], emblem=(4.6, 39.4))
-    if name == "flute":
-        return icon([B("poly", rot_rect(-13, 38, 13, 18, 3.4), True)],
-                    solid=[("circle", (x, 38 - (x + 13) * 20 / 26, .7)) for x in (-6, -3, 3, 6, 9)],
-                    lines=[([(-13.6, 38.4), (-15, 39.5)], 1)], emblem=(0, 28))
     if name == "harp":
         frame = [(-11, 9), (-6.6, 9), (10, 20.5), (9, 44), (-11, 44)]
         return icon([B("poly", frame, True)], solid=[("rect", (-12, 43, 22, 2.2))],
@@ -173,22 +165,10 @@ def _instrument(name):
         return icon([B("rect", (-5, 17, 10, 22), True), B("rr", (-13, 15, 8.5, 26, 1.5)), B("rr", (4.5, 15, 8.5, 26, 1.5))],
                     solid=[("rect", (7, 17.5 + k * 3.1, 4, 1.8)) for k in range(7)] + [("circle", (-10.6, 19 + k * 3.4, .8)) for k in range(4)],
                     front=[([(-5 + k * 2.5, 17), (-5 + k * 2.5, 39)], .3) for k in range(1, 4)], emblem=(-8.75, 35.2))
-    if name == "harmonica":
-        return icon([B("rr", (-13, 21.5, 26, 4.4, 1.6), True), B("rect", (-13, 25.9, 26, 3.4)), B("rr", (-13, 29.3, 26, 4.4, 1.6), True)],
-                    solid=[("rect", (-11.6 + k * 2.4, 26.6, 1.4, 2)) for k in range(10)], emblem=(0, 23.7))
     if name == "handbell":
         bell = [(-3.6, 19)] + arc_pts(0, 21, 4, 4, math.pi, TAU, 10)[1:-1] + [(3.6, 19), (5, 30), (11, 38.6), (-11, 38.6), (-5, 30)]
         return icon([B("rr", (-1.6, 7, 3.2, 12, 1.2)), B("poly", bell, True)],
                     solid=[("circle", (0, 41, 2.2)), ("rr", (-3, 6, 6, 2.6, 1))], emblem=(0, 31))
-    if name == "french horn":
-        r = ring(0, CY + 1, 11, 6.4)
-        return icon([B("poly", [(5, 34), (13.6, 39.4), (16, 46), (6.6, 45), (3.6, 38)]), B(r[0], r[1], True)],
-                    solid=[("rect", (-2.6, 15.4, 1.6, 4)), ("rect", (-.4, 15.4, 1.6, 4)), ("rect", (1.8, 15.4, 1.6, 4))],
-                    lines=[([(-9, 22), (-14, 12)], 1)], emblem=(0, CY + 1))
-    if name == "cymbals":
-        return icon([B("ellipse", (0, 18, 12.5, 2.6, 0), True), B("ellipse", (0, 24, 12.5, 2.6, 0), True)],
-                    solid=[("halfellipse", (0, 18, 2.6, 2)), ("halfellipse", (0, 24, 2.6, 2))],
-                    lines=[([(0, 26), (0, 44)], .9), ([(0, 38), (-7, 45)], .7), ([(0, 38), (7, 45)], .7)], emblem=(0, 34))
     # metronome
     return icon([B("poly", [(-8, 44), (8, 44), (4.6, 10), (-4.6, 10)], True)],
                 solid=[("rect", (-10, 43.5, 20, 2.2)), ("rect", (1.6, 20, 3.4, 2.4))],
@@ -208,9 +188,6 @@ def _computer(name):
         return icon([B("ellipse", (0, 31, 8.4, 12.4, 0), True)], solid=[("rr", (-1.1, 20.4, 2.2, 4.4, 1.1))],
                     lines=[([(0, 19), (1, 14), (4.4, 10.4), (9, 9.4)], .7)],
                     front=[([(-8.1, 26), (8.1, 26)], .5), ([(0, 18.6), (0, 26)], .5)], emblem=(0, 34.6))
-    if name == "keyboard":
-        keys = [("rect", (-11.6 + col * 2.6, 23.5 + row * 2.8, 2, 2)) for row in range(3) for col in range(9)]
-        return icon([B("rr", (-13, 21.5, 26, 14.6, 1.6), True)], solid=keys + [("rect", (-6, 32, 12, 2))], emblem=(9, 38.6))
     if name == "power button":
         return icon([B("circle", (0, CY + 1, 12.4), True)],
                     front=[(arc_pts(0, CY + 1, 7, 7, -math.pi / 2 + .7, 1.5 * math.pi - .7, 28), 2.2), ([(0, 19.4), (0, CY + 1)], 2.2)],
@@ -224,9 +201,6 @@ def _computer(name):
     if name == "folder":
         return icon([B("poly", [(-12.5, 15), (-4.4, 15), (-2, 18.4), (12.5, 18.4), (12.5, 40), (-12.5, 40)]),
                      B("poly", [(-12.5, 23.6), (12.5, 23.6), (12.5, 40), (-12.5, 40)], True)], emblem=(0, 32))
-    if name == "battery":
-        return icon([B("rr", (-13, 20, 23, 15, 2.2)), B("rr", (-11, 22, 13, 11, 1), True)],
-                    solid=[("rect", (10, 24.4, 3, 6.2))], emblem=(6, 27.5))
     if name == "game controller":
         pad = [(-8, 25.4), (-6, 25.4), (-6, 27.4), (-4, 27.4), (-4, 29.4), (-6, 29.4), (-6, 31.4), (-8, 31.4), (-8, 29.4),
                (-10, 29.4), (-10, 27.4), (-8, 27.4)]
@@ -234,24 +208,9 @@ def _computer(name):
                      B("rr", (-13, 21.6, 26, 12, 6), True)],
                     solid=[("poly", pad), ("circle", (7, 24.8, 1.1)), ("circle", (9.6, 27.4, 1.1)), ("circle", (4.4, 27.4, 1.1)),
                            ("circle", (7, 30, 1.1))], emblem=(-.4, 29.6))
-    if name == "chip":
-        pins = []
-        for k in range(3):
-            o = -5 + k * 5
-            pins += [([(o, 15), (o, 18.6)], 1.2), ([(o, 37.4), (o, 41)], 1.2), ([(-13, CY + o), (-9.4, CY + o)], 1.2),
-                     ([(9.4, CY + o), (13, CY + o)], 1.2)]
-        return icon([B("rr", (-9.4, 18.6, 18.8, 18.8, 1.6), True)], lines=pins, emblem=(0, CY))
     if name == "padlock":
         return icon([B("rr", (-9.6, 24.4, 19.2, 16, 2.2), True)], solid=[("circle", (0, 30, 2)), ("poly", [(-1, 31), (1, 31), (1.6, 35), (-1.6, 35)])],
                     lines=[(arc_pts(0, 24.4, 6, 8.6, math.pi, TAU, 18), 2.4)], emblem=(5.4, 37))
-    if name == "cloud":
-        body = union_poly([("circle", -6.2, 29, 6), ("circle", 1, 24.4, 7.6), ("circle", 8, 30.4, 5),
-                           ("rect", -12.2, 29.4, 24.6, 7.6)], 0, 30)
-        return icon([B("poly", body, True)], emblem=(1, 31))
-    if name == "envelope":
-        return icon([B("rect", (-12.6, 19, 25.2, 18), True)],
-                    front=[([(-12.6, 19), (0, 30), (12.6, 19)], .7), ([(-12.6, 37), (-3.6, 27.6)], .5), ([(12.6, 37), (3.6, 27.6)], .5)],
-                    emblem=(0, 30))
     if name == "hourglass":
         return icon([B("poly", [(-7.4, 14.4), (7.4, 14.4), (1.2, 28), (7.4, 41.6), (-7.4, 41.6), (-1.2, 28)]),
                      B("poly", [(-5, 18), (5, 18), (.6, 26.4), (-.6, 26.4)], True), B("poly", [(0, 34), (6, 41.6), (-6, 41.6)], True)],
@@ -279,29 +238,14 @@ def _shape(name):
         return icon([B("poly", reg(6, 14), True)])
     if name == "heart":
         return icon([B("poly", heart(0, CY - .6, .82), True)], emblem=(0, CY + 1))
-    if name == "crescent":
-        outer = arc_pts(1, CY, 14, 14, math.pi * .3, math.pi * 1.7, 30)
-        inner = arc_pts(7.4, CY - 1, 11, 11, math.pi * 1.47, math.pi * .53, 30)
-        return icon([B("poly", outer + inner, True)], emblem=(-8.4, CY))
     if name == "plus":
         return icon([B("poly", [(-4.4, 14), (4.4, 14), (4.4, 23.6), (14, 23.6), (14, 32.4), (4.4, 32.4), (4.4, 42), (-4.4, 42),
                                 (-4.4, 32.4), (-14, 32.4), (-14, 23.6), (-4.4, 23.6)], True)])
-    if name == "x-cross":
-        pts = [(-4.4, 14), (4.4, 14), (4.4, 23.6), (14, 23.6), (14, 32.4), (4.4, 32.4), (4.4, 42), (-4.4, 42),
-               (-4.4, 32.4), (-14, 32.4), (-14, 23.6), (-4.4, 23.6)]
-        a = math.pi / 4
-        return icon([B("poly", _r([(x * math.cos(a) - (y - CY) * math.sin(a), CY + x * math.sin(a) + (y - CY) * math.cos(a)) for x, y in pts]), True)])
     if name == "arrow":
         return icon([B("poly", [(0, 12), (13, 26), (5.4, 26), (5.4, 44), (-5.4, 44), (-5.4, 26), (-13, 26)], True)], emblem=(0, 34))
-    if name == "bolt":
-        return icon([B("poly", [(3, 11), (-9, 30), (-1.4, 30), (-4, 45), (9.6, 24.6), (1.6, 24.6), (6.4, 11)], True)], emblem=(0, CY))
-    if name == "drop":
-        return icon([B("poly", drop(0, 33, 10), True)], emblem=(0, 34))
     if name == "ring":
         r = ring(0, CY, 13.4, 7.4)
         return icon([B(r[0], r[1], True)])
-    if name == "semicircle":
-        return icon([B("halfellipse", (0, 37, 15, 15), True)], emblem=(0, 31))
     # chevron
     return icon([B("poly", [(-14, 33), (0, 17), (14, 33), (14, 41.4), (0, 25.4), (-14, 41.4)], True)], emblem=(0, 31))
 
@@ -317,9 +261,6 @@ def _insignia(name):
         return icon([B("poly", chev(y), True) for y in (12, 20.4, 28.8)], emblem=(0, 44))
     if name == "ringed star":
         return icon([B("poly", star(5, 9.4, 3.8), True)], solid=[ring(0, CY, 13.6, 11)], emblem=(0, CY + .6))
-    if name == "spread wings":
-        wing = [(-3, 22), (-16.4, 15), (-15, 20.4), (-16.4, 23), (-14, 27), (-15, 30), (-11.6, 33.6), (-11.6, 37.4), (-3, 34)]
-        return icon([B("poly", wing), B("poly", mirror(wing)), B("poly", [(0, 15), (6, CY), (0, 41), (-6, CY)], True)])
     if name == "crossed blades":
         return icon([B("poly", rot_rect(-10.6, 41, 9, 13, 3.4), True), B("poly", rot_rect(10.6, 41, -9, 13, 3.4), True)],
                     solid=[("poly", rot_rect(-9.6, 33, -3, 38, 1.6)), ("poly", rot_rect(9.6, 33, 3, 38, 1.6)),
@@ -331,32 +272,19 @@ def _insignia(name):
         return icon([B("poly", [(-12.6, 38), (-12.6, 18), (-6.4, 27), (0, 14), (6.4, 27), (12.6, 18), (12.6, 38)], True)],
                     solid=[("rect", (-12.6, 37, 25.2, 4)), ("circle", (-12.6, 16.6, 1.8)), ("circle", (0, 12.6, 1.8)),
                            ("circle", (12.6, 16.6, 1.8))], emblem=(0, 31))
-    if name == "rising sun":
-        rays = [([(12 * math.cos(a), 38 + 12 * math.sin(a)), (16 * math.cos(a), 38 + 16 * math.sin(a))], 1.2)
-                for a in [math.pi + k * math.pi / 6 for k in range(1, 6)]]
-        return icon([B("halfellipse", (0, 38, 10, 10), True)], lines=rays + [([(-16, 38.6), (16, 38.6)], 1)], emblem=(0, 33))
     if name == "trident":
         head = [(-10.4, 11), (-7.6, 15), (-7.6, 22), (-1.4, 22), (-1.4, 13), (0, 9), (1.4, 13), (1.4, 22), (7.6, 22), (7.6, 15),
                 (10.4, 11), (10.4, 26.4), (-10.4, 26.4)]
         return icon([B("rect", (-1.4, 26, 2.8, 19)), B("poly", head, True)], emblem=(0, 30.6))
-    if name == "bolt hexagon":
-        return icon([B("poly", reg(6, 14, rot=0), True)], solid=[("poly", [(1.6, 16), (-5, CY + 1), (-.6, CY + 1), (-2.4, 40), (5, 26.4), (.6, 26.4), (3.8, 16)])],
-                    emblem=(7.4, 35.6))
     if name == "atom":
         orbits = [(arc_pts(0, CY, 14, 5, 0, TAU, 36, rot=a), .8) for a in (0, math.pi / 3, -math.pi / 3)]
         return icon([B("circle", (0, CY, 4.8), True)], lines=orbits, emblem=(0, CY))
-    if name == "ringed planet":
-        return icon([B("circle", (0, CY, 9.2), True)],
-                    lines=[(arc_pts(0, CY, 16, 4.4, math.pi, TAU, 24, rot=-.3), 1.2)],
-                    front=[(arc_pts(0, CY, 16, 4.4, 0, math.pi, 24, rot=-.3), 1.2)], emblem=(-2.6, 24))
     if name == "anchor":
         return icon([B("circle", (0, 14.4, 4.4), True)],
                     lines=[([(0, 18.6), (0, 42)], 2.2), ([(-7.4, 23.6), (7.4, 23.6)], 1.6),
                            (arc_pts(0, 30, 12, 12, math.pi * .1, math.pi * .9, 20), 2.2)],
                     solid=[("poly", [(-12.6, 29), (-14.6, 37), (-8.6, 35)]), ("poly", [(12.6, 29), (14.6, 37), (8.6, 35)])],
                     emblem=(0, 14.4))
-    if name == "compass star":
-        return icon([B("poly", star(4, 9, 2.4, rot=-math.pi / 4)), B("poly", star(4, 15, 3.6), True)], emblem=(0, CY))
     if name == "cog":
         teeth = []
         for k in range(8):
@@ -373,8 +301,128 @@ def _insignia(name):
     return icon([B("circle", (0, CY, 7), True)], solid=leaves, emblem=(0, CY))
 
 
+# ---------- weather ----------
+
+def _cloud(dy=0.0):
+    return union_poly([("circle", -6, 24 + dy, 5.6), ("circle", 1, 19.6 + dy, 7.2), ("circle", 7.6, 24.6 + dy, 4.8),
+                       ("rect", -11.6, 24.4 + dy, 23.2, 6.6)], 0, 25 + dy)
+
+
+def band(cx, cy, r1, r2, n=24):
+    """Upper half annulus between radii r1 > r2."""
+    return arc_pts(cx, cy, r1, r1, math.pi, TAU, n) + arc_pts(cx, cy, r2, r2, TAU, math.pi, n)
+
+
+def _weather(name):
+    if name == "sun":
+        rays = [([(10.6 * math.cos(a), CY + 10.6 * math.sin(a)), (15.4 * math.cos(a), CY + 15.4 * math.sin(a))], 1.8)
+                for a in [k * TAU / 8 + math.pi / 8 for k in range(8)]]
+        return icon([B("circle", (0, CY, 8.4), True)], lines=rays)
+    if name == "rain cloud":
+        return icon([B("poly", _cloud(), True)], solid=[("poly", drop(x, y, 1.7)) for x, y in ((-6, 39), (0, 43), (6, 39))],
+                    emblem=(1, 25.4))
+    if name == "thunderstorm":
+        return icon([B("poly", _cloud(), True)],
+                    solid=[("poly", [(1.4, 31), (-4.4, 39.4), (-.6, 39.4), (-2.6, 46.6), (4.6, 36.6), (1, 36.6), (3.8, 31)])],
+                    emblem=(1, 25.4))
+    if name == "snowflake":
+        arms = []
+        for k in range(6):
+            a = k * TAU / 6 - math.pi / 2
+            ux, uy = math.cos(a), math.sin(a)
+            arms.append(([(4 * ux, CY + 4 * uy), (14 * ux, CY + 14 * uy)], 1.8))
+            for s in (-1, 1):
+                b = a + s * .7
+                arms.append(([(9.4 * ux, CY + 9.4 * uy), (9.4 * ux + 4 * math.cos(b), CY + 9.4 * uy + 4 * math.sin(b))], 1.2))
+        return icon([B("poly", reg(6, 5.6, rot=0), True)], lines=arms)
+    if name == "rainbow":
+        return icon([B("poly", band(0, 37, 15.4, 12.4), True), B("poly", band(0, 37, 9.6, 7), True),
+                     B("ellipse", (-11.6, 37.6, 5, 3, 0)), B("ellipse", (11.6, 37.6, 5, 3, 0))],
+                    solid=[("poly", band(0, 37, 12.4, 9.6))], emblem=(0, 34))
+    if name == "tornado":
+        rings = [(0, 13.6, 13.4, 2.8), (1.4, 19.6, 10.4, 2.6), (2.6, 25.4, 7.8, 2.4), (3, 31, 5.6, 2.1), (2.4, 36.4, 3.8, 1.8),
+                 (1, 41.4, 2.4, 1.4)]
+        return icon([B("ellipse", (x, y, rx, ry, 0), True) for x, y, rx, ry in rings], emblem=(2.6, 25.4))
+    if name == "umbrella":
+        canopy = arc_pts(0, 26, 14, 12.6, math.pi, TAU, 24)
+        for k in range(4):
+            x1 = 14 - k * 7
+            canopy += arc_pts(x1 - 3.5, 26, 3.5, 1.8, 0, -math.pi, 8)[1:]
+        return icon([B("poly", canopy, True)],
+                    lines=[([(0, 26), (0, 40.4)], 1.2), (arc_pts(2.6, 40.4, 2.6, 2.6, math.pi, 0, 10, ), 1.2), ([(0, 13.4), (0, 10)], 1.2)],
+                    emblem=(0, 19.6))
+    if name == "thermometer":
+        return icon([B("rr", (-3.2, 8, 6.4, 30, 3.2)), B("circle", (0, 38, 5.8), True)],
+                    solid=[("rect", (-1.3, 18, 2.6, 18))],
+                    front=[([(3.2, y), (5.6, y)], .6) for y in (12, 16, 20, 24, 28)], emblem=(0, 38))
+    if name == "windsock":
+        return icon([B("poly", [(-11, 12.6), (13.6, 17.6), (13.6, 22.4), (-11, 26.4)], True)],
+                    solid=[("poly", [(-3.4, 14.2), (1.6, 15.2), (1.6, 24.6), (-3.4, 25.2)]), ("poly", [(6.6, 16.2), (9.6, 16.8), (9.6, 23.2), (6.6, 23.6)])],
+                    lines=[([(-12.4, 10), (-12.4, 46)], 1.4)],
+                    front=[([(-6, 33), (9, 33)], .8), ([(-2, 37.6), (13, 37.6)], .8)], emblem=(-6.8, 19.6))
+    # snowman
+    return icon([B("circle", (0, 37, 8.6), True), B("circle", (0, 25, 6.2)), B("circle", (0, 15, 4.6))],
+                solid=[("circle", (-1.6, 14, .7)), ("circle", (1.6, 14, .7)), ("poly", [(0, 15.4), (5.4, 16.6), (0, 17)]),
+                       ("circle", (0, 23, .8)), ("circle", (0, 27, .8)), ("rect", (-5.4, 19.4, 10.8, 1.8))],
+                lines=[([(-5.6, 24), (-13, 18), (-14.6, 15.4)], .8), ([(5.6, 24), (13, 18), (14.6, 15.4)], .8)], emblem=(0, 38))
+
+
+# ---------- space ----------
+
+def _space(name):
+    if name == "ringed planet":
+        return icon([B("circle", (0, CY, 9.2), True)],
+                    lines=[(arc_pts(0, CY, 16, 4.4, math.pi, TAU, 24, rot=-.3), 1.6)],
+                    front=[(arc_pts(0, CY, 16, 4.4, 0, math.pi, 24, rot=-.3), 1.6)], emblem=(-2.6, 24))
+    if name == "crescent moon":
+        outer = arc_pts(1, CY, 14, 14, math.pi * .3, math.pi * 1.7, 30)
+        inner = arc_pts(7.4, CY - 1, 11, 11, math.pi * 1.47, math.pi * .53, 30)
+        return icon([B("poly", outer + inner, True)],
+                    solid=[("circle", (-6, 18.4, 1.5)), ("circle", (-10.4, 33, 1.2)), ("circle", (-4.6, 39.6, 1)),
+                           ("poly", star(4, 3.4, 1, 10, 16))], emblem=(-9, 26.6))
+    if name == "comet":
+        return icon([B("poly", [(2, 16.6), (-14.6, 43), (9.6, 23.4)]), B("circle", (6, 19.6, 5.6), True)],
+                    front=[([(-1, 27.6), (-9.6, 38.4)], .5), ([(3, 28.4), (-5, 41)], .5)], emblem=(6, 19.6))
+    if name == "spiral galaxy":
+        arms = []
+        for s in (0, math.pi):
+            pts = [(3.2 * math.cos(s + t) * (1 + .55 * t), CY + 2.2 * math.sin(s + t) * (1 + .55 * t)) for t in
+                   [k * .2 for k in range(40)]]
+            arms.append((_r(pts), 2))
+        return icon([B("ellipse", (0, CY, 5.4, 3.8, -.3), True)], lines=arms, emblem=(0, CY))
+    if name == "astronaut helmet":
+        return icon([B("circle", (0, 25.4, 12.2)), B("ellipse", (0, 25.4, 8.6, 6.6, 0), True)],
+                    solid=[("rr", (-8.6, 37, 17.2, 3.4, 1.6)), ("circle", (-11.4, 25.4, 1.4)), ("circle", (11.4, 25.4, 1.4))],
+                    lines=[([(7, 15), (10, 9)], .8)], emblem=(0, 25.4))
+    if name == "satellite":
+        return icon([B("rect", (-15.4, 23.4, 10.2, 9.2), True), B("rect", (5.2, 23.4, 10.2, 9.2), True), B("rect", (-4, 21, 8, 14))],
+                    solid=[("halfellipse", (0, 20.6, 4.4, 2.8))],
+                    lines=[([(-5.2, 28), (5.2, 28)], .8), ([(0, 18), (0, 12.6)], .7)],
+                    front=[([(-10.3, 23.4), (-10.3, 32.6)], .5), ([(10.3, 23.4), (10.3, 32.6)], .5)], emblem=(0, 29))
+    if name == "telescope":
+        return icon([B("poly", rot_rect(-11, 34, 11, 17, 6.4), True)],
+                    solid=[("poly", rot_rect(-13.6, 36, -10.4, 33.6, 3.6)), ("poly", rot_rect(11, 17, 12.6, 15.8, 7.4))],
+                    lines=[([(0, 26), (-8, 45)], 1), ([(0, 26), (0, 45)], 1), ([(0, 26), (8, 45)], 1)], emblem=(0, 25.6))
+    if name == "constellation":
+        pts = [(-12, 36), (-7, 20), (2, 26.6), (9, 13), (12.6, 31), (4.6, 41)]
+        small = [B("poly", star(5, 2.6, 1.1, x, y)) for i, (x, y) in enumerate(pts) if i != 2]
+        return icon(small + [B("poly", star(5, 7.6, 3.4, 2, 26.6), True)],
+                    lines=[(pts[:3] + [pts[3]], .6), ([pts[2], pts[4], pts[5]], .6)], emblem=(2, 27.4))
+    if name == "asteroid":
+        rock = _r([(11.4 * (1 + .14 * math.sin(3 * a) + .09 * math.cos(5 * a)) * math.cos(a),
+                    CY + 11.4 * (1 + .14 * math.sin(3 * a) + .09 * math.cos(5 * a)) * math.sin(a)) for a in [k * TAU / 48 for k in range(48)]])
+        return icon([B("poly", rock, True)],
+                    solid=[("ellipse", (-4, 23, 2.2, 1.6, 0)), ("ellipse", (5, 33, 1.6, 1.2, 0)), ("ellipse", (5, 21, 1.2, .9, 0)),
+                           ("circle", (13.4, 13.4, 1.6)), ("circle", (-13, 41, 1.2))], emblem=(-2, 31))
+    # lunar lander
+    return icon([B("rect", (-8.4, 27.4, 16.8, 5)), B("poly", reg(6, 7.4, 0, 22, rot=0), True)],
+                solid=[("rect", (-14.6, 41.6, 5, 1.6)), ("rect", (9.6, 41.6, 5, 1.6)), ("poly", [(-2.4, 32.4), (2.4, 32.4), (3.6, 37), (-3.6, 37)])],
+                lines=[([(-6, 32), (-12, 42)], 1.1), ([(6, 32), (12, 42)], 1.1), ([(3, 15.6), (6, 10)], .7)], emblem=(0, 22))
+
+
 KINDS = {"instrument": (INSTRUMENTS, _instrument), "computer": (COMPUTER, _computer),
-         "shape": (SHAPES, _shape), "insignia": (INSIGNIA, _insignia)}
+         "shape": (SHAPES, _shape), "insignia": (INSIGNIA, _insignia), "weather": (WEATHER, _weather),
+         "space": (SPACE, _space)}
 
 
 @lru_cache(maxsize=None)

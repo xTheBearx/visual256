@@ -455,7 +455,7 @@ def draw_frame(ctx: Canvas, f: Features, fr, fcol, glow: Glow) -> None:
 
 
 def draw_face(ctx: Canvas, f: Features, hx: float, glow: Glow, vis: str, trim: str, t: Theme) -> None:
-    """The portrait (one of 128 subjects in 12 kinds), then the status chip."""
+    """The portrait (one of 128 subjects in 14 kinds), then the status chip."""
     kind = subject_kind(f.subject)
     if kind == "face":
         draw_android(ctx, f, hx, glow, vis, trim, t)

@@ -9,7 +9,8 @@ Turn a 256-bit checksum into a small picture people can recognize and compare at
 The first style is the **Netrunner ID**: a 128 × 64 badge with a portrait, a two-word handle, a
 status chip, signal bars, 12 printed characters on colored chips and 10 detail cells. The portrait
 is one of 128 subjects: android heads, buildings, animals, vehicles, plants, furniture, food, sports
-equipment, musical instruments, computer symbols, large shapes and sci-fi insignia. The badge bits
+equipment, musical instruments, computer symbols, large shapes, sci-fi insignia, weather symbols and
+space objects. The badge bits
 pick one of eight themes, 4 dark and 4 light, each with its own background hue, pattern, fonts and
 palette, and a background gradient (theme color into one of 8 hues, or that hue from light to dark)
 in one of four directions:
@@ -96,7 +97,7 @@ checksum; the spoken backup below encodes the checksum itself.
 | 24–27 | Visor color | visor, lit windows, eyes, blooms and fill patterns |
 | 28–31 | Trim color | outlines, roofs, doors, mouths, marks and decal |
 | 32–35 | Accent color | signal bars and handle effects |
-| 36–42 | Subject | 128 subjects in 12 kinds (listed below) |
+| 36–42 | Subject | 128 subjects in 14 kinds (listed below) |
 | 43–45 | Subject detail A | visor, windows, eyes, blooms, or a fill pattern (8 each) |
 | 46–48 | Subject detail B | mouth, door, nose, trail, pot, companion, serving, gear or backdrop (8 each) |
 | 49–50 | Subject detail C | head mod, roof add-on, accessory, visitor, wall item, topper, motion or effect (4 each) |
@@ -127,7 +128,7 @@ whole byte through color, shape and fill instead of many tiny marks. Every badge
 - **hex pairs**: two hex digits on a seven-segment display
 - **arrows**: 8 directions × 16 colors × solid or outline
 
-**Subjects.** Bits 36–42 pick the portrait from 128 subjects in twelve kinds:
+**Subjects.** Bits 36–42 pick the portrait from 128 subjects in fourteen kinds:
 
 - 3 android heads: dome, bucket, skull
 - 10 buildings: house, skyscraper, castle, pagoda, observatory, lighthouse, factory, temple, windmill,
@@ -140,15 +141,18 @@ whole byte through color, shape and fill instead of many tiny marks. Every badge
   bathtub
 - 8 foods: pizza slice, burger, ice cream cone, cupcake, donut, popsicle, ramen bowl, hot dog
 - 5 pieces of sports equipment: soccer ball, tennis racket, skateboard, bowling pin, boxing glove
-- 16 musical instruments: guitar, violin, drum, trumpet, saxophone, flute, harp, xylophone, maracas,
-  tambourine, accordion, harmonica, handbell, french horn, cymbals, metronome
-- 16 computer symbols: floppy disk, monitor, computer mouse, keyboard, power button, wifi, cursor,
-  folder, battery, game controller, chip, padlock, cloud, envelope, hourglass, magnifier
-- 16 large basic shapes: circle, square, triangle, diamond, star, hexagon, heart, crescent, plus,
-  x-cross, arrow, bolt, drop, ring, semicircle, chevron
-- 16 sci-fi insignia (an original set): winged orb, triple chevron, ringed star, spread wings, crossed
-  blades, banded shield, crown, rising sun, trident, bolt hexagon, atom, ringed planet, anchor,
-  compass star, cog, laurel
+- 11 musical instruments: guitar, drum, trumpet, saxophone, harp, xylophone, maracas, tambourine,
+  accordion, handbell, metronome
+- 11 computer symbols: floppy disk, monitor, computer mouse, power button, wifi, cursor, folder, game
+  controller, padlock, hourglass, magnifier
+- 11 large basic shapes: circle, square, triangle, diamond, star, hexagon, heart, plus, arrow, ring,
+  chevron
+- 11 sci-fi insignia (an original set): winged orb, triple chevron, ringed star, crossed blades,
+  banded shield, crown, trident, atom, anchor, cog, laurel
+- 10 weather symbols: sun, rain cloud, thunderstorm, snowflake, rainbow, tornado, umbrella,
+  thermometer, windsock, snowman
+- 10 space objects: ringed planet, crescent moon, comet, spiral galaxy, astronaut helmet, satellite,
+  telescope, constellation, asteroid, lunar lander
 
 The five subject detail fields mean different things for each kind:
 
@@ -160,7 +164,8 @@ The five subject detail fields mean different things for each kind:
 | Symbol (16) | forehead decal | sign plaque | forehead mark | emblem | pot label | plaque | label | team badge |
 | Detail D (4) | stripes, dots, circuit, bolts | steps, fence, bushes, lamp posts | whiskers, spots, blush, stripes | stripe, double stripe, checker band, zigzag stripe | grass tufts, pebbles, fallen petals, seedlings | oval rug, floorboards, checker tiles, fringed rug | fork, spoon, chopsticks, cup | pitch: grass, court lines, wood floor, ice |
 
-The four icon kinds (instruments, computer symbols, shapes and insignia) share their details: a fill
+The six icon kinds (instruments, computer symbols, shapes, insignia, weather and space) share their
+details: a fill
 pattern (the same 8 as fabric), a backdrop (circle, square, diamond, hexagon, shield, starburst, ring
 or banner), an effect (music notes, sparkles, rays or orbit dots), a base (underline, brackets,
 dotted line or pedestal) and a badge symbol. Their geometry lives in `icons.py` as plain data, which

@@ -127,7 +127,7 @@ def test_owl_and_panda_skip_the_bow_tie():
 
 
 def test_subject_details_change_the_picture():
-    for subject in (0, 3, 13, 23, 33, 43, 51, 59, 64, 80, 96, 112):
+    for subject in (0, 3, 13, 23, 33, 43, 51, 59, 64, 75, 86, 97, 108, 118):
         for field, count in (("vstyle", 8), ("grille", 8), ("mod", 4), ("cheek", 4)):
             svgs = set()
             for v in range(count):
