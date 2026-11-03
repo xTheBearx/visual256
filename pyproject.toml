@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "visual256"
+version = "0.1.0"
+description = "Turn 256-bit and 512-bit checksums into small, memorable, exact pictures."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["fonttools>=4.40"]
+
+[project.optional-dependencies]
+png = ["resvg-py>=0.2"]
+pdf = ["cairosvg>=2.7"]
+all = ["resvg-py>=0.2", "cairosvg>=2.7"]
+dev = ["pytest>=7", "resvg-py>=0.2", "cairosvg>=2.7"]
+
+[project.scripts]
+visual256 = "visual256.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+visual256 = ["data/*.txt", "fonts/*.ttf", "fonts/*.txt"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
