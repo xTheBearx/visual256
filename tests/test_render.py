@@ -57,7 +57,7 @@ def test_rendering_is_deterministic():
     assert b.svg() == b.svg()
 
 
-@pytest.mark.parametrize("field,count", [("gradient", 4), ("tint", 8), ("shape", 8), ("vstyle", 8), ("grille", 8), ("hstyle", 8),
+@pytest.mark.parametrize("field,count", [("gradient", 4), ("gtone", 2), ("tint", 8), ("subject", 32), ("vstyle", 8), ("grille", 8), ("hstyle", 8),
                                          ("framestyle", 4), ("barstyle", 4), ("cheek", 4),
                                          ("mod", 4)])
 def test_every_value_of_each_face_feature_draws(field, count):
@@ -104,3 +104,23 @@ def test_cli_hex_input_and_errors(capsys):
 def test_background_is_a_gradient():
     svg = Badge.from_text("gradient").svg()
     assert "Gradient" in svg and 'fill="url(#lg' in svg
+
+
+@pytest.mark.parametrize("subject", range(32))
+def test_every_subject_detail_draws(subject):
+    for field, count in (("vstyle", 8), ("grille", 8), ("mod", 4), ("cheek", 4)):
+        for v in range(count):
+            c = Canvas(W, H)
+            draw_badge(c, with_changes(BASE, subject=subject, **{field: v}))
+            ET.fromstring(c.to_svg())
+
+
+def test_subject_details_change_the_picture():
+    for subject in (0, 8, 20):
+        for field, count in (("vstyle", 8), ("grille", 8), ("mod", 4), ("cheek", 4)):
+            svgs = set()
+            for v in range(count):
+                c = Canvas(W, H)
+                draw_badge(c, with_changes(BASE, subject=subject, **{field: v}))
+                svgs.add(c.to_svg())
+            assert len(svgs) == count, (subject, field)

@@ -6,7 +6,10 @@
    themes no darker than lightness 0.72) that keeps every palette color at 2:1 contrast and
    handle text at 4.5:1, and 1.8:1 under the streak.
 
-Prints SHEEN and PARTNERS tables to paste into src/visual256/themes.py:
+3. Light-to-dark tones: for each hue, the lightest and the darkest color of that hue (90%
+   saturation; on light themes no darker than lightness 0.6) that pass the same checks.
+
+Prints SHEEN, PARTNERS and TONES tables to paste into src/visual256/themes.py:
 
     python tools/tune_gradients.py
 """
@@ -78,6 +81,19 @@ def best_partner(theme, hue, sheen):
     return best
 
 
+def tone_range(theme, hue, sheen):
+    """Lightest and darkest passing colors of a hue, as a (light, dark) pair."""
+    passing = []
+    low = 2 if is_dark(theme) else 120  # light themes keep the dark end at lightness 0.6 or more
+    for i in range(low, 199):
+        c = hexc([v * 255 for v in colorsys.hls_to_rgb(hue / 360, i / 200, 0.9)])
+        if readable(theme, c) and readable(theme, over(c, sheen), 1.8):
+            passing.append(c)
+    if not passing:
+        return theme.bg, theme.bg
+    return passing[-1], passing[0]
+
+
 def main():
     sheens, partners = {}, {}
     for t in THEMES_LIST:
@@ -91,6 +107,11 @@ def main():
     print("PARTNERS = {")
     for k, v in partners.items():
         print(f'    "{k}": ({", ".join(chr(34) + c + chr(34) for c in v)}),')
+    print("}")
+    print("TONES = {")
+    for t in THEMES_LIST:
+        pairs = [tone_range(t, h, sheens[t.id]) for h in HUES]
+        print(f'    "{t.id}": (' + ", ".join(f'("{a}", "{b}")' for a, b in pairs) + "),")
     print("}")
 
 

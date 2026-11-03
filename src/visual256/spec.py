@@ -10,8 +10,8 @@ is a fingerprint: it cannot be turned back into the checksum (the BIP-39 spoken 
 
 Step 2, drawing. The 256 mixed bits are read most significant first:
 
-    bits    0-85   headline features (see HEADLINE_FIELDS)
-    bits   86-103  6 signal bars, 3 bits each (1-8 lit segments)
+    bits    0-88   headline features (see HEADLINE_FIELDS)
+    bits   89-103  5 signal bars, 3 bits each (1-8 lit segments)
     bits  104-115  3 chip colors, 4 bits each
     bits  116-175  12 printed characters, 5 bits each, 4 per chip
     bits  176-255  10 detail cells, 8 bits each (cell k is badge byte 22 + k), drawn as tiles,
@@ -35,6 +35,7 @@ MIX_TAG = b"visual256/netrunner/0.1"
 HEADLINE_FIELDS: tuple[tuple[str, int, str, str], ...] = (
     ("theme", 4, "Theme", "16 looks: background, pattern, fonts and the 16-color palette"),
     ("gradient", 2, "Background gradient", "left to right, top to bottom, diagonal or radial"),
+    ("gtone", 1, "Gradient tone", "theme color into the hue, or the hue from light to dark"),
     ("tint", 3, "Gradient color", "red, orange, yellow, green, cyan, blue, violet or magenta"),
     ("layout", 3, "Card layout", "8 arrangements of face, handle, bars, chips and detail"),
     ("display", 2, "Detail display", "tiles, gems, hex pairs or arrows"),
@@ -42,15 +43,15 @@ HEADLINE_FIELDS: tuple[tuple[str, int, str, str], ...] = (
     ("framestyle", 2, "Frame style", "single, double, dashed or corner brackets"),
     ("barstyle", 2, "Bar style", "segmented, solid, lollipops or chevrons"),
     ("frame", 4, "Frame color", "frame and dividers"),
-    ("visor", 4, "Visor color", "visor"),
-    ("trim", 4, "Trim color", "head outline, mods, mouth, cheek marks and decal"),
+    ("visor", 4, "Visor color", "visor, lit windows or eyes"),
+    ("trim", 4, "Trim color", "outlines, roofs, doors, mouths, marks and decal"),
     ("accent", 4, "Accent color", "signal bars and handle effects"),
-    ("shape", 3, "Head shape", "round, angular, boxy, dome, capsule, bucket, shield or skull"),
-    ("vstyle", 3, "Visor style", "band, twin-lens, slit, mono-eye, goggles, chevron, triple-lens or grid"),
-    ("grille", 3, "Mouth", "vents, teeth, dots, LED, zigzag, speaker, fangs or stitches"),
-    ("mod", 2, "Head mod", "antenna, ear discs, cable or fin"),
-    ("decal", 4, "Forehead decal", "one of 16 symbols"),
-    ("cheek", 2, "Cheek marks", "stripes, dots, circuit or bolts"),
+    ("subject", 5, "Subject", "8 android heads, 12 buildings or 12 animals"),
+    ("vstyle", 3, "Visor / windows / eyes", "8 styles for the subject's kind"),
+    ("grille", 3, "Mouth / door / nose", "8 styles for the subject's kind"),
+    ("mod", 2, "Head mod / roof / accessory", "4 styles for the subject's kind"),
+    ("decal", 4, "Decal / sign / mark", "one of 16 symbols"),
+    ("cheek", 2, "Cheeks / grounds / markings", "4 styles for the subject's kind"),
     ("status", 4, "Status word", "one of 16 words"),
     ("scolor", 4, "Status color", "status chip"),
     ("hstyle", 3, "Handle style", "clean, split, vertical split, slice, inverted, underline, boxed or shadow"),
@@ -58,8 +59,8 @@ HEADLINE_FIELDS: tuple[tuple[str, int, str, str], ...] = (
     ("word2", 11, "Handle word 2", "BIP-39 word, 1 of 2048"),
 )
 HEADLINE_BITS = sum(f[1] for f in HEADLINE_FIELDS)
-N_BARS = 6
-assert HEADLINE_BITS == 86 and HEADLINE_BITS + N_BARS * 3 == 104
+N_BARS = 5
+assert HEADLINE_BITS == 89 and HEADLINE_BITS + N_BARS * 3 == 104
 
 THEME_IDS = ("cyberpunk", "daylight", "paper", "blueprint", "candy", "mint", "arcade", "stealth",
              "ember", "abyss", "sky", "royal", "citrus", "jungle", "lilac", "concrete")
@@ -79,7 +80,25 @@ GRADIENTS = ("left to right", "top to bottom", "diagonal", "radial")
 BAR_STYLES = ("segmented", "solid", "lollipops", "chevrons")
 DISPLAYS = ("tiles", "gems", "hex pairs", "arrows")
 ARROW_DIRS = ("up", "up-right", "right", "down-right", "down", "down-left", "left", "up-left")
+GRADIENT_TONES = ("theme color into the hue", "light to dark")
 HEAD_SHAPES = ("round", "angular", "boxy", "dome", "capsule", "bucket", "shield", "skull")
+BUILDINGS = ("house", "tower", "skyscraper", "castle", "pagoda", "observatory", "lighthouse", "factory",
+             "chapel", "temple", "windmill", "needle tower")
+ANIMALS = ("cat", "dog", "bear", "rabbit", "fox", "owl", "mouse", "pig", "frog", "penguin", "lion", "panda")
+SUBJECTS = tuple(f"android, {s} head" for s in HEAD_SHAPES) + BUILDINGS + ANIMALS
+assert len(SUBJECTS) == 32
+WINDOWS = ("square grid", "portholes", "arches", "bands", "strips", "picture window", "diamonds", "checker lights")
+DOORS = ("plain door", "arched door", "double door", "round door", "garage door", "gate", "glass door", "awning door")
+ROOFS = ("antenna", "flag", "chimney", "satellite dish")
+GROUNDS = ("steps", "fence", "bushes", "lamp posts")
+EYES = ("dots", "glossy", "sleepy", "happy", "stern", "slit", "sparkle", "hearts")
+SNOUTS = ("button nose", "round nose", "heart nose", "open mouth", "tongue out", "buck teeth", "cat mouth", "fangs")
+ACCESSORIES = ("collar and tag", "bow", "party hat", "scarf")
+MARKINGS = ("whiskers", "spots", "blush", "stripes")
+
+
+def subject_kind(subject: int) -> str:
+    return "face" if subject < 8 else ("building" if subject < 20 else "animal")
 VISORS = ("band", "twin-lens", "slit", "mono-eye", "goggles", "chevron", "triple-lens", "grid")
 MOUTHS = ("vents", "teeth", "dots", "LED", "zigzag", "speaker", "fangs", "stitches")
 MODS = ("antenna", "ear discs", "cable", "fin")
@@ -109,6 +128,7 @@ class Features:
 
     theme: int
     gradient: int
+    gtone: int
     tint: int
     layout: int
     display: int
@@ -119,7 +139,7 @@ class Features:
     visor: int
     trim: int
     accent: int
-    shape: int
+    subject: int
     vstyle: int
     grille: int
     mod: int
@@ -130,7 +150,7 @@ class Features:
     hstyle: int
     word1: int
     word2: int
-    bars: tuple[int, ...]    # 6 values, 0-7 (drawn as 1-8 lit segments)
+    bars: tuple[int, ...]    # 5 values, 0-7 (drawn as 1-8 lit segments)
     chips: tuple[int, ...]   # 3 colors, 0-15
     chars: tuple[int, ...]   # 12 values, 0-31 (alphabet indices)
     cells: tuple[int, ...]   # 10 bytes, 0-255
@@ -190,6 +210,15 @@ def with_changes(f: Features, **changes) -> Features:
     return Features(**values)
 
 
+def _subject_values(f: Features) -> dict:
+    kind = subject_kind(f.subject)
+    if kind == "face":
+        return {"vstyle": VISORS[f.vstyle], "grille": MOUTHS[f.grille], "mod": MODS[f.mod], "cheek": CHEEKS[f.cheek]}
+    if kind == "building":
+        return {"vstyle": WINDOWS[f.vstyle], "grille": DOORS[f.grille], "mod": ROOFS[f.mod], "cheek": GROUNDS[f.cheek]}
+    return {"vstyle": EYES[f.vstyle], "grille": SNOUTS[f.grille], "mod": ACCESSORIES[f.mod], "cheek": MARKINGS[f.cheek]}
+
+
 def describe_cells(f: Features, names: tuple[str, ...]) -> str:
     if f.display == 0:
         return ", ".join(f"{names[c >> 4]} {SYMBOLS[c & 15]}" for c in f.cells)
@@ -207,13 +236,13 @@ def describe(f: Features, palette_names: tuple[str, ...], theme_name: str = "",
     n = palette_names
     values = {
         "theme": theme_name or THEME_IDS[f.theme],
-        "gradient": GRADIENTS[f.gradient], "tint": tint_names[f.tint],
+        "gradient": GRADIENTS[f.gradient], "gtone": GRADIENT_TONES[f.gtone], "tint": tint_names[f.tint],
         "layout": f"{f.layout} · {LAYOUTS[f.layout]}",
         "display": DISPLAYS[f.display], "corners": CORNERS[f.corners], "framestyle": FRAME_STYLES[f.framestyle],
         "barstyle": BAR_STYLES[f.barstyle],
         "frame": n[f.frame], "visor": n[f.visor], "trim": n[f.trim], "accent": n[f.accent], "scolor": n[f.scolor],
-        "shape": HEAD_SHAPES[f.shape], "vstyle": VISORS[f.vstyle], "grille": MOUTHS[f.grille],
-        "mod": MODS[f.mod], "decal": SYMBOLS[f.decal], "cheek": CHEEKS[f.cheek],
+        "subject": SUBJECTS[f.subject], "decal": SYMBOLS[f.decal],
+        **_subject_values(f),
         "status": STATUS_WORDS[f.status],
         "hstyle": HANDLE_STYLES[f.hstyle],
         "word1": f"{f.words[0]} (#{f.word1 + 1})", "word2": f"{f.words[1]} (#{f.word2 + 1})",

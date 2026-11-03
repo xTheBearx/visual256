@@ -6,10 +6,12 @@ Turn a 256-bit checksum into a small picture people can recognize and compare at
 > **Development version 0.1.** The bit layout, themes and drawings may still change. Every
 > change stays at 0.1 until the first release, so badges are not yet stable between commits.
 
-The first style is the **Netrunner ID**: a 128 × 64 badge with an android head, a two-word
-handle, a status chip, signal bars, 12 printed characters on colored chips and 10 detail cells.
+The first style is the **Netrunner ID**: a 128 × 64 badge with a portrait (an android head, a
+building or an animal), a two-word handle, a status chip, signal bars, 12 printed characters on
+colored chips and 10 detail cells.
 The badge bits pick one of sixteen themes, 8 dark and 8 light, each on a different background hue,
-and a gradient from the theme color into one of 8 hues in one of four directions:
+and a background gradient (theme color into one of 8 hues, or that hue from light to dark) in one
+of four directions:
 
 | | | | |
 |---|---|---|---|
@@ -84,33 +86,34 @@ checksum; the spoken backup below encodes the checksum itself.
 |---|---|---|
 | 0–3 | Theme | 16 looks: background, pattern, fonts and the 16-color palette |
 | 4–5 | Background gradient | left to right, top to bottom, diagonal or radial |
-| 6–8 | Gradient color | red, orange, yellow, green, cyan, blue, violet or magenta |
-| 9–11 | Card layout | 8 arrangements of face, handle, bars, chips and detail |
-| 12–13 | Detail display | tiles, gems, hex pairs or arrows |
-| 14–15 | Frame corners | which corners of the frame are cut |
-| 16–17 | Frame style | single, double, dashed or corner brackets |
-| 18–19 | Bar style | segmented, solid, lollipops or chevrons |
-| 20–23 | Frame color | frame and dividers |
-| 24–27 | Visor color | visor |
-| 28–31 | Trim color | head outline, mods, mouth, cheek marks and decal |
-| 32–35 | Accent color | signal bars and handle effects |
-| 36–38 | Head shape | round, angular, boxy, dome, capsule, bucket, shield or skull |
-| 39–41 | Visor style | band, twin-lens, slit, mono-eye, goggles, chevron, triple-lens or grid |
-| 42–44 | Mouth | vents, teeth, dots, LED, zigzag, speaker, fangs or stitches |
-| 45–46 | Head mod | antenna, ear discs, cable or fin |
-| 47–50 | Forehead decal | one of 16 symbols |
-| 51–52 | Cheek marks | stripes, dots, circuit or bolts |
-| 53–56 | Status word | one of 16 words |
-| 57–60 | Status color | status chip |
-| 61–63 | Handle style | clean, split, vertical split, slice, inverted, underline, boxed or shadow |
-| 64–74 | Handle word 1 | BIP-39 word, 1 of 2048 |
-| 75–85 | Handle word 2 | BIP-39 word, 1 of 2048 |
-| 86–103 | Signal bars | 6 bars, 1–8 levels each |
+| 6 | Gradient tone | theme color into the hue, or the hue from light to dark |
+| 7–9 | Gradient color | red, orange, yellow, green, cyan, blue, violet or magenta |
+| 10–12 | Card layout | 8 arrangements of face, handle, bars, chips and detail |
+| 13–14 | Detail display | tiles, gems, hex pairs or arrows |
+| 15–16 | Frame corners | which corners of the frame are cut |
+| 17–18 | Frame style | single, double, dashed or corner brackets |
+| 19–20 | Bar style | segmented, solid, lollipops or chevrons |
+| 21–24 | Frame color | frame and dividers |
+| 25–28 | Visor color | visor, lit windows or eyes |
+| 29–32 | Trim color | outlines, roofs, doors, mouths, marks and decal |
+| 33–36 | Accent color | signal bars and handle effects |
+| 37–41 | Subject | 8 android heads, 12 buildings or 12 animals |
+| 42–44 | Visor / windows / eyes | 8 styles for the subject's kind |
+| 45–47 | Mouth / door / nose | 8 styles for the subject's kind |
+| 48–49 | Head mod / roof / accessory | 4 styles for the subject's kind |
+| 50–53 | Decal / sign / mark | one of 16 symbols |
+| 54–55 | Cheeks / grounds / markings | 4 styles for the subject's kind |
+| 56–59 | Status word | one of 16 words |
+| 60–63 | Status color | status chip |
+| 64–66 | Handle style | clean, split, vertical split, slice, inverted, underline, boxed or shadow |
+| 67–77 | Handle word 1 | BIP-39 word, 1 of 2048 |
+| 78–88 | Handle word 2 | BIP-39 word, 1 of 2048 |
+| 89–103 | Signal bars | 5 bars, 1–8 levels each |
 | 104–115 | Chip colors | 3 chips, 16 theme colors each |
 | 116–175 | Characters | 12 characters, 4 per chip |
 | 176–255 | Detail cells | 10 cells, one badge byte each |
 
-The first 86 bits are headline features people remember. The other 170 bits are detail for a
+The first 89 bits are headline features people remember. The other 167 bits are detail for a
 careful side-by-side check. Detail elements are kept large on purpose: each detail cell carries a
 whole byte through color, shape and fill instead of many tiny marks. Every badge bit is drawn:
 `encode(decode(bits)) == bits`.
@@ -125,12 +128,27 @@ whole byte through color, shape and fill instead of many tiny marks. Every badge
 - **hex pairs**: two hex digits on a seven-segment display
 - **arrows**: 8 directions × 16 colors × solid or outline
 
+**Subjects.** Bits 37–41 pick the portrait: 8 android heads (round, angular, boxy, dome,
+capsule, bucket, shield, skull), 12 buildings (house, tower, skyscraper, castle, pagoda,
+observatory, lighthouse, factory, chapel, temple, windmill, needle tower) or 12 animals (cat, dog,
+bear, rabbit, fox, owl, mouse, pig, frog, penguin, lion, panda). The next fields mean different
+things for each kind:
+
+| Field | Android head | Building | Animal |
+|---|---|---|---|
+| Visor / windows / eyes | 8 visors | 8 window patterns | 8 eye styles |
+| Mouth / door / nose | 8 mouths | 8 doors | 8 noses and mouths |
+| Head mod / roof / accessory | antenna, ear discs, cable, fin | antenna, flag, chimney, satellite dish | collar, bow, party hat, scarf |
+| Decal / sign / mark | forehead decal | sign plaque | forehead mark |
+| Cheeks / grounds / markings | stripes, dots, circuit, bolts | steps, fence, bushes, lamp posts | whiskers, spots, blush, stripes |
+
 **Themes** set the background, its pattern, the fonts and the 16 colors that every color feature
-indexes into. The badge bits then fade the theme color into one of 8 hues (red, orange, yellow,
-green, cyan, blue, violet or magenta), left to right, top to bottom, diagonally or radially, with
-a highlight streak along the same direction (a ring for radial gradients). That gives 32
-backgrounds per theme. `tools/tune_gradients.py` picks each theme's streak strength and its 8
-gradient colors as strong as the palette allows: every palette color keeps at least 2:1 contrast
+indexes into. The badge bits then pick one of 8 hues (red, orange, yellow, green, cyan, blue,
+violet or magenta) and a tone: either the theme color fading into the hue, or the hue itself from
+light to dark. The gradient runs left to right, top to bottom, diagonally or radially, with a
+highlight streak along the same direction (a ring for radial gradients). That gives 64
+backgrounds per theme. `tools/tune_gradients.py` picks each theme's streak strength, its 8
+gradient colors and its 8 light-to-dark tone pairs as strong as the palette allows: every palette color keeps at least 2:1 contrast
 against the background and every gradient color, and 1.8:1 inside the narrow streak band
 (checked by the tests).
 

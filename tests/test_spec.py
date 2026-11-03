@@ -9,8 +9,8 @@ from visual256.bits import from_alphabet, to_alphabet
 from visual256.spec import HEADLINE_BITS, HEADLINE_FIELDS, N_BARS
 
 
-def test_headline_is_86_bits_and_total_is_256():
-    assert HEADLINE_BITS == 86
+def test_headline_is_89_bits_and_total_is_256():
+    assert HEADLINE_BITS == 89
     assert HEADLINE_BITS + N_BARS * 3 + 3 * 4 + 12 * 5 + 10 * 8 == 256
 
 
@@ -42,9 +42,9 @@ def test_known_digest_matches_browser_preview():
     assert b.parts[0].hex() == "f2924e11c5dab2f02b72a9423cdfad3bb799811e53d4da75de2cccbde7008c80"
     f = b.features[0]
     assert f.theme_id == "concrete"
-    assert f.handle == "CLOCK·NEXT"
+    assert f.handle == "FORTUNE·PREVENT"
     assert f.char_groups == ["4Q7Z", "VGAT", "6W8W"]
-    assert len(f.bars) == 6
+    assert len(f.bars) == 5
 
 
 def test_detail_cells_are_the_last_ten_badge_bytes():
@@ -109,3 +109,18 @@ def test_encode_rejects_out_of_range_values():
     f = decode(bytes(32))
     with pytest.raises(ValueError):
         encode(with_changes(f, theme=16))
+
+
+def test_subjects_cover_faces_buildings_and_animals():
+    from visual256.spec import SUBJECTS, subject_kind
+    kinds = [subject_kind(i) for i in range(32)]
+    assert kinds.count("face") == 8 and kinds.count("building") == 12 and kinds.count("animal") == 12
+    assert len(set(SUBJECTS)) == 32
+
+
+def test_describe_names_subject_details_by_kind():
+    f = decode(bytes(32))
+    house = dict((label, value) for _, label, value in describe(with_changes(f, subject=8), tuple("c" * 16)))
+    cat = dict((label, value) for _, label, value in describe(with_changes(f, subject=20), tuple("c" * 16)))
+    assert house["Subject"] == "house" and house["Visor / windows / eyes"] == "square grid"
+    assert cat["Subject"] == "cat" and cat["Mouth / door / nose"] == "button nose"

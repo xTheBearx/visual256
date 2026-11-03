@@ -61,3 +61,13 @@ def test_handle_text_is_readable():
         for _, c in t.gradients:
             assert contrast(t.handle, c) >= 4.5, t.id
             assert contrast(t.handle, _over(c, t.sheen)) >= 4.0, t.id
+
+
+def test_light_to_dark_tones_are_readable():
+    for t in THEMES_LIST:
+        assert len(t.tones) == 8, t.id
+        for light, dark in t.tones:
+            assert luminance(light) > luminance(dark), t.id
+            for c in (light, dark):
+                for name, p in t.palette:
+                    assert contrast(p, c) >= 2.0, f"{t.id}: {name} on tone {c}"

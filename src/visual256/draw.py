@@ -8,7 +8,8 @@ from __future__ import annotations
 import math
 
 from .canvas import Canvas, LinearGradient, RadialGradient, parse_color
-from .spec import STATUS_WORDS, Features
+from .spec import STATUS_WORDS, Features, subject_kind
+from .subjects import draw_animal, draw_building
 from .themes import Theme, chip_ink, get as get_theme
 
 S = 480.0          # canvas height
@@ -152,7 +153,7 @@ def layout_spec(L: int) -> dict:
     """Regions for each of the 8 layouts, in badge units."""
     def stacked(x0, x1):
         return dict(handle=[dict(text="both", x=x0, y=11.8, w=x1 - x0, align="left", size=8.4)],
-                    bars=[dict(ids=list(range(6)), x0=x0, x1=x1, y0=14.2, y1=24.2)],
+                    bars=[dict(ids=list(range(5)), x0=x0, x1=x1, y0=14.2, y1=24.2)],
                     chips=[dict(ids=[0, 1, 2], x0=x0, y0=26.2, x1=x1, y1=34.6, col=False)],
                     cells=[dict(ids=list(range(10)), x0=x0, y0=36.8, x1=x1, y1=60, gc=5, gr=2)])
 
@@ -160,21 +161,21 @@ def layout_spec(L: int) -> dict:
         mid = x0 + (x1 - x0) * .5
         return dict(handle=[dict(text="both", x=x0, y=11.8, w=x1 - x0, align="left", size=8.4)],
                     cells=[dict(ids=list(range(10)), x0=x0, y0=15, x1=mid - 1.3, y1=60, gc=2, gr=5)],
-                    bars=[dict(ids=list(range(6)), x0=mid + 1.3, x1=x1, y0=15, y1=30.5)],
+                    bars=[dict(ids=list(range(5)), x0=mid + 1.3, x1=x1, y0=15, y1=30.5)],
                     chips=[dict(ids=[0, 1, 2], x0=mid + 1.3, y0=33, x1=x1, y1=60, col=True)])
 
     def split(detail_top):
         def col(x0, x1, side):
             cx = (x0 + x1) / 2
             hd = dict(text="w2" if side else "w1", x=cx, y=11.4, w=x1 - x0, align="center", size=7.8)
-            b = [3, 4, 5] if side else [0, 1, 2]
+            b = [3, 4] if side else [0, 1, 2]
             ch = [2] if side else [0]
             cl = [5, 6, 7, 8, 9] if side else [0, 1, 2, 3, 4]
             if detail_top:
                 return dict(handle=hd, cells=dict(ids=cl, x0=x0, y0=13.8, x1=x1, y1=36.2, gc=3, gr=2),
                             chips=dict(ids=ch, x0=x0, y0=38.2, x1=x1, y1=45.6, col=False),
-                            bars=dict(ids=b, x0=x0, x1=x1, y0=47.6, y1=60))
-            return dict(handle=hd, bars=dict(ids=b, x0=x0, x1=x1, y0=13.8, y1=23.4),
+                            bars=dict(ids=b, x0=x0, x1=x1, y0=47.6, y1=60, slots=3))
+            return dict(handle=hd, bars=dict(ids=b, x0=x0, x1=x1, y0=13.8, y1=23.4, slots=3),
                         chips=dict(ids=ch, x0=x0, y0=25.4, x1=x1, y1=32.8, col=False),
                         cells=dict(ids=cl, x0=x0, y0=35, x1=x1, y1=60, gc=3, gr=2))
         a, c = col(3.5, 40.5, 0), col(87.5, 124.5, 1)
@@ -196,7 +197,7 @@ def layout_spec(L: int) -> dict:
     if L == 5:
         return dict(face=(19.5, 39.5, .74), div=[(6, 13.6, 122, 13.6), (38, 17, 38, 60)],
                     handle=[dict(text="both", x=64, y=10.6, w=112, align="center", size=8.6)],
-                    bars=[dict(ids=list(range(6)), x0=41, x1=123.4, y0=16.4, y1=24.6)],
+                    bars=[dict(ids=list(range(5)), x0=41, x1=123.4, y0=16.4, y1=24.6)],
                     chips=[dict(ids=[0, 1, 2], x0=41, y0=26.6, x1=123.4, y1=34.4, col=False)],
                     cells=[dict(ids=list(range(10)), x0=41, y0=36.6, x1=123.4, y1=60, gc=5, gr=2)])
     if L == 6:
@@ -204,7 +205,7 @@ def layout_spec(L: int) -> dict:
                     handle=[dict(text="both", x=64, y=59.4, w=112, align="center", size=8.6)],
                     cells=[dict(ids=list(range(10)), x0=4.6, y0=4.6, x1=86, y1=25.6, gc=5, gr=2)],
                     chips=[dict(ids=[0, 1, 2], x0=4.6, y0=27.6, x1=86, y1=35.2, col=False)],
-                    bars=[dict(ids=list(range(6)), x0=4.6, x1=86, y0=37.4, y1=48)])
+                    bars=[dict(ids=list(range(5)), x0=4.6, x1=86, y0=37.4, y1=48)])
     return split(True)
 
 
@@ -220,7 +221,7 @@ def draw_badge(ctx: Canvas, f: Features, theme: Theme | None = None) -> None:
     fr = frame_poly(f.corners)
     ctx.begin_path()
     poly(ctx, fr)
-    ctx.fill_style = background_gradient(t, f.gradient, f.tint)
+    ctx.fill_style = background_gradient(t, f.gradient, f.tint, f.gtone)
     ctx.fill()
     ctx.save()
     ctx.clip()
@@ -257,9 +258,13 @@ def draw_badge(ctx: Canvas, f: Features, theme: Theme | None = None) -> None:
     ctx.restore()
 
 
-def background_gradient(t: Theme, kind: int, tint: int):
-    """The card fill: theme background fading to one of its two partner colors."""
-    stops = [(0, t.bg), (1, t.gradients[tint][1])]
+def background_gradient(t: Theme, kind: int, tint: int, tone: int = 0):
+    """The card fill: the theme color fading into a hue, or that hue from light to dark."""
+    if tone:
+        light, dark = t.tones[tint]
+        stops = [(0, light), (1, dark)]
+    else:
+        stops = [(0, t.bg), (1, t.gradients[tint][1])]
     if kind == 0:
         return LinearGradient(0, 32, 128, 32, stops)
     if kind == 1:
@@ -450,7 +455,20 @@ def draw_frame(ctx: Canvas, f: Features, fr, fcol, glow: Glow) -> None:
 
 
 def draw_face(ctx: Canvas, f: Features, hx: float, glow: Glow, vis: str, trim: str, t: Theme) -> None:
-    shape, vst = f.shape, f.vstyle
+    """The portrait: an android head, a building or an animal, then the status chip."""
+    kind = subject_kind(f.subject)
+    if kind == "face":
+        draw_android(ctx, f, hx, glow, vis, trim, t)
+    elif kind == "building":
+        draw_building(ctx, f, hx, glow, vis, trim, t)
+    else:
+        draw_animal(ctx, f, hx, glow, vis, trim, t)
+    ctx.line_cap, ctx.line_join = "butt", "miter"
+    draw_status(ctx, f, hx, glow, t)
+
+
+def draw_android(ctx: Canvas, f: Features, hx: float, glow: Glow, vis: str, trim: str, t: Theme) -> None:
+    shape, vst = f.subject, f.vstyle
 
     def head_path():
         ctx.begin_path()
@@ -530,8 +548,6 @@ def draw_face(ctx: Canvas, f: Features, hx: float, glow: Glow, vis: str, trim: s
     draw_visor(ctx, vst, hx, head_path, glow, vis, t)
     draw_mouth(ctx, f.grille, hx, glow, vis, trim)
     draw_cheeks(ctx, f.cheek, hx, trim)
-    ctx.line_cap = "butt"
-    draw_status(ctx, f, hx, glow, t)
 
 
 def draw_visor(ctx: Canvas, vst, hx, head_path, glow: Glow, vis, t: Theme) -> None:

@@ -38,6 +38,7 @@ class Theme:
     ink_light: str = "#FFFFFF"
     gradients: tuple[tuple[str, str], ...] = ()  # 8 (hue name, color) the background can fade to
     sheen: str = "rgba(255,255,255,.09)"          # highlight streak along the gradient direction
+    tones: tuple[tuple[str, str], ...] = ()       # 8 (light, dark) pairs for light-to-dark gradients
 
     @property
     def names(self) -> tuple[str, ...]:
@@ -143,6 +144,24 @@ PARTNERS = {
     "lilac": ("#FCCACA", "#FACDA5", "#F8E777", "#77F882", "#77EDF8", "#C0D6FC", "#E3CCFC", "#FCC5EB"),
     "concrete": ("#F87C7C", "#F8B377", "#F8E777", "#77F882", "#77EDF8", "#77A6F8", "#BE8BF9", "#F877D1"),
 }
+TONES = {
+    "cyberpunk": (("#550404", "#050000"), ("#301803", "#050200"), ("#1F1C02", "#050400"), ("#022405", "#000501"), ("#022124", "#000405"), ("#041D49", "#000205"), ("#35066B", "#020005"), ("#4B0436", "#050003")),
+    "daylight": (("#FFFAFA", "#FCCFCF"), ("#FFFCFA", "#FBD1AD"), ("#FFFEFA", "#F5DC3D"), ("#FAFFFB", "#58F665"), ("#FAFEFF", "#66EBF7"), ("#FAFCFF", "#C7DBFC"), ("#FCFAFF", "#E5D1FD"), ("#FFFAFD", "#FCCAED")),
+    "paper": (("#FFFAFA", "#FBAAAA"), ("#FFFCFA", "#F7AF70"), ("#FFFEFA", "#F5DC3D"), ("#FAFFFB", "#3DF54D"), ("#FAFEFF", "#3DE6F5"), ("#FAFCFF", "#9EC0FA"), ("#FCFAFF", "#D4B1FB"), ("#FFFAFD", "#FAA3E0")),
+    "blueprint": (("#B30909", "#050000"), ("#743A06", "#050200"), ("#524804", "#050400"), ("#05570B", "#000501"), ("#055057", "#000405"), ("#0945AC", "#000205"), ("#720CE6", "#020005"), ("#A50976", "#050003")),
+    "candy": (("#FFFAFA", "#FCC5C5"), ("#FFFCFA", "#FAC99E"), ("#FFFEFA", "#F5DC3D"), ("#FAFFFB", "#3DF54D"), ("#FAFEFF", "#42E6F5"), ("#FAFCFF", "#BED4FC"), ("#FCFAFF", "#E1CAFC"), ("#FFFAFD", "#FCC2EB")),
+    "mint": (("#FFFAFA", "#FCCACA"), ("#FFFCFA", "#FACDA5"), ("#FFFEFA", "#F5DC3D"), ("#FAFFFB", "#3DF54D"), ("#FAFEFF", "#53E8F6"), ("#FAFCFF", "#C0D6FC"), ("#FCFAFF", "#E3CCFC"), ("#FFFAFD", "#FCC5EB")),
+    "arcade": (("#550404", "#050000"), ("#301803", "#050200"), ("#221E02", "#050400"), ("#022705", "#000501"), ("#022427", "#000405"), ("#041E4B", "#000205"), ("#340568", "#020005"), ("#4B0436", "#050003")),
+    "stealth": (("#770606", "#050000"), ("#4B2504", "#050200"), ("#332C03", "#050400"), ("#033807", "#000501"), ("#033338", "#000405"), ("#062C6D", "#000205"), ("#4A0896", "#020005"), ("#6B064C", "#050003")),
+    "ember": (("#880707", "#050000"), ("#552A04", "#050200"), ("#3A3303", "#050400"), ("#033F08", "#000501"), ("#033A3F", "#000405"), ("#07327E", "#000205"), ("#5609AE", "#020005"), ("#790657", "#050003")),
+    "abyss": (("#680505", "#050000"), ("#3D1E03", "#050200"), ("#2C2602", "#050400"), ("#033006", "#000501"), ("#022A2E", "#000405"), ("#05255C", "#000205"), ("#410783", "#020005"), ("#5C0542", "#050003")),
+    "sky": (("#FFFAFA", "#FCCACA"), ("#FFFCFA", "#FACDA5"), ("#FFFEFA", "#F5DC3D"), ("#FAFFFB", "#3DF54D"), ("#FAFEFF", "#53E8F6"), ("#FAFCFF", "#C0D6FC"), ("#FCFAFF", "#E3CCFC"), ("#FFFAFD", "#FCC5EB")),
+    "royal": (("#8F0808", "#050000"), ("#5A2C05", "#050200"), ("#3D3503", "#050400"), ("#034109", "#000501"), ("#043E44", "#000405"), ("#073585", "#000205"), ("#5909B3", "#020005"), ("#80075C", "#050003")),
+    "citrus": (("#FFFAFA", "#FCC5C5"), ("#FFFCFA", "#FAC99E"), ("#FFFEFA", "#F5DC3D"), ("#FAFFFB", "#3DF54D"), ("#FAFEFF", "#42E6F5"), ("#FAFCFF", "#BED4FC"), ("#FCFAFF", "#E1CAFC"), ("#FFFAFD", "#FCC2EB")),
+    "jungle": (("#8A0707", "#050000"), ("#552A04", "#050200"), ("#3D3503", "#050400"), ("#034109", "#000501"), ("#033C41", "#000405"), ("#073380", "#000205"), ("#5709B1", "#020005"), ("#7E075A", "#050003")),
+    "lilac": (("#FFFAFA", "#FCCACA"), ("#FFFCFA", "#FACDA5"), ("#FFFEFA", "#F5DC3D"), ("#FAFFFB", "#3DF54D"), ("#FAFEFF", "#53E8F6"), ("#FAFCFF", "#C0D6FC"), ("#FCFAFF", "#E3CCFC"), ("#FFFAFD", "#FCC5EB")),
+    "concrete": (("#FFFAFA", "#F87C7C"), ("#FFFCFA", "#F5933D"), ("#FFFEFA", "#F5DC3D"), ("#FAFFFB", "#3DF54D"), ("#FAFEFF", "#3DE6F5"), ("#FAFCFF", "#70A2F7"), ("#FCFAFF", "#BE8BF9"), ("#FFFAFD", "#F76ECE")),
+}
 
 
 def _dark(**kw) -> Theme:
@@ -152,6 +171,7 @@ def _dark(**kw) -> Theme:
     base.setdefault("pair_bg", base["bg"])
     base["sheen"] = SHEEN.get(base["id"], base["sheen"])
     base["gradients"] = tuple(zip(HUE_NAMES, PARTNERS.get(base["id"], (base["bg"],) * len(HUE_NAMES))))
+    base["tones"] = TONES.get(base["id"], ((base["bg"], base["bg"]),) * len(HUE_NAMES))
     return Theme(**base)
 
 
@@ -164,6 +184,7 @@ def _light(**kw) -> Theme:
     base.setdefault("pair_bg", base["bg"])
     base["sheen"] = SHEEN.get(base["id"], base["sheen"])
     base["gradients"] = tuple(zip(HUE_NAMES, PARTNERS.get(base["id"], (base["bg"],) * len(HUE_NAMES))))
+    base["tones"] = TONES.get(base["id"], ((base["bg"], base["bg"]),) * len(HUE_NAMES))
     return Theme(**base)
 
 
