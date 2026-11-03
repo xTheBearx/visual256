@@ -2296,6 +2296,12 @@ def draw_icon(ctx: Canvas, f, c: float, kind: str, glow, vis: str, trim: str, t:
     draw_backdrop(ctx, f.grille, c, vis, trim)
     draw_base(ctx, f.cheek, c, trim, t)
     _draw_parts(ctx, sp, draw_fabric, f.vstyle, f.decal, glow, vis, trim, t)
+    if "text" in sp:
+        ch, x, y, size = sp["text"]
+        ctx.set_font("mono", size)
+        ctx.text_align, ctx.text_baseline = "center", "alphabetic"
+        ctx.fill_style = trim
+        ctx.fill_text(ch, x, y)
     draw_effect(ctx, f.mod, c, vis, trim, glow)
 
 

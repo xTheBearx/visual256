@@ -8,9 +8,8 @@ Turn a 256-bit checksum into a small picture people can recognize and compare at
 
 The first style is the **Netrunner ID**: a 128 × 64 badge with a portrait, a two-word handle, a
 status chip, signal bars, 12 printed characters on colored chips and 10 detail cells. The portrait
-is one of 128 subjects: android heads, buildings, animals, vehicles, plants, furniture, food, sports
-equipment, musical instruments, computer symbols, large shapes, sci-fi insignia, weather symbols and
-space objects. The badge bits
+is one of 256 subjects in 22 kinds, from android heads, animals and vehicles to flags, road signs,
+game icons and single characters. The badge bits
 pick one of eight themes, 4 dark and 4 light, each with its own background hue, pattern, fonts and
 palette, and a background gradient (theme color into one of 8 hues, or that hue from light to dark)
 in one of four directions:
@@ -18,7 +17,7 @@ in one of four directions:
 | | | | |
 |---|---|---|---|
 | ![cyberpunk](docs/examples/cyberpunk.svg)<br>Cyberpunk · `release-1.2.tar.gz` | ![daylight](docs/examples/daylight.svg)<br>Daylight · `release-1.0.tar.gz` | ![paper](docs/examples/paper.svg)<br>Paper · `release-1.15.tar.gz` | ![blueprint](docs/examples/blueprint.svg)<br>Blueprint · `release-1.17.tar.gz` |
-| ![candy](docs/examples/candy.svg)<br>Candy · `release-1.30.tar.gz` | ![mint](docs/examples/mint.svg)<br>Mint · `release-1.6.tar.gz` | ![ember](docs/examples/ember.svg)<br>Ember · `release-1.9.tar.gz` | ![jungle](docs/examples/jungle.svg)<br>Jungle · `release-1.1.tar.gz` |
+| ![candy](docs/examples/candy.svg)<br>Candy · `release-1.23.tar.gz` | ![mint](docs/examples/mint.svg)<br>Mint · `release-1.6.tar.gz` | ![ember](docs/examples/ember.svg)<br>Ember · `release-1.9.tar.gz` | ![jungle](docs/examples/jungle.svg)<br>Jungle · `release-1.1.tar.gz` |
 
 Each example is the real SHA-256 badge of the file name shown.
 
@@ -97,15 +96,15 @@ checksum; the spoken backup below encodes the checksum itself.
 | 24–27 | Visor color | visor, lit windows, eyes, blooms and fill patterns |
 | 28–31 | Trim color | outlines, roofs, doors, mouths, marks and decal |
 | 32–35 | Accent color | signal bars and handle effects |
-| 36–42 | Subject | 128 subjects in 14 kinds (listed below) |
-| 43–45 | Subject detail A | visor, windows, eyes, blooms, or a fill pattern (8 each) |
-| 46–48 | Subject detail B | mouth, door, nose, trail, pot, companion, serving, gear or backdrop (8 each) |
-| 49–50 | Subject detail C | head mod, roof add-on, accessory, visitor, wall item, topper, motion or effect (4 each) |
-| 51–54 | Subject symbol | decal, sign, mark, emblem, label or badge (16 symbols) |
-| 55–56 | Subject detail D | cheeks, grounds, markings, livery, ground extras, floor, side item, pitch or base (4 each) |
-| 57–59 | Status word | one of 8 words |
-| 60–63 | Status color | status chip |
-| 64–66 | Handle style | clean, split, vertical split, slice, inverted, underline, boxed or shadow |
+| 36–43 | Subject | 256 subjects in 22 kinds (listed below) |
+| 44–46 | Subject detail A | visor, windows, eyes, blooms, or a fill pattern (8 each) |
+| 47–49 | Subject detail B | mouth, door, nose, trail, pot, companion, serving, gear or backdrop (8 each) |
+| 50–51 | Subject detail C | head mod, roof add-on, accessory, visitor, wall item, topper, motion or effect (4 each) |
+| 52–55 | Subject symbol | decal, sign, mark, emblem, label or badge (16 symbols) |
+| 56–57 | Subject detail D | cheeks, grounds, markings, livery, ground extras, floor, side item, pitch or base (4 each) |
+| 58–60 | Status word | one of 8 words |
+| 61–64 | Status color | status chip |
+| 65–66 | Handle style | clean, horizontal split, inverted or boxed |
 | 67–77 | Handle word 1 | BIP-39 word, 1 of 2048 |
 | 78–88 | Handle word 2 | BIP-39 word, 1 of 2048 |
 | 89–103 | Signal bars | 5 bars, 1–8 levels each |
@@ -128,7 +127,7 @@ whole byte through color, shape and fill instead of many tiny marks. Every badge
 - **hex pairs**: two hex digits on a seven-segment display
 - **arrows**: 8 directions × 16 colors × solid or outline
 
-**Subjects.** Bits 36–42 pick the portrait from 128 subjects in fourteen kinds:
+**Subjects.** Bits 36–43 pick the portrait from 256 subjects in 22 kinds:
 
 - 3 android heads: dome, bucket, skull
 - 10 buildings: house, skyscraper, castle, pagoda, observatory, lighthouse, factory, temple, windmill,
@@ -153,6 +152,24 @@ whole byte through color, shape and fill instead of many tiny marks. Every badge
   thermometer, windsock, snowman
 - 10 space objects: ringed planet, crescent moon, comet, spiral galaxy, astronaut helmet, satellite,
   telescope, constellation, asteroid, lunar lander
+- 16 flags (generic designs, not national flags, since the theme recolors them): waving flag,
+  pennant, swallowtail, checkered flag, pirate flag, hanging banner, signal flag, cross flag, star
+  flag, striped flag, crossed flags, golf flag, bunting, tattered flag, disc flag, summit flag
+- 16 holiday symbols: decorated tree, jack-o-lantern, gift, easter egg, candy cane, ornament,
+  menorah, fireworks, birthday cake, valentine heart, shamrock, paper lantern, dreidel, snow globe,
+  wreath, jingle bells
+- 16 game icons: bullet, crosshair, fire, water, lightning, ice crystal, leaf, health pack, potion,
+  coin, key, bomb, sword, buckler, bow, treasure chest
+- 12 tools: hammer, wrench, screwdriver, saw, scissors, paintbrush, light bulb, pliers, axe, magnet,
+  drill, ruler
+- 12 game pieces: pawn, rook, knight, bishop, queen, king, die, puzzle piece, playing card, domino,
+  meeple, dartboard
+- 12 road signs: stop sign, yield sign, traffic light, warning sign, one-way sign, railroad crossing,
+  no entry, speed limit, roundabout, traffic cone, parking sign, curve ahead
+- 12 clothing items: t-shirt, sneaker, sunglasses, mitten, sock, dress, necktie, boot, trousers,
+  handbag, wristwatch, backpack
+- 32 characters: one letter or digit of the badge alphabet, `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`,
+  on a tile
 
 The five subject detail fields mean different things for each kind:
 
@@ -164,8 +181,7 @@ The five subject detail fields mean different things for each kind:
 | Symbol (16) | forehead decal | sign plaque | forehead mark | emblem | pot label | plaque | label | team badge |
 | Detail D (4) | stripes, dots, circuit, bolts | steps, fence, bushes, lamp posts | whiskers, spots, blush, stripes | stripe, double stripe, checker band, zigzag stripe | grass tufts, pebbles, fallen petals, seedlings | oval rug, floorboards, checker tiles, fringed rug | fork, spoon, chopsticks, cup | pitch: grass, court lines, wood floor, ice |
 
-The six icon kinds (instruments, computer symbols, shapes, insignia, weather and space) share their
-details: a fill
+The fourteen icon kinds (instruments through characters) share their details: a fill
 pattern (the same 8 as fabric), a backdrop (circle, square, diamond, hexagon, shield, starburst, ring
 or banner), an effect (music notes, sparkles, rays or orbit dots), a base (underline, brackets,
 dotted line or pedestal) and a badge symbol. Their geometry lives in `icons.py` as plain data, which

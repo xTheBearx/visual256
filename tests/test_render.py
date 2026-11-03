@@ -106,7 +106,7 @@ def test_background_is_a_gradient():
     assert "Gradient" in svg and 'fill="url(#lg' in svg
 
 
-@pytest.mark.parametrize("subject", range(128))
+@pytest.mark.parametrize("subject", range(256))
 def test_every_subject_detail_draws(subject):
     for field, count in (("vstyle", 8), ("grille", 8), ("mod", 4), ("cheek", 4)):
         for v in range(count):
@@ -127,7 +127,7 @@ def test_owl_and_panda_skip_the_bow_tie():
 
 
 def test_subject_details_change_the_picture():
-    for subject in (0, 3, 13, 23, 33, 43, 51, 59, 64, 75, 86, 97, 108, 118):
+    for subject in (0, 3, 13, 23, 33, 43, 51, 59, 64, 75, 86, 97, 108, 118, 128, 144, 160, 176, 188, 200, 212, 224):
         for field, count in (("vstyle", 8), ("grille", 8), ("mod", 4), ("cheek", 4)):
             svgs = set()
             for v in range(count):

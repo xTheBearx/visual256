@@ -152,8 +152,8 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
 
   <section>
     <div class="sec-head">
-      <h2>128 subjects</h2>
-      <p class="note">Bits 36–42 pick the portrait from 128 subjects in 14 kinds: 3 android heads, 10 buildings, 10 animals, 10 vehicles, 10 plants, 8 pieces of furniture, 8 foods, 5 pieces of sports equipment, 11 each of musical instruments, computer symbols, large basic shapes and sci-fi insignia (an original set), and 10 each of weather symbols and space objects. The same four detail fields and symbol mean something that fits each kind; the six icon kinds share a fill pattern, a backdrop, an effect and a base. Owl and panda never wear the bow tie, so they stay distinct from cat and fox.</p>
+      <h2>256 subjects</h2>
+      <p class="note">Bits 36–43 pick the portrait from 256 subjects in 22 kinds: 3 android heads, 10 buildings, 10 animals, 10 vehicles, 10 plants, 8 pieces of furniture, 8 foods, 5 pieces of sports equipment, 11 each of musical instruments, computer symbols, large basic shapes and sci-fi insignia, 10 each of weather symbols and space objects, 16 each of flags, holiday symbols and game icons, 12 each of tools, game pieces, road signs and clothing, and the 32 characters of the badge alphabet. The same four detail fields and symbol mean something that fits each kind; the icon kinds share a fill pattern, a backdrop, an effect and a base. Owl and panda never wear the bow tie, so they stay distinct from cat and fox.</p>
     </div>
     <div class="panel"><div class="layouts" id="subjects"></div></div>
   </section>
@@ -275,7 +275,7 @@ const FOODS=['pizza slice','burger','ice cream cone','cupcake','donut','popsicle
 const SPORTS=['soccer ball','tennis racket','skateboard','bowling pin','boxing glove'];
 /* icon kinds: geometry generated from visual256/icons.py by docs/build_lab.py */
 const ICONS = __ICONS_JSON__;
-const ICON_KINDS = ['instrument','computer','shape','insignia','weather','space'];
+const ICON_KINDS = ['instrument','computer','shape','insignia','weather','space','flag','holiday','game','tool','piece','sign','clothing','character'];
 const BACKDROPS=['circle','square','diamond','hexagon','shield','starburst','ring','banner'], EFFECTS=['music notes','sparkles','rays','orbit dots'], BASES=['underline','brackets','dotted line','pedestal'];
 const TRAILS=['smoke puffs','flames','speed lines','sparks','bubbles','vapor trail','stars','zigzag'], VEHICLE_MODS=['antenna','flag','siren','fin'], LIVERIES=['stripe','double stripe','checker band','zigzag stripe'];
 const BLOOMS=['berries','blossoms','stars','hearts','apples','lemons','sparkles','bells'], POTS=['terracotta pot','square planter','round bowl','tall vase','wooden crate','soil mound','glass jar','teacup'];
@@ -286,7 +286,7 @@ const TOPPINGS=['sprinkles','seeds','dots','stars','hearts','drizzle','chips','r
 const TOPPERS=['cherry','candle','flag pick','mint leaf'], SIDES=['fork','spoon','chopsticks','cup'];
 const GEAR=['whistle','water bottle','trophy','medal','stopwatch','cone','cap','corner flag'], MOTIONS=['speed lines','sparks','stars','dust puffs'], PITCHES=['grass','court lines','wood floor','ice'];
 const NO_BOW_TIE=['owl','panda'];  // skip accessory 2 so they differ from their look-alikes (cat, fox)
-const SUBJECT_KINDS = [['face',3],['building',10],['animal',10],['vehicle',10],['plant',10],['furniture',8],['food',8],['sports',5],['instrument',11],['computer',11],['shape',11],['insignia',11],['weather',10],['space',10]];
+const SUBJECT_KINDS = [['face',3],['building',10],['animal',10],['vehicle',10],['plant',10],['furniture',8],['food',8],['sports',5],['instrument',11],['computer',11],['shape',11],['insignia',11],['weather',10],['space',10],['flag',16],['holiday',16],['game',16],['tool',12],['piece',12],['sign',12],['clothing',12],['character',32]];
 const SUBJECT_START = {}; SUBJECT_KINDS.reduce((n, [k, len]) => (SUBJECT_START[k] = n, n + len), 0);
 const kindOf = s => SUBJECT_KINDS.filter(([k]) => s >= SUBJECT_START[k]).pop()[0];
 const pickKind = (d, face, building, animal, vehicle, plant, furniture, food, sports, icon) => ({face, building, animal, vehicle, plant, furniture, food, sports})[kindOf(d.subject)] || icon;
@@ -304,7 +304,7 @@ const VISORS=['band','twin-lens','slit','mono-eye','goggles','chevron','triple-l
 const MOUTHS=['vents','teeth','dots','LED','zigzag','speaker','fangs','stitches'];
 const MODS=['antenna','ear discs','cable','fin'];
 const CHEEKS=['stripes','dots','circuit','bolts'];
-const HSTYLES=['clean','horizontal split','vertical split','slice shift','inverted','underline','boxed','shadow'];
+const HSTYLES=['clean','horizontal split','inverted','boxed'];
 const GEM_SHAPES=['circle','square','triangle','diamond'], GEM_FILLS=['solid','outline','dotted','half'];
 
 /* ---------- themes: generated from visual256/themes.py by docs/build_lab.py; the hash picks one ---------- */
@@ -329,7 +329,7 @@ const FIELDS = [
   ['visor',4,'Visor color','visor, lit windows, eyes, blooms and fill patterns', (d,t) => tname(t, d.visor)],
   ['trim',4,'Trim color','outlines, roofs, doors, mouths, marks, decal', (d,t) => tname(t, d.trim)],
   ['accent',4,'Accent color','signal bars and handle effects', (d,t) => tname(t, d.accent)],
-  ['subject',7,'Subject','128 subjects in 14 kinds', d => SUBJECTS[d.subject]],
+  ['subject',8,'Subject','256 subjects in 22 kinds', d => SUBJECTS[d.subject]],
   ['vstyle',3,'Subject detail A','visor, windows, eyes, blooms, or a fill pattern', d => pickKind(d, VISORS, WINDOWS, EYES, WINDOWS, BLOOMS, FABRICS, TOPPINGS, FABRICS, FABRICS)[d.vstyle]],
   ['grille',3,'Subject detail B','mouth, door, nose, trail, pot, companion, serving, gear or backdrop', d => pickKind(d, MOUTHS, DOORS, SNOUTS, TRAILS, POTS, COMPANIONS, SERVINGS, GEAR, BACKDROPS)[d.grille]],
   ['mod',2,'Subject detail C','head mod, roof add-on, accessory, visitor, wall item, topper, motion or effect', d => kindOf(d.subject) === 'animal' ? accessoryName(d) : pickKind(d, MODS, ROOFS, ACCESSORIES, VEHICLE_MODS, VISITORS, WALL_ITEMS, TOPPERS, MOTIONS, EFFECTS)[d.mod]],
@@ -337,7 +337,7 @@ const FIELDS = [
   ['cheek',2,'Subject detail D','cheeks, grounds, markings, livery, ground extras, floor, side item, pitch or base', d => pickKind(d, CHEEKS, GROUNDS, MARKINGS, LIVERIES, GROUND_EXTRAS, FLOORS, SIDES, PITCHES, BASES)[d.cheek]],
   ['status',3,'Status word','8 words', d => STATUS[d.status]],
   ['scolor',4,'Status color','status chip', (d,t) => tname(t, d.scolor)],
-  ['hstyle',3,'Handle style','8 text treatments', d => HSTYLES[d.hstyle]],
+  ['hstyle',2,'Handle style','4 text treatments', d => HSTYLES[d.hstyle]],
   ['word1',11,'Handle word 1','BIP-39 word, 1 of 2,048', d => `${BIP39[d.word1]} (#${d.word1+1})`],
   ['word2',11,'Handle word 2','BIP-39 word, 1 of 2,048', d => `${BIP39[d.word2]} (#${d.word2+1})`],
   ['bars',15,'Signal bars','5 bars × 1–8 levels', d => d.bars.map(v => v+1).join(' ')],
@@ -506,7 +506,7 @@ function drawFrame(ctx, d, fr, fcol, glow, noglow){
   noglow();
   if(st === 1){ ctx.beginPath(); poly(ctx, framePoly(d.corners, 1.7)); ctx.lineWidth = .35; ctx.stroke(); }
 }
-/* the portrait (one of 128 subjects in 14 kinds), then the status chip (mirrors draw.draw_face) */
+/* the portrait (one of 256 subjects in 22 kinds), then the status chip (mirrors draw.draw_face) */
 function drawFace(ctx, d, hx, glow, noglow, vis, trim, t){
   const k = kindOf(d.subject);
   if(k === 'face') drawAndroid(ctx, d, hx, glow, noglow, vis, trim, t);
@@ -1141,7 +1141,8 @@ function shiftArgs(kind, a, c){
 function shiftedIcon(sp, c){
   const ln = ([pts, w]) => [pts.map(([x, y]) => [x+c, y]), w];
   return { body: sp.body.map(([k, a, fab]) => [k, shiftArgs(k, a, c), fab]), solid: sp.solid.map(([k, a]) => [k, shiftArgs(k, a, c)]),
-           lines: sp.lines.map(ln), front: sp.front.map(ln), emblem: [sp.emblem[0]+c, sp.emblem[1]] };
+           lines: sp.lines.map(ln), front: sp.front.map(ln), emblem: [sp.emblem[0]+c, sp.emblem[1]],
+           text: sp.text ? [sp.text[0], sp.text[1]+c, sp.text[2], sp.text[3]] : null };
 }
 function drawIcon(ctx, d, c, kind, glow, noglow, vis, trim, t){
   const sp = shiftedIcon(ICONS[kind].specs[ICONS[kind].names[d.subject - SUBJECT_START[kind]]], c);
@@ -1149,6 +1150,7 @@ function drawIcon(ctx, d, c, kind, glow, noglow, vis, trim, t){
   drawBackdrop(ctx, d.grille, c, vis, trim);
   drawBase(ctx, d.cheek, c, trim, t);
   drawParts(ctx, sp, drawFabric, d.vstyle, d.decal, glow, noglow, vis, trim, t);
+  if(sp.text){ const [ch, x, y, size] = sp.text; ctx.font = `${FONT_WEIGHT.mono} ${size}px ${FONTS.mono}`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = trim; ctx.fillText(ch, x, y); }
   drawEffect(ctx, d.mod, c, vis, trim, glow, noglow);
 }
 function backdropShape(style, c){
@@ -1231,19 +1233,15 @@ function drawStatus(ctx, d, hx, glow, noglow, t){
   ctx.beginPath(); ctx.rect(hx-tw/2-1.8,52.4,tw+3.6,6); glow(sc,1); ctx.lineWidth=.45; ctx.strokeStyle=sc; ctx.stroke(); noglow();
   ctx.fillStyle = sc; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(st, hx, 55.6);
 }
-function handleText(ctx, text, x, y, maxW, align, style, acc, size, glow, noglow, t){
-  const fs = fitFont(ctx, text, maxW - (style === 4 || style === 6 ? 2.4 : 0), t.font, size); ctx.textAlign = align; ctx.textBaseline = 'alphabetic';
+function handleText(ctx, text, x, y, maxW, align, style, acc, size, glow, noglow, t){  // 0 clean, 1 split, 2 inverted, 3 boxed
+  const fs = fitFont(ctx, text, maxW - (style === 2 || style === 3 ? 2.4 : 0), t.font, size); ctx.textAlign = align; ctx.textBaseline = 'alphabetic';
   const w = ctx.measureText(text).width; let left = align === 'left' ? x : align === 'center' ? x - w/2 : x - w;
-  if((style === 4 || style === 6) && align === 'left'){ x += 1.2; left += 1.2; }
+  if((style === 2 || style === 3) && align === 'left'){ x += 1.2; left += 1.2; }
   const o = .55;
   if(style === 1){ ctx.fillStyle=t.chroma[0]; ctx.fillText(text,x-o,y); ctx.fillStyle=t.chroma[1]; ctx.fillText(text,x+o,y); }
-  else if(style === 2){ ctx.fillStyle=t.chroma[0]; ctx.fillText(text,x,y-o); ctx.fillStyle=t.chroma[1]; ctx.fillText(text,x,y+o); }
-  else if(style === 4){ ctx.fillStyle = acc; ctx.fillRect(left-1.2, y-fs*.82, w+2.4, fs*1.04); ctx.fillStyle = chipInk(t, acc); ctx.fillText(text, x, y); return; }
-  else if(style === 7){ ctx.fillStyle = acc; ctx.fillText(text, x+.7, y+.7); }
+  else if(style === 2){ ctx.fillStyle = acc; ctx.fillRect(left-1.2, y-fs*.82, w+2.4, fs*1.04); ctx.fillStyle = chipInk(t, acc); ctx.fillText(text, x, y); return; }
   glow(acc,1.4); ctx.fillStyle=t.handle; ctx.fillText(text,x,y); noglow();
-  if(style === 3){ ctx.save(); ctx.beginPath(); ctx.rect(left-2, y-fs*.5, w+4, fs*.16); ctx.clip(); ctx.fillStyle = t.bg; ctx.fillRect(left-2, y-fs, w+4, fs*1.2); ctx.fillStyle = acc; ctx.fillText(text, x+.9, y); ctx.restore(); }
-  else if(style === 5){ ctx.fillStyle = acc; ctx.fillRect(left, y+fs*.16, w, fs*.13); }
-  else if(style === 6){ ctx.beginPath(); ctx.rect(left-1.2, y-fs*.82, w+2.4, fs*1.04); ctx.lineWidth = .45; ctx.strokeStyle = acc; ctx.stroke(); }
+  if(style === 3){ ctx.beginPath(); ctx.rect(left-1.2, y-fs*.82, w+2.4, fs*1.04); ctx.lineWidth = .45; ctx.strokeStyle = acc; ctx.stroke(); }
 }
 function drawBars(ctx, vals, x0, x1, y0, y1, slots, style, acc, glow, noglow, t){
   const n = vals.length, gap = 1.4, k = Math.max(n, slots), bw = (x1-x0-(k-1)*gap)/k, bh = y1-y0, seg = bh/8, ox = x0 + (k-n)*(bw+gap)/2;

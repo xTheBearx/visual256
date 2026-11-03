@@ -455,7 +455,7 @@ def draw_frame(ctx: Canvas, f: Features, fr, fcol, glow: Glow) -> None:
 
 
 def draw_face(ctx: Canvas, f: Features, hx: float, glow: Glow, vis: str, trim: str, t: Theme) -> None:
-    """The portrait (one of 128 subjects in 14 kinds), then the status chip."""
+    """The portrait (one of 256 subjects in 22 kinds), then the status chip."""
     kind = subject_kind(f.subject)
     if kind == "face":
         draw_android(ctx, f, hx, glow, vis, trim, t)
@@ -740,11 +740,12 @@ def draw_status(ctx: Canvas, f: Features, hx, glow: Glow, t: Theme) -> None:
 
 
 def handle_text(ctx: Canvas, text, x, y, max_w, align, style, acc, size, glow: Glow, t: Theme) -> None:
-    fs = fit_font(ctx, text, max_w - (2.4 if style in (4, 6) else 0), t.handle_font, size)
+    """style: 0 clean, 1 horizontal split, 2 inverted (on an accent block), 3 boxed."""
+    fs = fit_font(ctx, text, max_w - (2.4 if style in (2, 3) else 0), t.handle_font, size)
     ctx.text_align, ctx.text_baseline = align, "alphabetic"
     w = ctx.measure_text(text)
     left = x if align == "left" else (x - w / 2 if align == "center" else x - w)
-    if style in (4, 6) and align == "left":
+    if style in (2, 3) and align == "left":
         x, left = x + 1.2, left + 1.2
     o = .55
     if style == 1:
@@ -753,37 +754,16 @@ def handle_text(ctx: Canvas, text, x, y, max_w, align, style, acc, size, glow: G
         ctx.fill_style = t.chroma[1]
         ctx.fill_text(text, x + o, y)
     elif style == 2:
-        ctx.fill_style = t.chroma[0]
-        ctx.fill_text(text, x, y - o)
-        ctx.fill_style = t.chroma[1]
-        ctx.fill_text(text, x, y + o)
-    elif style == 4:
         ctx.fill_style = acc
         ctx.fill_rect(left - 1.2, y - fs * .82, w + 2.4, fs * 1.04)
         ctx.fill_style = chip_ink(t, acc)
         ctx.fill_text(text, x, y)
         return
-    elif style == 7:
-        ctx.fill_style = acc
-        ctx.fill_text(text, x + .7, y + .7)
     glow(acc, 1.4)
     ctx.fill_style = t.handle
     ctx.fill_text(text, x, y)
     glow.off()
     if style == 3:
-        ctx.save()
-        ctx.begin_path()
-        ctx.rect(left - 2, y - fs * .5, w + 4, fs * .16)
-        ctx.clip()
-        ctx.fill_style = t.bg
-        ctx.fill_rect(left - 2, y - fs, w + 4, fs * 1.2)
-        ctx.fill_style = acc
-        ctx.fill_text(text, x + .9, y)
-        ctx.restore()
-    elif style == 5:
-        ctx.fill_style = acc
-        ctx.fill_rect(left, y + fs * .16, w, fs * .13)
-    elif style == 6:
         ctx.begin_path()
         ctx.rect(left - 1.2, y - fs * .82, w + 2.4, fs * 1.04)
         ctx.line_width, ctx.stroke_style = .45, acc

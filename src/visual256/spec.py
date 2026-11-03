@@ -27,7 +27,8 @@ from dataclasses import dataclass, fields as dc_fields
 
 from . import bip39
 from .bits import BitReader, BitWriter, to_alphabet
-from .icons import COMPUTER, INSIGNIA, INSTRUMENTS, SHAPES, SPACE, WEATHER
+from .icons import (CHARACTERS, CLOTHING, COMPUTER, FLAGS, GAME_ICONS, HOLIDAYS, INSIGNIA, INSTRUMENTS, PIECES, SHAPES, SIGNS,
+                    SPACE, TOOLS, WEATHER)
 
 SPEC_VERSION = "0.1"
 MIX_TAG = b"visual256/netrunner/0.1"
@@ -47,7 +48,7 @@ HEADLINE_FIELDS: tuple[tuple[str, int, str, str], ...] = (
     ("visor", 4, "Visor color", "visor, lit windows, eyes, blooms and fill patterns"),
     ("trim", 4, "Trim color", "outlines, roofs, doors, mouths, marks and decal"),
     ("accent", 4, "Accent color", "signal bars and handle effects"),
-    ("subject", 7, "Subject", "128 subjects in 14 kinds (listed below)"),
+    ("subject", 8, "Subject", "256 subjects in 22 kinds (listed below)"),
     ("vstyle", 3, "Subject detail A", "visor, windows, eyes, blooms, or a fill pattern (8 each)"),
     ("grille", 3, "Subject detail B", "mouth, door, nose, trail, pot, companion, serving, gear or backdrop (8 each)"),
     ("mod", 2, "Subject detail C", "head mod, roof add-on, accessory, visitor, wall item, topper, motion or effect (4 each)"),
@@ -55,7 +56,7 @@ HEADLINE_FIELDS: tuple[tuple[str, int, str, str], ...] = (
     ("cheek", 2, "Subject detail D", "cheeks, grounds, markings, livery, ground extras, floor, side item, pitch or base (4 each)"),
     ("status", 3, "Status word", "one of 8 words"),
     ("scolor", 4, "Status color", "status chip"),
-    ("hstyle", 3, "Handle style", "clean, split, vertical split, slice, inverted, underline, boxed or shadow"),
+    ("hstyle", 2, "Handle style", "clean, horizontal split, inverted or boxed"),
     ("word1", 11, "Handle word 1", "BIP-39 word, 1 of 2048"),
     ("word2", 11, "Handle word 2", "BIP-39 word, 1 of 2048"),
 )
@@ -94,8 +95,10 @@ SPORTS = ("soccer ball", "tennis racket", "skateboard", "bowling pin", "boxing g
 SUBJECT_KINDS = (("face", HEAD_SHAPES), ("building", BUILDINGS), ("animal", ANIMALS), ("vehicle", VEHICLES),
                  ("plant", PLANTS), ("furniture", FURNITURE), ("food", FOODS), ("sports", SPORTS),
                  ("instrument", INSTRUMENTS), ("computer", COMPUTER), ("shape", SHAPES), ("insignia", INSIGNIA),
-                 ("weather", WEATHER), ("space", SPACE))
-ICON_KINDS = ("instrument", "computer", "shape", "insignia", "weather", "space")
+                 ("weather", WEATHER), ("space", SPACE), ("flag", FLAGS), ("holiday", HOLIDAYS), ("game", GAME_ICONS),
+                 ("tool", TOOLS), ("piece", PIECES), ("sign", SIGNS), ("clothing", CLOTHING), ("character", CHARACTERS))
+ICON_KINDS = ("instrument", "computer", "shape", "insignia", "weather", "space", "flag", "holiday", "game", "tool", "piece",
+              "sign", "clothing", "character")
 SUBJECT_START: dict[str, int] = {}
 _n = 0
 for _kind, _names in SUBJECT_KINDS:
@@ -103,7 +106,7 @@ for _kind, _names in SUBJECT_KINDS:
     _n += len(_names)
 SUBJECTS = tuple(f"android, {s} head" for s in HEAD_SHAPES) + BUILDINGS + ANIMALS + VEHICLES + PLANTS + FURNITURE + FOODS + SPORTS
 SUBJECTS += tuple(f"large {s}" if k == "shape" else s for k in ICON_KINDS for s in dict(SUBJECT_KINDS)[k])
-assert len(SUBJECTS) == _n == 128
+assert len(SUBJECTS) == _n == 256
 WINDOWS = ("square grid", "portholes", "arches", "bands", "strips", "picture window", "diamonds", "checker lights")
 DOORS = ("plain door", "arched door", "double door", "round door", "garage door", "gate", "glass door", "awning door")
 ROOFS = ("antenna", "flag", "chimney", "satellite dish")
@@ -133,7 +136,7 @@ SIDES = ("fork", "spoon", "chopsticks", "cup")
 GEAR = ("whistle", "water bottle", "trophy", "medal", "stopwatch", "cone", "cap", "corner flag")
 MOTIONS = ("speed lines", "sparks", "stars", "dust puffs")
 PITCHES = ("grass", "court lines", "wood floor", "ice")
-# shared by the six icon kinds (instruments, computer symbols, shapes, insignia, weather, space)
+# shared by the icon kinds (instruments through characters, see ICON_KINDS)
 BACKDROPS = ("circle", "square", "diamond", "hexagon", "shield", "starburst", "ring", "banner")
 EFFECTS = ("music notes", "sparkles", "rays", "orbit dots")
 BASES = ("underline", "brackets", "dotted line", "pedestal")
@@ -148,7 +151,7 @@ VISORS = ("band", "twin-lens", "slit", "mono-eye", "goggles", "chevron", "triple
 MOUTHS = ("vents", "teeth", "dots", "LED", "zigzag", "speaker", "fangs", "stitches")
 MODS = ("antenna", "ear discs", "cable", "fin")
 CHEEKS = ("stripes", "dots", "circuit", "bolts")
-HANDLE_STYLES = ("clean", "horizontal split", "vertical split", "slice shift", "inverted", "underline", "boxed", "shadow")
+HANDLE_STYLES = ("clean", "horizontal split", "inverted", "boxed")
 SYMBOLS = ("circle", "square", "triangle", "diamond", "star", "plus", "saltire", "heart",
            "crescent", "sun", "drop", "bolt", "hexagon", "ring", "arrow", "clover")
 # 8 words with 8 different first letters, so the status chip reads at a glance

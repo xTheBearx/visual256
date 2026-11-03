@@ -111,14 +111,15 @@ def test_encode_rejects_out_of_range_values():
         encode(with_changes(f, theme=8))
 
 
-def test_subjects_cover_all_fourteen_kinds():
-    from visual256.spec import SUBJECTS, subject_kind
-    kinds = [subject_kind(i) for i in range(128)]
-    counts = [kinds.count(k) for k in ("face", "building", "animal", "vehicle", "plant", "furniture", "food", "sports",
-                                       "instrument", "computer", "shape", "insignia", "weather", "space")]
-    assert counts == [3, 10, 10, 10, 10, 8, 8, 5, 11, 11, 11, 11, 10, 10]
+def test_subjects_cover_all_twenty_two_kinds():
+    from visual256.spec import SUBJECT_KINDS, SUBJECTS, subject_kind
+    kinds = [subject_kind(i) for i in range(256)]
+    counts = {k: kinds.count(k) for k, _ in SUBJECT_KINDS}
+    assert counts == {"face": 3, "building": 10, "animal": 10, "vehicle": 10, "plant": 10, "furniture": 8, "food": 8, "sports": 5,
+                      "instrument": 11, "computer": 11, "shape": 11, "insignia": 11, "weather": 10, "space": 10, "flag": 16,
+                      "holiday": 16, "game": 16, "tool": 12, "piece": 12, "sign": 12, "clothing": 12, "character": 32}
     assert kinds == sorted(kinds, key=kinds.index)  # each kind is one contiguous range
-    assert len(set(SUBJECTS)) == 128
+    assert len(set(SUBJECTS)) == 256
 
 
 def _rows(**changes):
@@ -156,6 +157,13 @@ def test_icon_kind_details_are_named():
     assert (rows["Subject detail C"], rows["Subject detail D"]) == ("music notes", "pedestal")
     assert [_rows(subject=i)["Subject"] for i in (75, 86, 97, 108, 118, 127)] == [
         "floppy disk", "large circle", "winged orb", "sun", "ringed planet", "lunar lander"]
+    assert [_rows(subject=i)["Subject"] for i in (128, 144, 160, 176, 188, 200, 212, 224, 255)] == [
+        "waving flag", "decorated tree", "bullet", "hammer", "pawn", "stop sign", "t-shirt", "letter A", "digit 9"]
+
+
+def test_character_subjects_follow_the_badge_alphabet():
+    from visual256.bits import ALPHABET
+    assert "".join(_rows(subject=224 + i)["Subject"][-1] for i in range(32)) == ALPHABET
 
 
 def test_three_android_heads_remain():
