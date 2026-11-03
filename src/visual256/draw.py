@@ -8,8 +8,8 @@ from __future__ import annotations
 import math
 
 from .canvas import Canvas, LinearGradient, RadialGradient, parse_color
-from .spec import STATUS_WORDS, Features, subject_kind
-from .subjects import draw_animal, draw_building, draw_food, draw_furniture, draw_plant, draw_vehicle
+from .spec import HEAD_SHAPES, STATUS_WORDS, SUBJECT_START, Features, subject_kind
+from .subjects import draw_animal, draw_building, draw_food, draw_furniture, draw_plant, draw_sport, draw_vehicle
 from .themes import Theme, chip_ink, get as get_theme
 
 S = 480.0          # canvas height
@@ -455,7 +455,7 @@ def draw_frame(ctx: Canvas, f: Features, fr, fcol, glow: Glow) -> None:
 
 
 def draw_face(ctx: Canvas, f: Features, hx: float, glow: Glow, vis: str, trim: str, t: Theme) -> None:
-    """The portrait (android head, building, animal, vehicle, plant, furniture or food), then the status chip."""
+    """The portrait (android head, building, animal, vehicle, plant, furniture, food or sports gear), then the status chip."""
     kind = subject_kind(f.subject)
     if kind == "face":
         draw_android(ctx, f, hx, glow, vis, trim, t)
@@ -469,24 +469,20 @@ def draw_face(ctx: Canvas, f: Features, hx: float, glow: Glow, vis: str, trim: s
         draw_plant(ctx, f, hx, glow, vis, trim, t)
     elif kind == "furniture":
         draw_furniture(ctx, f, hx, glow, vis, trim, t)
-    else:
+    elif kind == "food":
         draw_food(ctx, f, hx, glow, vis, trim, t)
+    else:
+        draw_sport(ctx, f, hx, glow, vis, trim, t)
     ctx.line_cap, ctx.line_join = "butt", "miter"
     draw_status(ctx, f, hx, glow, t)
 
 
 def draw_android(ctx: Canvas, f: Features, hx: float, glow: Glow, vis: str, trim: str, t: Theme) -> None:
-    shape, vst = f.subject, f.vstyle
+    shape, vst = HEAD_SHAPES[f.subject - SUBJECT_START["face"]], f.vstyle
 
     def head_path():
         ctx.begin_path()
-        if shape == 0:
-            ctx.ellipse(hx, 30, 13, 17, 0, 0, TAU)
-        elif shape == 1:
-            poly(ctx, [(hx, 12), (hx + 13, 19), (hx + 12, 42), (hx, 49), (hx - 12, 42), (hx - 13, 19)])
-        elif shape == 2:
-            poly(ctx, [(hx - 8, 13), (hx + 8, 13), (hx + 13, 18), (hx + 13, 42), (hx + 8, 47), (hx - 8, 47), (hx - 13, 42), (hx - 13, 18)])
-        elif shape == 3:
+        if shape == "dome":
             ctx.move_to(hx - 13, 27)
             ctx.arc(hx, 27, 13, math.pi, TAU)
             ctx.line_to(hx + 13, 38)
@@ -494,13 +490,9 @@ def draw_android(ctx: Canvas, f: Features, hx: float, glow: Glow, vis: str, trim
             ctx.line_to(hx - 6, 48)
             ctx.line_to(hx - 13, 38)
             ctx.close_path()
-        elif shape == 4:
-            rr(ctx, hx - 12, 12, 24, 36, 10)
-        elif shape == 5:
+        elif shape == "bucket":
             poly(ctx, [(hx - 9, 13), (hx + 9, 13), (hx + 14, 46), (hx - 14, 46)])
-        elif shape == 6:
-            poly(ctx, [(hx - 13, 13), (hx + 13, 13), (hx + 13, 34), (hx, 50), (hx - 13, 34)])
-        else:
+        else:  # skull
             ctx.arc(hx, 25, 14, math.pi * .72, math.pi * 2.28)
             ctx.line_to(hx + 7.5, 43)
             ctx.line_to(hx + 6.5, 49)

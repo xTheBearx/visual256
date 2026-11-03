@@ -43,15 +43,15 @@ HEADLINE_FIELDS: tuple[tuple[str, int, str, str], ...] = (
     ("framestyle", 2, "Frame style", "single, double, dashed or corner brackets"),
     ("barstyle", 2, "Bar style", "segmented, solid, lollipops or chevrons"),
     ("frame", 4, "Frame color", "frame and dividers"),
-    ("visor", 4, "Visor color", "visor, lit windows, eyes, blooms, fabric or toppings"),
+    ("visor", 4, "Visor color", "visor, lit windows, eyes, blooms, fabric, toppings or print"),
     ("trim", 4, "Trim color", "outlines, roofs, doors, mouths, marks and decal"),
     ("accent", 4, "Accent color", "signal bars and handle effects"),
-    ("subject", 6, "Subject", "8 android heads; 10 buildings, animals, vehicles or plants; 8 furniture or 8 foods"),
-    ("vstyle", 3, "Subject detail A", "visor, windows, eyes, vehicle windows, blooms, fabric or toppings (8 each)"),
-    ("grille", 3, "Subject detail B", "mouth, door, nose, trail, pot, companion object or serving (8 each)"),
-    ("mod", 2, "Subject detail C", "head mod, roof add-on, accessory, vehicle add-on, visitor, wall item or topper (4 each)"),
-    ("decal", 4, "Subject symbol", "decal, sign, forehead mark, emblem, pot label, plaque or food label (16 symbols)"),
-    ("cheek", 2, "Subject detail D", "cheeks, grounds, markings, livery, ground extras, floor or side item (4 each)"),
+    ("subject", 6, "Subject", "3 android heads; 10 buildings, animals, vehicles or plants; 8 furniture, 8 foods or 5 sports gear"),
+    ("vstyle", 3, "Subject detail A", "visor, windows, eyes, vehicle windows, blooms, fabric, toppings or print (8 each)"),
+    ("grille", 3, "Subject detail B", "mouth, door, nose, trail, pot, companion object, serving or gear (8 each)"),
+    ("mod", 2, "Subject detail C", "head mod, roof add-on, accessory, vehicle add-on, visitor, wall item, topper or motion (4 each)"),
+    ("decal", 4, "Subject symbol", "decal, sign, forehead mark, emblem, pot label, plaque, food label or team badge (16 symbols)"),
+    ("cheek", 2, "Subject detail D", "cheeks, grounds, markings, livery, ground extras, floor, side item or pitch (4 each)"),
     ("status", 4, "Status word", "one of 16 words"),
     ("scolor", 4, "Status color", "status chip"),
     ("hstyle", 3, "Handle style", "clean, split, vertical split, slice, inverted, underline, boxed or shadow"),
@@ -80,7 +80,7 @@ BAR_STYLES = ("segmented", "solid", "lollipops", "chevrons")
 DISPLAYS = ("tiles", "gems", "hex pairs", "arrows")
 ARROW_DIRS = ("up", "up-right", "right", "down-right", "down", "down-left", "left", "up-left")
 GRADIENT_TONES = ("theme color into the hue", "light to dark")
-HEAD_SHAPES = ("round", "angular", "boxy", "dome", "capsule", "bucket", "shield", "skull")
+HEAD_SHAPES = ("dome", "bucket", "skull")
 BUILDINGS = ("house", "skyscraper", "castle", "pagoda", "observatory", "lighthouse", "factory", "temple",
              "windmill", "needle tower")
 ANIMALS = ("cat", "dog", "rabbit", "fox", "owl", "mouse", "frog", "penguin", "lion", "panda")
@@ -89,14 +89,15 @@ VEHICLES = ("car", "bus", "bicycle", "locomotive", "sailboat", "submarine", "hel
 PLANTS = ("pine", "oak", "palm", "cactus", "sunflower", "bonsai", "fern", "bamboo", "cherry blossom", "lotus")
 FURNITURE = ("armchair", "sofa", "bed", "bookshelf", "grandfather clock", "floor lamp", "piano", "bathtub")
 FOODS = ("pizza slice", "burger", "ice cream cone", "cupcake", "donut", "popsicle", "ramen bowl", "hot dog")
+SPORTS = ("soccer ball", "tennis racket", "skateboard", "bowling pin", "boxing glove")
 SUBJECT_KINDS = (("face", HEAD_SHAPES), ("building", BUILDINGS), ("animal", ANIMALS), ("vehicle", VEHICLES),
-                 ("plant", PLANTS), ("furniture", FURNITURE), ("food", FOODS))
+                 ("plant", PLANTS), ("furniture", FURNITURE), ("food", FOODS), ("sports", SPORTS))
 SUBJECT_START: dict[str, int] = {}
 _n = 0
 for _kind, _names in SUBJECT_KINDS:
     SUBJECT_START[_kind] = _n
     _n += len(_names)
-SUBJECTS = tuple(f"android, {s} head" for s in HEAD_SHAPES) + BUILDINGS + ANIMALS + VEHICLES + PLANTS + FURNITURE + FOODS
+SUBJECTS = tuple(f"android, {s} head" for s in HEAD_SHAPES) + BUILDINGS + ANIMALS + VEHICLES + PLANTS + FURNITURE + FOODS + SPORTS
 assert len(SUBJECTS) == _n == 64
 WINDOWS = ("square grid", "portholes", "arches", "bands", "strips", "picture window", "diamonds", "checker lights")
 DOORS = ("plain door", "arched door", "double door", "round door", "garage door", "gate", "glass door", "awning door")
@@ -124,6 +125,9 @@ TOPPINGS = ("sprinkles", "seeds", "dots", "stars", "hearts", "drizzle", "chips",
 SERVINGS = ("round plate", "wooden board", "napkin", "tray", "cake stand", "picnic cloth", "leaf", "bento box")
 TOPPERS = ("cherry", "candle", "flag pick", "mint leaf")
 SIDES = ("fork", "spoon", "chopsticks", "cup")
+GEAR = ("whistle", "water bottle", "trophy", "medal", "stopwatch", "cone", "cap", "corner flag")
+MOTIONS = ("speed lines", "sparks", "stars", "dust puffs")
+PITCHES = ("grass", "court lines", "wood floor", "ice")
 
 
 def subject_kind(subject: int) -> str:
@@ -256,6 +260,8 @@ def _subject_values(f: Features) -> dict:
         return {"vstyle": FABRICS[f.vstyle], "grille": COMPANIONS[f.grille], "mod": WALL_ITEMS[f.mod], "cheek": FLOORS[f.cheek]}
     if kind == "food":
         return {"vstyle": TOPPINGS[f.vstyle], "grille": SERVINGS[f.grille], "mod": TOPPERS[f.mod], "cheek": SIDES[f.cheek]}
+    if kind == "sports":
+        return {"vstyle": FABRICS[f.vstyle], "grille": GEAR[f.grille], "mod": MOTIONS[f.mod], "cheek": PITCHES[f.cheek]}
     animal = ANIMALS[f.subject - SUBJECT_START["animal"]]
     accessory = "no accessory" if f.mod == 2 and animal in NO_BOW_TIE else ACCESSORIES[f.mod]
     return {"vstyle": EYES[f.vstyle], "grille": SNOUTS[f.grille], "mod": accessory, "cheek": MARKINGS[f.cheek]}

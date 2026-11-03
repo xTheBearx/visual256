@@ -1,14 +1,14 @@
-"""Buildings, animals, vehicles, plants, furniture and food: the portrait kinds besides android heads.
+"""Buildings, animals, vehicles, plants, furniture, food and sports gear: the portrait kinds besides heads.
 
 Coordinates are badge units in the face slot: center x = hx, ground at y = 50 (the status chip
 sits below at 52.4). The same bit fields as the android face pick the details:
 
-    field   building     animal          vehicle   plant          furniture         food
-    vstyle  windows      eyes            windows   blooms         fabric            toppings
-    grille  door         nose and mouth  trail     pot            companion object  serving
-    mod     roof add-on  accessory       add-on    visitor        wall item         topper
-    cheek   grounds      markings        livery    ground extras  floor             side item
-    decal   sign         forehead mark   emblem    pot label      plaque            label
+    field   building     animal          vehicle   plant          furniture         food       sports
+    vstyle  windows      eyes            windows   blooms         fabric            toppings   print
+    grille  door         nose and mouth  trail     pot            companion object  serving    gear
+    mod     roof add-on  accessory       add-on    visitor        wall item         topper     motion
+    cheek   grounds      markings        livery    ground extras  floor             side item  pitch
+    decal   sign         forehead mark   emblem    pot label      plaque            label      team badge
 
 Mirrored line for line in docs/lab-template.html; keep them in sync.
 """
@@ -18,7 +18,7 @@ from __future__ import annotations
 import math
 
 from .canvas import Canvas
-from .spec import ANIMALS, BUILDINGS, FOODS, FURNITURE, NO_BOW_TIE, PLANTS, SUBJECT_START, VEHICLES
+from .spec import ANIMALS, BUILDINGS, FOODS, FURNITURE, NO_BOW_TIE, PLANTS, SPORTS, SUBJECT_START, VEHICLES
 from .themes import Theme
 
 TAU = math.tau
@@ -2084,5 +2084,196 @@ def draw_topper(ctx: Canvas, style, x, y, vis, trim, glow, t: Theme) -> None:
         for s in (-1, 1):
             ctx.move_to(x + s * 1.3 + 1.6 * math.cos(s * .6), y - 1.4 + 1.6 * math.sin(s * .6))
             ctx.ellipse(x + s * 1.3, y - 1.4, 1.6, .8, s * .6, 0, TAU)
+        ctx.fill_style = vis
+        ctx.fill()
+
+
+# ---------- sports equipment ----------
+
+def sport_spec(name: str, c: float) -> dict:
+    """Parts of the sports equipment named `name` on the pitch at y = 46, near x = c.
+
+    Same keys as food_spec plus `gear` (base of the gear item) and `motion` (x, y, direction).
+    """
+    lines, solid, front = [], [], []
+    if name == "soccer ball":
+        B = c - 2
+        pent = [(B + 3.6 * math.cos(-math.pi / 2 + k * TAU / 5), 32 + 3.6 * math.sin(-math.pi / 2 + k * TAU / 5)) for k in range(5)]
+        body = [("circle", (B, 33, 11), True)]
+        solid = [("poly", pent)]
+        front = [([(x, y), (B + (x - B) * 2.1, 32 + (y - 32) * 2.1)], .5) for x, y in pent]
+        emblem, gear, motion = (B + 5.5, 39.5), (c + 13.5, 46), (c - 13.5, 30, (-1, 0))
+    elif name == "tennis racket":
+        ux, uy, px, py = -.479, .878, 1.14, .62
+        x0, y0 = c - 2.8, 30.8
+        x1, y1 = x0 + 14 * ux, y0 + 14 * uy
+        body = [("poly", [(x0 + px, y0 + py), (x1 + px, y1 + py), (x1 - px, y1 - py), (x0 - px, y0 - py)], False),
+                ("ellipse", (c + 2, 22, 7.5, 10, .5), True), ("circle", (c + 8, 42.6, 2.8), False)]
+        xm, ym = x0 + 8 * ux, y0 + 8 * uy
+        solid = [("poly", [(xm + px, ym + py), (x1 + px, y1 + py), (x1 - px, y1 - py), (xm - px, ym - py)])]
+        front = [([(c + 5.6, 40.4), (c + 7.6, 42.6), (c + 10.4, 43.4)], .4)]
+        emblem, gear, motion = (c + 2, 22), (c + 14.5, 46), (c + 10.5, 13, (.86, -.5))
+    elif name == "skateboard":
+        K = c - 4
+        body = [("poly", [(K - 12, 33.5), (K - 10, 36), (K + 10, 36), (K + 12, 33.5), (K + 13, 34.5), (K + 11, 40),
+                          (K - 11, 40), (K - 13, 34.5)], True)]
+        solid = [("rect", (K - 8, 40, 4, 1.6)), ("rect", (K + 4, 40, 4, 1.6)), ("circle", (K - 6, 43.2, 2.4)), ("circle", (K + 6, 43.2, 2.4))]
+        emblem, gear, motion = (K, 38), (c + 13, 46), (K - 13, 38, (-1, 0))
+    elif name == "bowling pin":
+        P = c - 6
+        prof = ((13, 0), (14, 2.2), (16, 3.3), (19, 3.2), (22, 2.2), (24, 2), (27, 3.5), (31, 5.6), (35, 6.3), (39, 5.6), (43, 4.2), (45, 3.4))
+        pin = [(P + w, y) for y, w in prof] + [(P - w, y) for y, w in reversed(prof)]
+        body = [("poly", pin, True), ("circle", (c + 7.5, 40.5, 5.5), False)]
+        solid = [("rect", (P - 2.3, 21.6, 4.6, 1)), ("rect", (P - 2.1, 23.6, 4.2, 1)),
+                 ("circle", (c + 6, 38, .8)), ("circle", (c + 8.6, 37.6, .8)), ("circle", (c + 7.6, 40.2, .9))]
+        emblem, gear, motion = (P, 35), (c - 14.5, 46), (c + 7.5, 33.5, (0, -1))
+    else:  # boxing glove
+        G = c - 2
+        body = [("rr", (G - 6, 35, 12, 9, 2), False), ("ellipse", (G, 25, 9.5, 11, 0), True), ("ellipse", (G + 8, 29, 3, 5.5, .35), False)]
+        solid = [("rr", (G - 6.5, 34, 13, 2.4, 1))]
+        front = [([(G - 2, 37.5), (G + 2, 41)], .5), ([(G + 2, 37.5), (G - 2, 41)], .5)]
+        emblem, gear, motion = (G - 1, 24), (c + 13.5, 46), (c - 13.5, 25, (-1, 0))
+    return dict(body=body, lines=lines, solid=solid, front=front, emblem=emblem, gear=gear, motion=motion)
+
+
+def draw_sport(ctx: Canvas, f, c: float, glow, vis: str, trim: str, t: Theme) -> None:
+    sp = sport_spec(SPORTS[f.subject - SUBJECT_START["sports"]], c)
+    ctx.line_join, ctx.line_cap = "round", "round"
+    draw_pitch(ctx, f.cheek, c, vis, trim)
+    x, y, d = sp["motion"]
+    draw_trail(ctx, (2, 3, 6, 0)[f.mod], x, y, d, vis, trim, glow)
+    _draw_parts(ctx, sp, draw_fabric, f.vstyle, f.decal, glow, vis, trim, t)
+    draw_gear(ctx, f.grille, *sp["gear"], vis, trim, glow, t)
+
+
+def draw_pitch(ctx: Canvas, style, c, vis, trim) -> None:
+    if style == 2:  # wood floor
+        draw_floor(ctx, 1, c, vis, trim)
+        return
+    ctx.line_width, ctx.stroke_style, ctx.fill_style = .5, trim, trim
+    ctx.begin_path()
+    ctx.move_to(c - 17, 50)
+    ctx.line_to(c + 17, 50)
+    ctx.stroke()
+    ctx.begin_path()
+    if style == 0:  # grass
+        for k in range(12):
+            x = c - 16.5 + k * 3
+            ctx.move_to(x - .8, 47.6)
+            ctx.line_to(x, 50)
+            ctx.line_to(x + .8, 47.4)
+        ctx.line_width = .45
+        ctx.stroke()
+        return
+    ctx.rect(c - 17, 46.4, 34, 3.6)
+    ctx.fill_style = trim if style == 1 else vis
+    ctx.global_alpha = .3
+    ctx.fill()
+    ctx.global_alpha = 1
+    ctx.begin_path()
+    if style == 1:  # court lines
+        ctx.move_to(c - 17, 48.2)
+        ctx.line_to(c + 17, 48.2)
+        ctx.move_to(c, 46.4)
+        ctx.line_to(c, 50)
+        ctx.line_width, ctx.stroke_style = .5, vis
+    else:  # ice
+        ctx.move_to(c - 12, 49)
+        ctx.line_to(c - 6, 47.4)
+        ctx.move_to(c + 3, 49.2)
+        ctx.line_to(c + 10, 47.6)
+        ctx.line_width = .3
+    ctx.stroke()
+
+
+def draw_gear(ctx: Canvas, style, x, y, vis, trim, glow, t: Theme) -> None:
+    ctx.fill_style, ctx.stroke_style, ctx.line_width = trim, trim, .5
+    ctx.begin_path()
+    if style == 0:  # whistle
+        ctx.move_to(x + 1.7, y - 2.2)
+        ctx.arc(x - .5, y - 2.2, 2.2, 0, TAU)
+        ctx.rect(x + .6, y - 4.4, 3, 1.6)
+        ctx.fill()
+        ctx.begin_path()
+        ctx.arc(x - 1.6, y - 6, 1.8, 0, TAU)
+        ctx.stroke_style = vis
+        ctx.stroke()
+    elif style == 1:  # water bottle
+        _shape(ctx, "rr", (x - 1.8, y - 7, 3.6, 7, 1))
+        ctx.fill_style = t.panel
+        ctx.fill()
+        ctx.stroke()
+        ctx.begin_path()
+        ctx.rect(x - 1, y - 8.6, 2, 1.6)
+        ctx.fill_style = trim
+        ctx.fill()
+        ctx.begin_path()
+        ctx.rect(x - 1.8, y - 4.6, 3.6, 1.6)
+        ctx.fill_style = vis
+        ctx.fill()
+    elif style == 2:  # trophy
+        ctx.rect(x - .6, y - 4.6, 1.2, 3)
+        ctx.rect(x - 2.4, y - 1.6, 4.8, 1.6)
+        ctx.fill()
+        ctx.begin_path()
+        for s in (-1, 1):
+            ctx.move_to(x + s * 2.6, y - 7.4)
+            ctx.arc(x + s * 3, y - 6.6, 1.1, -math.pi / 2, math.pi / 2, s < 0)
+        ctx.stroke()
+        ctx.begin_path()
+        _poly(ctx, [(x - 3, y - 8.4), (x + 3, y - 8.4), (x + 2, y - 4.6), (x - 2, y - 4.6)])
+        glow(vis, 1)
+        ctx.fill_style = vis
+        ctx.fill()
+        glow.off()
+    elif style == 3:  # medal
+        ctx.move_to(x - 2.2, y - 8.6)
+        ctx.line_to(x, y - 4.6)
+        ctx.line_to(x + 2.2, y - 8.6)
+        ctx.line_width, ctx.stroke_style = 1, vis
+        ctx.stroke()
+        ctx.begin_path()
+        ctx.arc(x, y - 2.6, 2.4, 0, TAU)
+        glow(vis, 1)
+        ctx.fill_style = vis
+        ctx.fill()
+        glow.off()
+        ctx.line_width, ctx.stroke_style = .5, trim
+        ctx.stroke()
+    elif style == 4:  # stopwatch
+        ctx.rect(x - .7, y - 7.6, 1.4, 1.2)
+        ctx.fill()
+        ctx.begin_path()
+        ctx.arc(x, y - 3.4, 3, 0, TAU)
+        ctx.fill_style = t.panel
+        ctx.fill()
+        ctx.stroke()
+        ctx.begin_path()
+        ctx.move_to(x, y - 3.4)
+        ctx.line_to(x + 1.4, y - 4.8)
+        ctx.line_width, ctx.stroke_style = .5, vis
+        ctx.stroke()
+    elif style == 5:  # cone
+        _poly(ctx, [(x - 3, y), (x + 3, y), (x + .8, y - 7), (x - .8, y - 7)])
+        ctx.fill_style = vis
+        ctx.fill()
+        ctx.begin_path()
+        ctx.rect(x - 1.9, y - 4, 3.8, 1.2)
+        ctx.fill_style = trim
+        ctx.fill()
+    elif style == 6:  # cap
+        _shape(ctx, "halfellipse", (x - .6, y - 1.2, 3, 3.2))
+        ctx.rect(x - .6, y - 1.8, 4.4, .8)
+        ctx.fill()
+        ctx.begin_path()
+        ctx.arc(x - .6, y - 4.6, .6, 0, TAU)
+        ctx.fill_style = vis
+        ctx.fill()
+    else:  # corner flag
+        ctx.move_to(x, y)
+        ctx.line_to(x, y - 9)
+        ctx.stroke()
+        ctx.begin_path()
+        _poly(ctx, [(x, y - 9), (x + 4, y - 7.6), (x, y - 6.2)])
         ctx.fill_style = vis
         ctx.fill()
