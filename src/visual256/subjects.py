@@ -1838,10 +1838,6 @@ def food_spec(name: str, c: float) -> dict:
         body = [("ellipse", (F, 37, 11.5, 6.5, 0), False), ("ellipse", (F, 36, 10, 5, 0), True)]
         solid = [("ellipse", (F, 36, 3, 1.5, 0))]
         emblem, top = (F, 41), (F + 5.5, 33.4)
-    elif name == "popsicle":
-        body = [("rr", (F - 1.3, 34, 2.6, 10.5, 1.3), False), ("rr", (F - 6, 12, 12, 24, 6), True)]
-        front = [([(F - 3, 33), (F + 3, 33)], .5)]
-        emblem, top = (F, 27), (F, 12)
     elif name == "ramen bowl":
         lines = [([(F + 2, 32), (F + 10, 17)], .9), ([(F + 4.5, 32), (F + 12.5, 18.4)], .9)]
         body = [("lowerellipse", (F, 32, 13, 11), False), ("ellipse", (F, 32, 13, 2.6, 0), True),
@@ -2297,8 +2293,8 @@ def draw_icon(ctx: Canvas, f, c: float, kind: str, glow, vis: str, trim: str, t:
     draw_base(ctx, f.cheek, c, trim, t)
     _draw_parts(ctx, sp, draw_fabric, f.vstyle, f.decal, glow, vis, trim, t)
     if "text" in sp:
-        ch, x, y, size, inverted = sp["text"]
-        ctx.set_font("mono", size)
+        ch, x, y, size, inverted, font = sp["text"]
+        ctx.set_font(font, size)
         ctx.text_align, ctx.text_baseline = "center", "alphabetic"
         ctx.fill_style = t.panel if inverted else trim
         ctx.fill_text(ch, x, y)

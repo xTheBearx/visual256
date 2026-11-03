@@ -27,8 +27,8 @@ from dataclasses import dataclass, fields as dc_fields
 
 from . import bip39
 from .bits import BitReader, BitWriter, to_alphabet
-from .icons import (CHARACTERS, CLOTHING, COMPUTER, FLAGS, GAME_ICONS, HOLIDAYS, INSIGNIA, INSTRUMENTS, PIECES, SHAPES, SIGNS,
-                    SPACE, TOOLS, WEATHER)
+from .icons import (CHARACTERS, CLOTHING, COMPUTER, EMOJIS, FLAGS, GAME_ICONS, HOLIDAYS, INSIGNIA, INSTRUMENTS, PIECES, SHAPES,
+                    SIGNS, SPACE, TOOLS, WEATHER)
 
 SPEC_VERSION = "0.1"
 MIX_TAG = b"visual256/netrunner/0.1"
@@ -48,7 +48,7 @@ HEADLINE_FIELDS: tuple[tuple[str, int, str, str], ...] = (
     ("visor", 4, "Visor color", "visor, lit windows, eyes, blooms and fill patterns"),
     ("trim", 4, "Trim color", "outlines, roofs, doors, mouths, marks and decal"),
     ("accent", 4, "Accent color", "signal bars and handle effects"),
-    ("subject", 8, "Subject", "256 subjects in 22 kinds (listed below)"),
+    ("subject", 8, "Subject", "256 subjects in 23 kinds (listed below)"),
     ("vstyle", 3, "Subject detail A", "visor, windows, eyes, blooms, or a fill pattern (8 each)"),
     ("grille", 3, "Subject detail B", "mouth, door, nose, trail, pot, companion, serving, gear or backdrop (8 each)"),
     ("mod", 2, "Subject detail C", "head mod, roof add-on, accessory, visitor, wall item, topper, motion or effect (4 each)"),
@@ -90,15 +90,16 @@ VEHICLES = ("car", "bus", "bicycle", "locomotive", "sailboat", "submarine", "hel
             "rocket", "flying saucer")
 PLANTS = ("pine", "oak", "palm", "cactus", "sunflower", "bonsai", "fern", "bamboo", "cherry blossom", "lotus")
 FURNITURE = ("armchair", "sofa", "bed", "bookshelf", "grandfather clock", "floor lamp", "piano", "bathtub")
-FOODS = ("pizza slice", "burger", "ice cream cone", "cupcake", "donut", "popsicle", "ramen bowl", "hot dog")
+FOODS = ("pizza slice", "burger", "ice cream cone", "cupcake", "donut", "ramen bowl", "hot dog")
 SPORTS = ("soccer ball", "tennis racket", "skateboard", "bowling pin", "boxing glove")
 SUBJECT_KINDS = (("face", HEAD_SHAPES), ("building", BUILDINGS), ("animal", ANIMALS), ("vehicle", VEHICLES),
                  ("plant", PLANTS), ("furniture", FURNITURE), ("food", FOODS), ("sports", SPORTS),
                  ("instrument", INSTRUMENTS), ("computer", COMPUTER), ("shape", SHAPES), ("insignia", INSIGNIA),
                  ("weather", WEATHER), ("space", SPACE), ("flag", FLAGS), ("holiday", HOLIDAYS), ("game", GAME_ICONS),
-                 ("tool", TOOLS), ("piece", PIECES), ("sign", SIGNS), ("clothing", CLOTHING), ("character", CHARACTERS))
+                 ("tool", TOOLS), ("piece", PIECES), ("sign", SIGNS), ("clothing", CLOTHING), ("character", CHARACTERS),
+                 ("emoji", EMOJIS))
 ICON_KINDS = ("instrument", "computer", "shape", "insignia", "weather", "space", "flag", "holiday", "game", "tool", "piece",
-              "sign", "clothing", "character")
+              "sign", "clothing", "character", "emoji")
 SUBJECT_START: dict[str, int] = {}
 _n = 0
 for _kind, _names in SUBJECT_KINDS:

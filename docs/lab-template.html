@@ -1,6 +1,6 @@
 <title>Netrunner ID Lab</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Chakra+Petch:wght@600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Spectral:wght@600&family=Audiowide&family=Silkscreen:wght@700&family=Saira+Stencil+One&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Chakra+Petch:wght@600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Spectral:wght@600&family=Audiowide&family=Silkscreen:wght@700&family=Saira+Stencil+One&family=Noto+Emoji:wght@600&display=swap">
 <style>
 /* Layout: one-style workbench. Input, hero badge beside its field readout, bit ruler, layout previews, test bench, spoken backup, notes. */
 :root{
@@ -153,7 +153,7 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
   <section>
     <div class="sec-head">
       <h2>256 subjects</h2>
-      <p class="note">Bits 36–43 pick the portrait from 256 subjects in 22 kinds: 3 android heads, 10 buildings, 10 animals, 10 vehicles, 10 plants, 8 pieces of furniture, 8 foods, 5 pieces of sports equipment, 11 each of musical instruments, computer symbols, large basic shapes and sci-fi insignia, 10 each of weather symbols and space objects, 16 each of flags, holiday symbols and game icons, 12 each of tools, game pieces, road signs and clothing, and the 32 characters of the badge alphabet. The same four detail fields and symbol mean something that fits each kind; the icon kinds share a fill pattern, a backdrop, an effect and a base. Owl and panda never wear the bow tie, so they stay distinct from cat and fox.</p>
+      <p class="note">Bits 36–43 pick the portrait from 256 subjects in 23 kinds: 3 android heads, 10 buildings, 10 animals, 10 vehicles, 10 plants, 8 pieces of furniture, 7 foods, 5 pieces of sports equipment, 11 each of musical instruments, computer symbols, large basic shapes and sci-fi insignia, 10 each of weather symbols and space objects, 14 flags, 16 each of holiday symbols and game icons, 12 tools, 11 game pieces, 11 road signs, 12 clothing items, the 32 characters of the badge alphabet on 8 tile styles, and 5 emoji (Noto Emoji, drawn in theme colors). The same four detail fields and symbol mean something that fits each kind; the icon kinds share a fill pattern, a backdrop, an effect and a base. Owl and panda never wear the bow tie, so they stay distinct from cat and fox.</p>
     </div>
     <div class="panel"><div class="layouts" id="subjects"></div></div>
   </section>
@@ -271,11 +271,11 @@ const ACCESSORIES=['collar and tag','bow','bow tie','scarf'], MARKINGS=['whisker
 const VEHICLES=['car','bus','bicycle','locomotive','sailboat','submarine','helicopter','hot-air balloon','rocket','flying saucer'];
 const PLANTS=['pine','oak','palm','cactus','sunflower','bonsai','fern','bamboo','cherry blossom','lotus'];
 const FURNITURE=['armchair','sofa','bed','bookshelf','grandfather clock','floor lamp','piano','bathtub'];
-const FOODS=['pizza slice','burger','ice cream cone','cupcake','donut','popsicle','ramen bowl','hot dog'];
+const FOODS=['pizza slice','burger','ice cream cone','cupcake','donut','ramen bowl','hot dog'];
 const SPORTS=['soccer ball','tennis racket','skateboard','bowling pin','boxing glove'];
 /* icon kinds: geometry generated from visual256/icons.py by docs/build_lab.py */
 const ICONS = __ICONS_JSON__;
-const ICON_KINDS = ['instrument','computer','shape','insignia','weather','space','flag','holiday','game','tool','piece','sign','clothing','character'];
+const ICON_KINDS = ['instrument','computer','shape','insignia','weather','space','flag','holiday','game','tool','piece','sign','clothing','character','emoji'];
 const BACKDROPS=['circle','square','diamond','hexagon','shield','starburst','ring','banner'], EFFECTS=['music notes','sparkles','rays','orbit dots'], BASES=['underline','brackets','dotted line','pedestal'];
 const TRAILS=['smoke puffs','flames','speed lines','sparks','bubbles','vapor trail','stars','zigzag'], VEHICLE_MODS=['antenna','flag','siren','fin'], LIVERIES=['stripe','double stripe','checker band','zigzag stripe'];
 const BLOOMS=['berries','blossoms','stars','hearts','apples','lemons','sparkles','bells'], POTS=['terracotta pot','square planter','round bowl','tall vase','wooden crate','soil mound','glass jar','teacup'];
@@ -286,7 +286,7 @@ const TOPPINGS=['sprinkles','seeds','dots','stars','hearts','drizzle','chips','r
 const TOPPERS=['cherry','candle','flag pick','mint leaf'], SIDES=['fork','spoon','chopsticks','cup'];
 const GEAR=['whistle','water bottle','trophy','medal','stopwatch','cone','cap','corner flag'], MOTIONS=['speed lines','sparks','stars','dust puffs'], PITCHES=['grass','court lines','wood floor','ice'];
 const NO_BOW_TIE=['owl','panda'];  // skip accessory 2 so they differ from their look-alikes (cat, fox)
-const SUBJECT_KINDS = [['face',3],['building',10],['animal',10],['vehicle',10],['plant',10],['furniture',8],['food',8],['sports',5],['instrument',11],['computer',11],['shape',11],['insignia',11],['weather',10],['space',10],['flag',16],['holiday',16],['game',16],['tool',12],['piece',12],['sign',12],['clothing',12],['character',32]];
+const SUBJECT_KINDS = [['face',3],['building',10],['animal',10],['vehicle',10],['plant',10],['furniture',8],['food',7],['sports',5],['instrument',11],['computer',11],['shape',11],['insignia',11],['weather',10],['space',10],['flag',14],['holiday',16],['game',16],['tool',12],['piece',11],['sign',11],['clothing',12],['character',32],['emoji',5]];
 const SUBJECT_START = {}; SUBJECT_KINDS.reduce((n, [k, len]) => (SUBJECT_START[k] = n, n + len), 0);
 const kindOf = s => SUBJECT_KINDS.filter(([k]) => s >= SUBJECT_START[k]).pop()[0];
 const pickKind = (d, face, building, animal, vehicle, plant, furniture, food, sports, icon) => ({face, building, animal, vehicle, plant, furniture, food, sports})[kindOf(d.subject)] || icon;
@@ -309,8 +309,8 @@ const GEM_SHAPES=['circle','square','triangle','diamond'], GEM_FILLS=['solid','o
 
 /* ---------- themes: generated from visual256/themes.py by docs/build_lab.py; the hash picks one ---------- */
 const THEMES = __THEMES_JSON__;
-const FONTS = { cyber:'"Chakra Petch", "JetBrains Mono", monospace', mono:'"JetBrains Mono", ui-monospace, monospace', serif:'Spectral, Georgia, serif', retro:'Audiowide, "Chakra Petch", sans-serif', pixel:'Silkscreen, "JetBrains Mono", monospace', stencil:'"Saira Stencil One", "Chakra Petch", sans-serif' };
-const FONT_WEIGHT = { cyber:700, mono:600, serif:600, retro:400, pixel:700, stencil:400 };
+const FONTS = { cyber:'"Chakra Petch", "JetBrains Mono", monospace', mono:'"JetBrains Mono", ui-monospace, monospace', serif:'Spectral, Georgia, serif', retro:'Audiowide, "Chakra Petch", sans-serif', pixel:'Silkscreen, "JetBrains Mono", monospace', stencil:'"Saira Stencil One", "Chakra Petch", sans-serif', emoji:'"Noto Emoji", sans-serif' };
+const FONT_WEIGHT = { cyber:700, mono:600, serif:600, retro:400, pixel:700, stencil:400, emoji:600 };
 const tcol = (t, i) => t.palette[i&15][1], tname = (t, i) => t.palette[i&15][0];
 function lum(h){ const n = parseInt(h.slice(1,7),16); const ch = [n>>16&255, n>>8&255, n&255].map(v => { v /= 255; return v <= 0.03928 ? v/12.92 : ((v+0.055)/1.055)**2.4; }); return 0.2126*ch[0] + 0.7152*ch[1] + 0.0722*ch[2]; }
 const chipInk = (t, c) => lum(c) > 0.3 ? t.inkDark : t.inkLight;
@@ -329,7 +329,7 @@ const FIELDS = [
   ['visor',4,'Visor color','visor, lit windows, eyes, blooms and fill patterns', (d,t) => tname(t, d.visor)],
   ['trim',4,'Trim color','outlines, roofs, doors, mouths, marks, decal', (d,t) => tname(t, d.trim)],
   ['accent',4,'Accent color','signal bars and handle effects', (d,t) => tname(t, d.accent)],
-  ['subject',8,'Subject','256 subjects in 22 kinds', d => SUBJECTS[d.subject]],
+  ['subject',8,'Subject','256 subjects in 23 kinds', d => SUBJECTS[d.subject]],
   ['vstyle',3,'Subject detail A','visor, windows, eyes, blooms, or a fill pattern', d => pickKind(d, VISORS, WINDOWS, EYES, WINDOWS, BLOOMS, FABRICS, TOPPINGS, FABRICS, FABRICS)[d.vstyle]],
   ['grille',3,'Subject detail B','mouth, door, nose, trail, pot, companion, serving, gear or backdrop', d => pickKind(d, MOUTHS, DOORS, SNOUTS, TRAILS, POTS, COMPANIONS, SERVINGS, GEAR, BACKDROPS)[d.grille]],
   ['mod',2,'Subject detail C','head mod, roof add-on, accessory, visitor, wall item, topper, motion or effect', d => kindOf(d.subject) === 'animal' ? accessoryName(d) : pickKind(d, MODS, ROOFS, ACCESSORIES, VEHICLE_MODS, VISITORS, WALL_ITEMS, TOPPERS, MOTIONS, EFFECTS)[d.mod]],
@@ -506,7 +506,7 @@ function drawFrame(ctx, d, fr, fcol, glow, noglow){
   noglow();
   if(st === 1){ ctx.beginPath(); poly(ctx, framePoly(d.corners, 1.7)); ctx.lineWidth = .35; ctx.stroke(); }
 }
-/* the portrait (one of 256 subjects in 22 kinds), then the status chip (mirrors draw.draw_face) */
+/* the portrait (one of 256 subjects in 23 kinds), then the status chip (mirrors draw.draw_face) */
 function drawFace(ctx, d, hx, glow, noglow, vis, trim, t){
   const k = kindOf(d.subject);
   if(k === 'face') drawAndroid(ctx, d, hx, glow, noglow, vis, trim, t);
@@ -1010,7 +1010,6 @@ function foodSpec(name, c){
   else if(name === 'cupcake'){ body = [['poly',[[F-7,33],[F+7,33],[F+5.5,45],[F-5.5,45]],false],['halfellipse',[F,33,8.5,6],true],['circle',[F,25.5,4.5],true]];
     front = [[[[F-4.4,34],[F-3.6,44.5]],.4],[[[F+4.4,34],[F+3.6,44.5]],.4]]; emblem = [F,39.4]; top = [F,21]; }
   else if(name === 'donut'){ body = [['ellipse',[F,37,11.5,6.5,0],false],['ellipse',[F,36,10,5,0],true]]; solid = [['ellipse',[F,36,3,1.5,0]]]; emblem = [F,41]; top = [F+5.5,33.4]; }
-  else if(name === 'popsicle'){ body = [['rr',[F-1.3,34,2.6,10.5,1.3],false],['rr',[F-6,12,12,24,6],true]]; front = [[[[F-3,33],[F+3,33]],.5]]; emblem = [F,27]; top = [F,12]; }
   else if(name === 'ramen bowl'){ lines = [[[[F+2,32],[F+10,17]],.9],[[[F+4.5,32],[F+12.5,18.4]],.9]];
     body = [['lowerellipse',[F,32,13,11],false],['ellipse',[F,32,13,2.6,0],true],['ellipse',[F-5,31.4,3,1.5,0],false]]; solid = [['rect',[F-4,42.6,8,1.6]]]; emblem = [F,38]; top = [F+1,31]; }
   else { body = [['rr',[F-12,28.5,24,4.5,2.2],false],['rr',[F-14.5,30.2,29,4.4,2.2],true],['rr',[F-13,33,26,7,3.5],false]]; emblem = [F,36.6]; top = [F,30.2]; }  // hot dog
@@ -1142,7 +1141,7 @@ function shiftedIcon(sp, c){
   const ln = ([pts, w]) => [pts.map(([x, y]) => [x+c, y]), w];
   return { body: sp.body.map(([k, a, fab]) => [k, shiftArgs(k, a, c), fab]), solid: sp.solid.map(([k, a]) => [k, shiftArgs(k, a, c)]),
            lines: sp.lines.map(ln), front: sp.front.map(ln), emblem: [sp.emblem[0]+c, sp.emblem[1]],
-           text: sp.text ? [sp.text[0], sp.text[1]+c, sp.text[2], sp.text[3], sp.text[4]] : null };
+           text: sp.text ? [sp.text[0], sp.text[1]+c, sp.text[2], sp.text[3], sp.text[4], sp.text[5]] : null };
 }
 function drawIcon(ctx, d, c, kind, glow, noglow, vis, trim, t){
   const sp = shiftedIcon(ICONS[kind].specs[ICONS[kind].names[d.subject - SUBJECT_START[kind]]], c);
@@ -1150,7 +1149,7 @@ function drawIcon(ctx, d, c, kind, glow, noglow, vis, trim, t){
   drawBackdrop(ctx, d.grille, c, vis, trim);
   drawBase(ctx, d.cheek, c, trim, t);
   drawParts(ctx, sp, drawFabric, d.vstyle, d.decal, glow, noglow, vis, trim, t);
-  if(sp.text){ const [ch, x, y, size, inverted] = sp.text; ctx.font = `${FONT_WEIGHT.mono} ${size}px ${FONTS.mono}`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = inverted ? t.panel : trim; ctx.fillText(ch, x, y); }
+  if(sp.text){ const [ch, x, y, size, inverted, font] = sp.text; ctx.font = `${FONT_WEIGHT[font]} ${size}px ${FONTS[font]}`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = inverted ? t.panel : trim; ctx.fillText(ch, x, y); }
   drawEffect(ctx, d.mod, c, vis, trim, glow, noglow);
 }
 function backdropShape(style, c){

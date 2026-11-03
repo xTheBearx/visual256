@@ -111,13 +111,13 @@ def test_encode_rejects_out_of_range_values():
         encode(with_changes(f, theme=8))
 
 
-def test_subjects_cover_all_twenty_two_kinds():
+def test_subjects_cover_all_twenty_three_kinds():
     from visual256.spec import SUBJECT_KINDS, SUBJECTS, subject_kind
     kinds = [subject_kind(i) for i in range(256)]
     counts = {k: kinds.count(k) for k, _ in SUBJECT_KINDS}
-    assert counts == {"face": 3, "building": 10, "animal": 10, "vehicle": 10, "plant": 10, "furniture": 8, "food": 8, "sports": 5,
-                      "instrument": 11, "computer": 11, "shape": 11, "insignia": 11, "weather": 10, "space": 10, "flag": 16,
-                      "holiday": 16, "game": 16, "tool": 12, "piece": 12, "sign": 12, "clothing": 12, "character": 32}
+    assert counts == {"face": 3, "building": 10, "animal": 10, "vehicle": 10, "plant": 10, "furniture": 8, "food": 7, "sports": 5,
+                      "instrument": 11, "computer": 11, "shape": 11, "insignia": 11, "weather": 10, "space": 10, "flag": 14,
+                      "holiday": 16, "game": 16, "tool": 12, "piece": 11, "sign": 11, "clothing": 12, "character": 32, "emoji": 5}
     assert kinds == sorted(kinds, key=kinds.index)  # each kind is one contiguous range
     assert len(set(SUBJECTS)) == 256
 
@@ -127,38 +127,41 @@ def _rows(**changes):
     return dict((label, value) for _, label, value in describe(f, tuple("c" * 16)))
 
 
+def _at(name):
+    from visual256.spec import SUBJECTS
+    return SUBJECTS.index(name)
+
+
 def test_furniture_details_are_named():
-    rows = _rows(subject=50, vstyle=6, grille=3, mod=3, cheek=2)
-    assert rows["Subject"] == "bathtub"
+    rows = _rows(subject=_at("bathtub"), vstyle=6, grille=3, mod=3, cheek=2)
     assert (rows["Subject detail A"], rows["Subject detail B"]) == ("plaid", "teapot")
     assert (rows["Subject detail C"], rows["Subject detail D"]) == ("bunting", "checker tiles")
 
 
 def test_food_details_are_named():
-    rows = _rows(subject=51, vstyle=0, grille=4, mod=0, cheek=2)
-    assert rows["Subject"] == "pizza slice"
+    rows = _rows(subject=_at("pizza slice"), vstyle=0, grille=4, mod=0, cheek=2)
     assert (rows["Subject detail A"], rows["Subject detail B"]) == ("sprinkles", "cake stand")
     assert (rows["Subject detail C"], rows["Subject detail D"]) == ("cherry", "chopsticks")
-    assert _rows(subject=58)["Subject"] == "hot dog"
 
 
 def test_sports_details_are_named():
-    rows = _rows(subject=59, vstyle=2, grille=2, mod=1, cheek=3)
-    assert rows["Subject"] == "soccer ball"
+    rows = _rows(subject=_at("soccer ball"), vstyle=2, grille=2, mod=1, cheek=3)
     assert (rows["Subject detail A"], rows["Subject detail B"]) == ("polka dots", "trophy")
     assert (rows["Subject detail C"], rows["Subject detail D"]) == ("sparks", "ice")
-    assert _rows(subject=63)["Subject"] == "boxing glove"
 
 
 def test_icon_kind_details_are_named():
-    rows = _rows(subject=64, vstyle=1, grille=5, mod=0, cheek=3)
-    assert rows["Subject"] == "guitar"
-    assert (rows["Subject detail A"], rows["Subject detail B"]) == ("bands", "starburst")
-    assert (rows["Subject detail C"], rows["Subject detail D"]) == ("music notes", "pedestal")
-    assert [_rows(subject=i)["Subject"] for i in (75, 86, 97, 108, 118, 127)] == [
-        "floppy disk", "large circle", "winged orb", "sun", "ringed planet", "lunar lander"]
-    assert [_rows(subject=i)["Subject"] for i in (128, 144, 160, 176, 188, 200, 212, 224, 255)] == [
-        "waving flag", "decorated tree", "bullet", "hammer", "pawn", "stop sign", "t-shirt", "letter A", "digit 9"]
+    for name in ("guitar", "floppy disk", "large circle", "waving flag", "letter A", "ghost"):
+        rows = _rows(subject=_at(name), vstyle=1, grille=5, mod=0, cheek=3)
+        assert (rows["Subject detail A"], rows["Subject detail B"]) == ("bands", "starburst")
+        assert (rows["Subject detail C"], rows["Subject detail D"]) == ("music notes", "pedestal")
+
+
+def test_kind_ranges_start_where_expected():
+    from visual256.spec import SUBJECT_START, SUBJECTS
+    first = {k: SUBJECTS[i] for k, i in SUBJECT_START.items()}
+    assert first["food"] == "pizza slice" and first["sports"] == "soccer ball" and first["flag"] == "waving flag"
+    assert first["character"] == "letter A" and first["emoji"] == "ghost" and SUBJECTS[-1] == "unicorn"
 
 
 def test_look_alike_characters_get_different_tiles():
@@ -171,7 +174,16 @@ def test_look_alike_characters_get_different_tiles():
 
 def test_character_subjects_follow_the_badge_alphabet():
     from visual256.bits import ALPHABET
-    assert "".join(_rows(subject=224 + i)["Subject"][-1] for i in range(32)) == ALPHABET
+    start = _at("letter A")
+    assert "".join(_rows(subject=start + i)["Subject"][-1] for i in range(32)) == ALPHABET
+
+
+def test_emoji_glyphs_are_in_the_bundled_font():
+    from visual256.fonts import face
+    from visual256.icons import EMOJI
+    fc = face("emoji")
+    for name, ch in EMOJI.items():
+        assert ord(ch) in fc.cmap, name
 
 
 def test_three_android_heads_remain():

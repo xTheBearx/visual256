@@ -1,6 +1,6 @@
 """Geometry for the icon-style subjects: musical instruments, computer symbols, large basic shapes,
 sci-fi insignia (an original set), weather, space, flags, holidays, game icons, tools, game pieces,
-road signs, clothing and the 32 characters of the badge alphabet.
+road signs, clothing, the 32 characters of the badge alphabet and a few emoji.
 
 Every icon is plain data at x = 0 (centered on y = 28), in the same part format as furniture and
 food: `body` parts are filled with the panel color, pattern-filled when flagged and outlined in trim;
@@ -445,9 +445,9 @@ def _shift_args(kind, a, c):
 
 def shifted(sp: dict, c: float) -> dict:
     out = {}
-    if "text" in sp:  # a character subject: (char, x, baseline y, font size, inverted)
-        ch, x, y, size, inverted = sp["text"]
-        out["text"] = (ch, x + c, y, size, inverted)
+    if "text" in sp:  # a glyph tile: (char, x, baseline y, font size, inverted, font key)
+        ch, x, y, size, inverted, font = sp["text"]
+        out["text"] = (ch, x + c, y, size, inverted, font)
     return out | dict(body=[(k, _shift_args(k, a, c), fab) for k, a, fab in sp["body"]],
                 solid=[(k, _shift_args(k, a, c)) for k, a in sp["solid"]],
                 lines=[([(x + c, y) for x, y in pts], w) for pts, w in sp["lines"]],
@@ -459,18 +459,17 @@ def shifted(sp: dict, c: float) -> dict:
 # clothing and characters =================
 
 FLAGS = ("waving flag", "pennant", "swallowtail", "checkered flag", "pirate flag", "hanging banner", "signal flag",
-         "cross flag", "star flag", "striped flag", "crossed flags", "golf flag", "bunting", "tattered flag", "disc flag",
-         "summit flag")
+         "cross flag", "striped flag", "crossed flags", "golf flag", "bunting", "tattered flag", "summit flag")
 HOLIDAYS = ("decorated tree", "jack-o-lantern", "gift", "easter egg", "candy cane", "ornament", "menorah", "fireworks",
             "birthday cake", "valentine heart", "shamrock", "paper lantern", "dreidel", "snow globe", "wreath", "jingle bells")
 GAME_ICONS = ("bullet", "crosshair", "fire", "water", "lightning", "ice crystal", "leaf", "health pack", "potion", "coin",
               "key", "bomb", "sword", "kite shield", "bow", "treasure chest")
 TOOLS = ("hammer", "wrench", "screwdriver", "saw", "scissors", "paintbrush", "light bulb", "pliers", "axe", "magnet",
          "drill", "ruler")
-PIECES = ("pawn", "rook", "knight", "bishop", "queen", "king", "die", "puzzle piece", "playing card", "domino", "meeple",
+PIECES = ("pawn", "rook", "knight", "bishop", "king", "die", "puzzle piece", "playing card", "domino", "meeple",
           "dartboard")
 SIGNS = ("stop sign", "yield sign", "traffic light", "warning sign", "one-way sign", "railroad crossing", "no entry",
-         "speed limit", "roundabout", "traffic cone", "parking sign", "curve ahead")
+         "speed limit", "traffic cone", "parking sign", "curve ahead")
 CLOTHING = ("t-shirt", "sneaker", "sunglasses", "mitten", "sock", "dress", "necktie", "boot", "trousers", "handbag",
             "wristwatch", "backpack")
 CHAR_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -509,8 +508,6 @@ def _flag(name):
     if name == "cross flag":
         return _pole_flag([B("rect", FLAG_RECT, True)], solid=[("rect", (-3.4, 10, 3.8, 18)), ("rect", (-10, 17.1, 24, 3.8))],
                           emblem=(7, 23.6))
-    if name == "star flag":
-        return _pole_flag([B("rect", FLAG_RECT, True)], solid=[("poly", star(5, 7, 2.9, 2, 19.6))], emblem=(2, 20))
     if name == "striped flag":
         return _pole_flag([B("rect", FLAG_RECT, True)], solid=[("rect", (-10, y, 24, 2.6)) for y in (12.6, 17.7, 22.8)])
     if name == "crossed flags":
@@ -531,8 +528,6 @@ def _flag(name):
         edge = [(13, 24), (10.6, 27), (13.4, 29.4), (8.6, 32.6), (10.4, 35), (4.6, 37.6), (5.4, 40), (-1, 41.6)]
         return icon([B("poly", [(-10, 24)] + edge + [(-10, 42)], True)], lines=POLE,
                     solid=[("circle", (-11, 7.4, 1.5)), ("circle", (-3, 29, 1.2)), ("circle", (3.6, 32, .9))], emblem=(-4, 34))
-    if name == "disc flag":
-        return _pole_flag([B("rect", FLAG_RECT, True)], solid=[("circle", (2, 19, 5.6))], emblem=(2, 19))
     # summit flag
     return icon([B("poly", [(-15.6, 44), (-2, 22), (3, 30), (7.6, 25), (16, 44)], True)],
                 lines=[([(-2, 22), (-2, 8)], 1.2)], solid=[("poly", [(-2, 8), (9, 11.4), (-2, 15)])],
@@ -742,11 +737,6 @@ def _piece(name):
         return icon([B("poly", [(-3, 28), (3, 28), (7.4, 40), (-7.4, 40)]), B("ellipse", (0, 20, 6, 9, 0), True)],
                     solid=base + [("circle", (0, 9.6, 1.9)), ("rr", (-5.4, 27.6, 10.8, 2.4, 1))], front=[([(-2.6, 17), (2.6, 21.6)], .7)],
                     emblem=(0, 22))
-    if name == "queen":
-        crown = [(-8.6, 11), (-5, 18), (-2.6, 10), (0, 17), (2.6, 10), (5, 18), (8.6, 11), (6.4, 24), (-6.4, 24)]
-        return icon([B("poly", [(-5, 24), (5, 24), (8, 40), (-8, 40)]), B("poly", crown, True)],
-                    solid=base + [("circle", (x, y, 1.3)) for x, y in ((-8.6, 10.4), (-2.6, 9.4), (2.6, 9.4), (8.6, 10.4))] + [("rr", (-6.6, 23.4, 13.2, 2.4, 1))],
-                    emblem=(0, 32))
     if name == "king":
         return icon([B("poly", [(-5, 24), (5, 24), (8, 40), (-8, 40)]), B("poly", [(-7.6, 14), (7.6, 14), (6.4, 24), (-6.4, 24)], True)],
                     solid=base + [("rect", (-1.2, 5, 2.4, 9)), ("rect", (-3.8, 7.6, 7.6, 2.4)), ("rr", (-6.6, 23.4, 13.2, 2.4, 1))], emblem=(0, 32))
@@ -803,14 +793,6 @@ def _sign(name):
     if name == "speed limit":
         return icon([B("rr", (-10.4, 9, 20.8, 26, 2.4)), B("circle", (0, 22, 6.8), True)], lines=[([(0, 35), (0, 47)], 1.6)],
                     solid=[ring(0, 22, 8.6, 6.8)], emblem=(0, 22))
-    if name == "roundabout":
-        arrows = [(arc_pts(0, 22, 6.4, 6.4, a, a + 1.6, 10), 1.6) for a in (0, TAU / 3, 2 * TAU / 3)]
-        heads = []
-        for a in (1.6, 1.6 + TAU / 3, 1.6 + 2 * TAU / 3):
-            x, y = 6.4 * math.cos(a), 22 + 6.4 * math.sin(a)
-            tx, ty = -math.sin(a), math.cos(a)
-            heads.append(("poly", _r([(x + 2.4 * tx, y + 2.4 * ty), (x - 2.2 * math.cos(a), y - 2.2 * math.sin(a)), (x + 2.2 * math.cos(a), y + 2.2 * math.sin(a))])))
-        return icon([B("circle", (0, 22, 12.4), True)], lines=post, solid=heads, front=arrows, emblem=(0, 22))
     if name == "traffic cone":
         return icon([B("poly", [(-3, 10), (3, 10), (9.4, 40), (-9.4, 40)], True)],
                     solid=[("poly", [(-4.4, 17), (4.4, 17), (5.2, 21), (-5.2, 21)]), ("poly", [(-6.2, 26), (6.2, 26), (7, 30), (-7, 30)]),
@@ -900,9 +882,21 @@ def _character(name):
     solid = []
     (solid.append(inner) if inverted else body.append(B(*inner)))
     sp = icon(body, solid=solid, emblem=EMBLEM[shape])
-    sp["text"] = (ch, 0, 35.2, 22, inverted)
+    sp["text"] = (ch, 0, 35.2, 22, inverted, "mono")
+    return sp
+
+
+# Emoji subjects: Noto Emoji glyphs (monochrome outlines, so they take the theme colors) on a tile.
+EMOJI = {"ghost": "\U0001F47B", "headphones": "\U0001F3A7", "camera": "\U0001F4F7", "trophy": "\U0001F3C6",
+         "unicorn": "\U0001F984"}
+EMOJIS = tuple(EMOJI)
+
+
+def _emoji(name):
+    sp = icon([B("rr", (-12.6, 11.6, 25.2, 32, 5), True), B("rr", (-10, 14.2, 20, 26.8, 3.4))], emblem=(9.6, 41))
+    sp["text"] = (EMOJI[name], 0, 35.6, 21, False, "emoji")
     return sp
 
 KINDS.update({"flag": (FLAGS, _flag), "holiday": (HOLIDAYS, _holiday), "game": (GAME_ICONS, _game), "tool": (TOOLS, _tool),
               "piece": (PIECES, _piece), "sign": (SIGNS, _sign), "clothing": (CLOTHING, _clothing),
-              "character": (CHARACTERS, _character)})
+              "character": (CHARACTERS, _character), "emoji": (EMOJIS, _emoji)})
