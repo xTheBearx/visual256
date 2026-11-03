@@ -9,7 +9,7 @@ Turn a 256-bit checksum into a small picture people can recognize and compare at
 The first style is the **Netrunner ID**: a 128 × 64 badge with an android head, a two-word
 handle, a status chip, signal bars, 12 printed characters on colored chips and 10 detail cells.
 The badge bits pick one of sixteen themes, 8 dark and 8 light, each on a different background hue,
-and a background gradient toward one of two partner colors in one of four directions:
+and a gradient from the theme color into one of 8 hues in one of four directions:
 
 | | | | |
 |---|---|---|---|
@@ -84,25 +84,24 @@ checksum; the spoken backup below encodes the checksum itself.
 |---|---|---|
 | 0–3 | Theme | 16 looks: background, pattern, fonts and the 16-color palette |
 | 4–5 | Background gradient | left to right, top to bottom, diagonal or radial |
-| 6 | Gradient color | which of the theme's two partner colors the background fades to |
-| 7–9 | Card layout | 8 arrangements of face, handle, bars, chips and detail |
-| 10–11 | Detail display | tiles, gems, hex pairs or arrows |
-| 12–13 | Frame corners | which corners of the frame are cut |
-| 14–15 | Frame style | single, double, dashed or corner brackets |
-| 16–17 | Bar style | segmented, solid, lollipops or chevrons |
-| 18–21 | Frame color | frame and dividers |
-| 22–25 | Visor color | visor |
-| 26–29 | Trim color | head outline, mods, mouth, cheek marks and decal |
-| 30–33 | Accent color | signal bars and handle effects |
-| 34–36 | Head shape | round, angular, boxy, dome, capsule, bucket, shield or skull |
-| 37–39 | Visor style | band, twin-lens, slit, mono-eye, goggles, chevron, triple-lens or grid |
-| 40–42 | Mouth | vents, teeth, dots, LED, zigzag, speaker, fangs or stitches |
-| 43–44 | Head mod | antenna, ear discs, cable or fin |
-| 45–48 | Forehead decal | one of 16 symbols |
-| 49–50 | Cheek marks | stripes, dots, circuit or bolts |
-| 51–54 | Status word | one of 16 words |
-| 55–58 | Status color | status chip |
-| 59–60 | Rank | 1 to 4 chevrons on the status chip |
+| 6–8 | Gradient color | red, orange, yellow, green, cyan, blue, violet or magenta |
+| 9–11 | Card layout | 8 arrangements of face, handle, bars, chips and detail |
+| 12–13 | Detail display | tiles, gems, hex pairs or arrows |
+| 14–15 | Frame corners | which corners of the frame are cut |
+| 16–17 | Frame style | single, double, dashed or corner brackets |
+| 18–19 | Bar style | segmented, solid, lollipops or chevrons |
+| 20–23 | Frame color | frame and dividers |
+| 24–27 | Visor color | visor |
+| 28–31 | Trim color | head outline, mods, mouth, cheek marks and decal |
+| 32–35 | Accent color | signal bars and handle effects |
+| 36–38 | Head shape | round, angular, boxy, dome, capsule, bucket, shield or skull |
+| 39–41 | Visor style | band, twin-lens, slit, mono-eye, goggles, chevron, triple-lens or grid |
+| 42–44 | Mouth | vents, teeth, dots, LED, zigzag, speaker, fangs or stitches |
+| 45–46 | Head mod | antenna, ear discs, cable or fin |
+| 47–50 | Forehead decal | one of 16 symbols |
+| 51–52 | Cheek marks | stripes, dots, circuit or bolts |
+| 53–56 | Status word | one of 16 words |
+| 57–60 | Status color | status chip |
 | 61–63 | Handle style | clean, split, vertical split, slice, inverted, underline, boxed or shadow |
 | 64–74 | Handle word 1 | BIP-39 word, 1 of 2048 |
 | 75–85 | Handle word 2 | BIP-39 word, 1 of 2048 |
@@ -127,11 +126,13 @@ whole byte through color, shape and fill instead of many tiny marks. Every badge
 - **arrows**: 8 directions × 16 colors × solid or outline
 
 **Themes** set the background, its pattern, the fonts and the 16 colors that every color feature
-indexes into. Each theme also has two partner colors; the card fades from the theme color to one
-of them left to right, top to bottom, diagonally or radially, with a faint highlight streak along
-the same direction (a ring for radial gradients). Partner colors are tuned by
-`tools/tune_gradients.py` to be as strong as each palette allows: every palette color keeps at
-least 2:1 contrast against the background, both partners and the streak (checked by the tests).
+indexes into. The badge bits then fade the theme color into one of 8 hues (red, orange, yellow,
+green, cyan, blue, violet or magenta), left to right, top to bottom, diagonally or radially, with
+a highlight streak along the same direction (a ring for radial gradients). That gives 32
+backgrounds per theme. `tools/tune_gradients.py` picks each theme's streak strength and its 8
+gradient colors as strong as the palette allows: every palette color keeps at least 2:1 contrast
+against the background and every gradient color, and 1.8:1 inside the narrow streak band
+(checked by the tests).
 
 **512-bit checksums** (SHA-512) are drawn as two badges in one frame, numbered 1 and 2. Both
 badges depend on the whole checksum. The frame takes its colors from badge 1's theme.

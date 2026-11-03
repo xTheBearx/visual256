@@ -57,8 +57,8 @@ def test_rendering_is_deterministic():
     assert b.svg() == b.svg()
 
 
-@pytest.mark.parametrize("field,count", [("gradient", 4), ("tint", 2), ("shape", 8), ("vstyle", 8), ("grille", 8), ("hstyle", 8),
-                                         ("framestyle", 4), ("barstyle", 4), ("cheek", 4), ("rank", 4),
+@pytest.mark.parametrize("field,count", [("gradient", 4), ("tint", 8), ("shape", 8), ("vstyle", 8), ("grille", 8), ("hstyle", 8),
+                                         ("framestyle", 4), ("barstyle", 4), ("cheek", 4),
                                          ("mod", 4)])
 def test_every_value_of_each_face_feature_draws(field, count):
     for v in range(count):

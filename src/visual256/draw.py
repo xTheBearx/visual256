@@ -708,28 +708,17 @@ def draw_cheeks(ctx: Canvas, c, hx, trim) -> None:
 
 
 def draw_status(ctx: Canvas, f: Features, hx, glow: Glow, t: Theme) -> None:
-    st, sc, rank = STATUS_WORDS[f.status], t.color(f.scolor), f.rank + 1
+    st, sc = STATUS_WORDS[f.status], t.color(f.scolor)
     ctx.set_font("mono", 4.6)
     tw = ctx.measure_text(st)
-    rw = rank * 1.9 + .4
-    total = rw + 1.2 + tw
-    x0 = hx - total / 2 - 1.6
     ctx.begin_path()
-    ctx.rect(x0, 52.4, total + 3.2, 6)
+    ctx.rect(hx - tw / 2 - 1.8, 52.4, tw + 3.6, 6)
     glow(sc, 1)
     ctx.line_width, ctx.stroke_style = .45, sc
     ctx.stroke()
     glow.off()
-    ctx.begin_path()
-    for k in range(rank):
-        cx = x0 + 1.6 + k * 1.9 + .9
-        ctx.move_to(cx - .85, 56.6)
-        ctx.line_to(cx, 54.4)
-        ctx.line_to(cx + .85, 56.6)
-    ctx.line_width, ctx.line_join = .5, "miter"
-    ctx.stroke()
-    ctx.fill_style, ctx.text_align, ctx.text_baseline = sc, "left", "middle"
-    ctx.fill_text(st, x0 + 1.6 + rw + 1.2, 55.6)
+    ctx.fill_style, ctx.text_align, ctx.text_baseline = sc, "center", "middle"
+    ctx.fill_text(st, hx, 55.6)
 
 
 def handle_text(ctx: Canvas, text, x, y, max_w, align, style, acc, size, glow: Glow, t: Theme) -> None:

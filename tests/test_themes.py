@@ -34,14 +34,25 @@ def test_every_palette_color_is_visible_on_its_background_and_gradients():
     for t in THEMES_LIST:
         assert len({c for _, c in t.palette}) == 16, t.id
         grounds = [t.bg, *(c for _, c in t.gradients)]
-        for bg in grounds + [_over(g, t.sheen) for g in grounds]:
+        for bg in grounds:
             for name, c in t.palette:
                 assert contrast(c, bg) >= 2.0, f"{t.id}: {name} {c} is too faint on {bg}"
+        for bg in grounds:
+            streak = _over(bg, t.sheen)
+            for name, c in t.palette:
+                assert contrast(c, streak) >= 1.8, f"{t.id}: {name} {c} is too faint under the streak"
 
 
-def test_two_gradient_partners_per_theme():
+def test_eight_distinct_gradient_colors_per_theme():
     for t in THEMES_LIST:
-        assert len(t.gradients) == 2 and t.gradients[0][1] != t.gradients[1][1], t.id
+        assert [n for n, _ in t.gradients] == ["red", "orange", "yellow", "green", "cyan", "blue", "violet", "magenta"]
+        assert len({c for _, c in t.gradients}) == 8, t.id
+
+
+def test_dark_themes_have_a_visible_streak():
+    for t in THEMES_LIST:
+        if luminance(t.bg) < 0.2:
+            assert parse_color(t.sheen)[1] >= 0.15, t.id
 
 
 def test_handle_text_is_readable():
@@ -49,3 +60,4 @@ def test_handle_text_is_readable():
         assert contrast(t.handle, t.bg) >= 7, t.id
         for _, c in t.gradients:
             assert contrast(t.handle, c) >= 4.5, t.id
+            assert contrast(t.handle, _over(c, t.sheen)) >= 4.0, t.id

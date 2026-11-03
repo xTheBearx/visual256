@@ -1,34 +1,23 @@
-"""Find the most pronounced gradient partner colors each theme can take.
+"""Tune each theme's highlight streak and its 8 gradient colors.
 
-For each partner, mix from the theme background toward a vivid target color and keep the
-largest mix where every palette color still has 2:1 contrast (and handle text 4.5:1) against the
-partner and against the partner under the highlight streak. Prints a PARTNERS table to paste into
-src/visual256/themes.py.
+1. Streak: a white sheen, 0.6 opacity on light themes and up to 0.22 on dark themes, as bright as
+   the palette allows (palette colors keep 1.8:1 contrast inside the narrow streak band).
+2. Gradient colors: for each of 8 hues, the deepest color of that hue (90% saturation; on light
+   themes no darker than lightness 0.72) that keeps every palette color at 2:1 contrast and
+   handle text at 4.5:1, and 1.8:1 under the streak.
+
+Prints SHEEN and PARTNERS tables to paste into src/visual256/themes.py:
 
     python tools/tune_gradients.py
 """
 
-from visual256.canvas import parse_color
-from visual256.themes import THEMES_LIST, luminance
+import colorsys
 
-TARGETS = {
-    "cyberpunk": (("violet haze", "#8A2BE2"), ("deep teal", "#008C9E")),
-    "daylight": (("ice blue", "#7FB2FF"), ("peach", "#FFB08A")),
-    "paper": (("parchment", "#D9A955"), ("rose paper", "#E8A08A")),
-    "blueprint": (("midnight", "#00040F"), ("sea blue", "#1A8FB8")),
-    "candy": (("lavender", "#B395FF"), ("vanilla", "#FFC24D")),
-    "mint": (("aqua", "#7FD6F0"), ("pistachio", "#B8E05A")),
-    "arcade": (("purple", "#3D0078"), ("cobalt", "#00287A")),
-    "stealth": (("olive", "#4A4A1A"), ("gunmetal", "#0A1424")),
-    "ember": (("rust glow", "#A03A06"), ("plum", "#5A0848")),
-    "abyss": (("trench blue", "#000C4A"), ("kelp", "#0A5030")),
-    "sky": (("lavender", "#C2A8FF"), ("aqua", "#6FDCC6")),
-    "royal": (("wine", "#A0185E"), ("indigo", "#2A1AB0")),
-    "citrus": (("peach", "#FFB070"), ("lime", "#B0E050")),
-    "jungle": (("lagoon", "#06606E"), ("moss", "#5A7A08")),
-    "lilac": (("pink", "#F4A6D0"), ("periwinkle", "#9FB8F2")),
-    "concrete": (("sandstone", "#D9A050"), ("steel", "#7F9CBB")),
-}
+from visual256.canvas import parse_color
+from visual256.themes import HUE_NAMES, THEMES_LIST, luminance
+
+HUES = (0, 28, 52, 125, 185, 218, 268, 318)  # degrees, matching HUE_NAMES
+assert len(HUES) == len(HUE_NAMES)
 
 
 def rgb(h):
@@ -43,9 +32,8 @@ def mix(a, b, t):
     return hexc([x + (y - x) * t for x, y in zip(rgb(a), rgb(b))])
 
 
-def over(bg, color):
-    """Composite an rgba() color over a hex background."""
-    fg, a = parse_color(color)
+def over(bg, rgba):
+    fg, a = parse_color(rgba)
     return mix(bg, fg, a)
 
 
@@ -54,27 +42,55 @@ def contrast(a, b):
     return (max(la, lb) + 0.05) / (min(la, lb) + 0.05)
 
 
-def ok(theme, color):
-    for c in (color, over(color, theme.sheen)):
-        if any(contrast(p, c) < 2.0 for _, p in theme.palette) or contrast(theme.handle, c) < 4.5:
-            return False
-    return True
+def readable(theme, ground, minimum=2.0):
+    return (all(contrast(p, ground) >= minimum for _, p in theme.palette)
+            and contrast(theme.handle, ground) >= minimum * 2.25)
+
+
+def is_dark(theme):
+    return luminance(theme.bg) < 0.2
+
+
+def best_sheen(theme):
+    if not is_dark(theme):
+        return 0.6
+    best = 0.0
+    for i in range(1, 45):
+        a = i / 200
+        if readable(theme, over(theme.bg, f"rgba(255,255,255,{a:.3f})"), 1.8):
+            best = a
+        else:
+            break
+    return round(best, 3)
+
+
+def best_partner(theme, hue, sheen):
+    """Walk lightness from the background's end of the scale toward the middle at full saturation."""
+    # Light themes stop at vivid pastels (lightness 0.72) so bright hues never turn neon.
+    steps = [i / 200 for i in range(2, 101)] if is_dark(theme) else [1 - i / 200 for i in range(2, 57)]
+    best = theme.bg
+    for light in steps:
+        c = hexc([v * 255 for v in colorsys.hls_to_rgb(hue / 360, light, 0.9)])
+        if readable(theme, c) and readable(theme, over(c, sheen), 1.8):
+            best = c
+        else:
+            break
+    return best
 
 
 def main():
-    print("PARTNERS = {")
+    sheens, partners = {}, {}
     for t in THEMES_LIST:
-        out = []
-        for name, target in TARGETS[t.id]:
-            best = t.bg
-            for i in range(101):
-                c = mix(t.bg, target, i / 100)
-                if ok(t, c):
-                    best = c
-                else:
-                    break
-            out.append((name, best))
-        print(f'    "{t.id}": (("{out[0][0]}", "{out[0][1]}"), ("{out[1][0]}", "{out[1][1]}")),')
+        a = best_sheen(t)
+        sheens[t.id] = f"rgba(255,255,255,{a:g})"
+        partners[t.id] = [best_partner(t, h, sheens[t.id]) for h in HUES]
+    print("SHEEN = {")
+    for k, v in sheens.items():
+        print(f'    "{k}": "{v}",')
+    print("}")
+    print("PARTNERS = {")
+    for k, v in partners.items():
+        print(f'    "{k}": ({", ".join(chr(34) + c + chr(34) for c in v)}),')
     print("}")
 
 

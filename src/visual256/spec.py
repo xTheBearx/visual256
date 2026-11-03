@@ -35,7 +35,7 @@ MIX_TAG = b"visual256/netrunner/0.1"
 HEADLINE_FIELDS: tuple[tuple[str, int, str, str], ...] = (
     ("theme", 4, "Theme", "16 looks: background, pattern, fonts and the 16-color palette"),
     ("gradient", 2, "Background gradient", "left to right, top to bottom, diagonal or radial"),
-    ("tint", 1, "Gradient color", "which of the theme's two partner colors the background fades to"),
+    ("tint", 3, "Gradient color", "red, orange, yellow, green, cyan, blue, violet or magenta"),
     ("layout", 3, "Card layout", "8 arrangements of face, handle, bars, chips and detail"),
     ("display", 2, "Detail display", "tiles, gems, hex pairs or arrows"),
     ("corners", 2, "Frame corners", "which corners of the frame are cut"),
@@ -53,7 +53,6 @@ HEADLINE_FIELDS: tuple[tuple[str, int, str, str], ...] = (
     ("cheek", 2, "Cheek marks", "stripes, dots, circuit or bolts"),
     ("status", 4, "Status word", "one of 16 words"),
     ("scolor", 4, "Status color", "status chip"),
-    ("rank", 2, "Rank", "1 to 4 chevrons on the status chip"),
     ("hstyle", 3, "Handle style", "clean, split, vertical split, slice, inverted, underline, boxed or shadow"),
     ("word1", 11, "Handle word 1", "BIP-39 word, 1 of 2048"),
     ("word2", 11, "Handle word 2", "BIP-39 word, 1 of 2048"),
@@ -128,7 +127,6 @@ class Features:
     cheek: int
     status: int
     scolor: int
-    rank: int
     hstyle: int
     word1: int
     word2: int
@@ -203,7 +201,8 @@ def describe_cells(f: Features, names: tuple[str, ...]) -> str:
 
 
 def describe(f: Features, palette_names: tuple[str, ...], theme_name: str = "",
-             tint_names: tuple[str, str] = ("first partner", "second partner")) -> list[tuple[str, str, str]]:
+             tint_names: tuple[str, ...] = ("red", "orange", "yellow", "green", "cyan", "blue", "violet", "magenta"),
+             ) -> list[tuple[str, str, str]]:
     """Plain-language readout: (bit range, label, value) for every feature."""
     n = palette_names
     values = {
@@ -215,7 +214,7 @@ def describe(f: Features, palette_names: tuple[str, ...], theme_name: str = "",
         "frame": n[f.frame], "visor": n[f.visor], "trim": n[f.trim], "accent": n[f.accent], "scolor": n[f.scolor],
         "shape": HEAD_SHAPES[f.shape], "vstyle": VISORS[f.vstyle], "grille": MOUTHS[f.grille],
         "mod": MODS[f.mod], "decal": SYMBOLS[f.decal], "cheek": CHEEKS[f.cheek],
-        "status": STATUS_WORDS[f.status], "rank": f"{f.rank + 1} chevron{'s' if f.rank else ''}",
+        "status": STATUS_WORDS[f.status],
         "hstyle": HANDLE_STYLES[f.hstyle],
         "word1": f"{f.words[0]} (#{f.word1 + 1})", "word2": f"{f.words[1]} (#{f.word2 + 1})",
     }
