@@ -4,18 +4,18 @@ Turn a 256-bit checksum into a small picture people can recognize and compare at
 512-bit checksum into a numbered pair of them. Every bit is drawn, so two different checksums
 always give two different pictures, and the exact checksum can be read back from the features.
 
-![Netrunner ID badge for release-2.4.1.tar.gz](docs/examples/release-2.4.1-cyberpunk.svg)
-
 The first style is the **Netrunner ID**: a 128 × 64 badge with an android head, a two-word
-handle, a status word, signal bars, 16 printed characters and a detail block. Four themes are
-included:
+handle, a status chip, signal bars, 12 printed characters on colored chips and 10 detail cells.
+The hash itself picks one of eight themes:
 
-| Cyberpunk | Daylight | Paper | Blueprint |
+| | | | |
 |---|---|---|---|
-| ![](docs/examples/release-2.4.1-cyberpunk.svg) | ![](docs/examples/release-2.4.1-daylight.svg) | ![](docs/examples/release-2.4.1-paper.svg) | ![](docs/examples/release-2.4.1-blueprint.svg) |
+| ![](docs/examples/cyberpunk.svg) Cyberpunk | ![](docs/examples/daylight.svg) Daylight | ![](docs/examples/paper.svg) Paper | ![](docs/examples/blueprint.svg) Blueprint |
+| ![](docs/examples/synthwave.svg) Synthwave | ![](docs/examples/terminal.svg) Terminal | ![](docs/examples/arcade.svg) Arcade | ![](docs/examples/stealth.svg) Stealth |
 
-A theme changes the look, never the bits. Badges can only be compared in the same theme, so pick
-one theme per site or tool.
+Each example above is a real SHA-256 badge (for `release-1.9.tar.gz`, `release-1.25.tar.gz`,
+`release-1.11.tar.gz`, `release-1.2.tar.gz`, `release-1.20.tar.gz`, `release-1.0.tar.gz`,
+`release-1.5.tar.gz` and `release-1.1.tar.gz`).
 
 ## Install
 
@@ -38,7 +38,7 @@ visual256 release.tar.gz --format svg,png --width 256
 ```
 
 ```bash
-visual256 --text "hello" --algo sha512 --theme paper --format svg
+visual256 --text "hello" --algo sha512 --format svg
 ```
 
 ```bash
@@ -54,62 +54,70 @@ path given with `-o` (without extension).
 ```python
 from visual256 import Badge
 
-badge = Badge.from_file("release.tar.gz")          # or from_text, from_hex, from_bytes
-svg = badge.svg(theme="cyberpunk", width=256)       # str
-png = badge.png(theme="daylight", width=512)        # bytes, needs resvg-py
-tag = badge.html_img(width=128)                     # <img> with an embedded SVG
-words = badge.mnemonic()                            # [[24 BIP-39 words]] per 256-bit part
-for bits, label, value in badge.describe("cyberpunk")[0]:
+badge = Badge.from_file("release.tar.gz")   # or from_text, from_hex, from_bytes
+svg = badge.svg(width=256)                   # str
+png = badge.png(width=512)                   # bytes, needs resvg-py
+tag = badge.html_img(width=128)              # <img> with an embedded SVG
+words = badge.mnemonic()                     # [[24 BIP-39 words]] per 256-bit part
+for bits, label, value in badge.describe()[0]:
     print(bits, label, value)
 ```
 
 `visual256.decode(32 bytes)` returns the badge's `Features`; `visual256.encode(features)` turns
 them back into the same 32 bytes.
 
-## How the 256 bits are used
+## How the 256 bits are used (spec v2)
 
 Bits are read most significant first.
 
 | Bits | Feature | Values |
 |---|---|---|
-| 0–2 | Card layout | 8 arrangements of face, handle, bars, characters and detail |
-| 3–4 | Frame corners | which corners are cut |
-| 5 | Frame line | single or double |
-| 6–7 | Detail display | dots, shapes, barcode or hex segments |
-| 8–11 | Frame color | 16 theme colors; also bars and characters |
-| 12–15 | Visor color | 16 theme colors; also the detail block |
-| 16–17 | Head shape | round, angular, boxy, dome |
-| 18–21 | Trim color | head outline, mods, decal |
-| 22–23 | Visor style | band, twin-lens, slit, mono-eye |
-| 24–25 | Grille | vent, tooth, dot, LED |
-| 26–27 | Head mod | antenna, ear discs, cable, fin |
-| 28–31 | Forehead decal | 16 symbols |
-| 32–35 | Status word | 16 words, e.g. GHOST, ROGUE, SYNCED |
-| 36–39 | Status color | 16 theme colors |
-| 40–41 | Handle glitch | clean, horizontal split, vertical split, slice |
-| 42–52 | Handle word 1 | BIP-39 word |
-| 53–63 | Handle word 2 | BIP-39 word |
-| 64–95 | Signal bars | 8 bars, 1–16 lit segments each |
-| 96–175 | Characters | 16 characters in 4 groups |
-| 176–255 | Detail block | 4 groups of 20 bits, drawn in the detail display |
+| 0–2 | Theme | cyberpunk, daylight, paper, blueprint, synthwave, terminal, arcade, stealth |
+| 3–5 | Card layout | 8 arrangements of face, handle, bars, chips and detail cells |
+| 6–7 | Detail display | tiles, gems, hex pairs, arrows |
+| 8–9 | Frame corners | which corners are cut |
+| 10–11 | Frame style | single, double, dashed, corner brackets |
+| 12–15 | Frame color | 16 theme colors |
+| 16–19 | Visor color | 16 theme colors |
+| 20–23 | Trim color | head outline, mods, mouth, cheek marks, decal |
+| 24–27 | Accent color | signal bars and handle effects |
+| 28–30 | Head shape | round, angular, boxy, dome, capsule, bucket, shield, skull |
+| 31–33 | Visor style | band, twin-lens, slit, mono-eye, goggles, chevron, triple-lens, grid |
+| 34–36 | Mouth | vents, teeth, dots, LED, zigzag, speaker, fangs, stitches |
+| 37–38 | Head mod | antenna, ear discs, cable, fin |
+| 39–42 | Forehead decal | 16 symbols |
+| 43–44 | Cheek marks | stripes, dots, circuit, bolts |
+| 45–48 | Status word | 16 words, e.g. GHOST, ROGUE, SYNCED |
+| 49–52 | Status color | 16 theme colors |
+| 53–54 | Rank | 1–4 chevrons on the status chip |
+| 55–57 | Handle style | clean, horizontal split, vertical split, slice, inverted, underline, boxed, shadow |
+| 58–68 | Handle word 1 | BIP-39 word |
+| 69–79 | Handle word 2 | BIP-39 word |
+| 80–103 | Signal bars | 8 bars, 1–8 lit segments each |
+| 104–115 | Chip colors | 3 chips, 16 theme colors each |
+| 116–175 | Characters | 12 characters, 4 per chip |
+| 176–255 | Detail cells | 10 cells, one byte each (bytes 22–31 of the digest) |
 
-The first 64 bits are the headline features people remember. The other 192 bits are detail for a
-careful side-by-side check.
+The first 80 bits are headline features people remember. The other 176 bits are detail for a
+careful side-by-side check. Detail elements are kept large on purpose: each detail cell carries a
+whole byte through color, shape and fill instead of many tiny marks.
 
 **Characters** use a 32-letter alphabet with no I, O, 0 or 1: `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`.
-Each detail group is 20 bits, which is also exactly 4 characters, so `describe` can read any
-detail group aloud.
 
-**Detail displays** draw each 20-bit group as one of:
+**Detail displays** draw each byte as one of:
 
-- **dots**: a 5 × 4 grid, lit or dark
-- **shapes**: 5 shapes; each 4-bit value is a shape (circle, square, triangle, diamond) × a fill
-  (solid, outline, dotted, half)
-- **barcode**: 2 rows of 10 ticks, tall for 1 and short for 0
-- **hex segments**: 5 hex digits on a seven-segment display
+- **tiles**: a colored tile (high 4 bits) with a symbol (low 4 bits)
+- **gems**: a colored shape; color (4 bits) × circle, square, triangle or diamond × solid, outline,
+  dotted or half-filled
+- **hex pairs**: two hex digits on a seven-segment display
+- **arrows**: 8 directions × 16 colors × solid or outline
+
+**Themes** are part of the hash. Each theme sets the background, the fonts and the 16 colors that
+every color feature indexes into. New themes can be added later only with a new spec version,
+because the theme field's width is fixed.
 
 **512-bit checksums** (SHA-512) are split into two 256-bit parts and drawn as two badges in one
-frame, numbered 1 and 2.
+frame, numbered 1 and 2. Each part has its own theme; the frame takes its colors from part 1.
 
 ## Spoken backup
 
@@ -135,17 +143,17 @@ pytest
 ```
 
 The tests check that every 32-byte input survives `encode(decode(x))`, that flipping any single
-bit changes the features, the official BIP-39 test vectors, and that every layout, display and
-theme draws valid SVG.
+bit changes the features, the official BIP-39 test vectors, and that every theme × layout ×
+display combination and every value of each face feature draws valid SVG.
 
 ## Third-party material
 
 - `src/visual256/data/bip39_english.txt`: the BIP-39 English word list from
   [bitcoin/bips](https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt), MIT license.
   Its SHA-256 is checked at load time.
-- `src/visual256/fonts/`: subsets of Chakra Petch, JetBrains Mono and Spectral, under the SIL
-  Open Font License 1.1 (license texts alongside). Text in every output is drawn as outlines, so
-  no fonts need to be installed.
+- `src/visual256/fonts/`: subsets of Chakra Petch, JetBrains Mono, Spectral, Audiowide,
+  Silkscreen and Saira Stencil One, under the SIL Open Font License 1.1 (license texts
+  alongside). Text in every output is drawn as outlines, so no fonts need to be installed.
 - `tests/data/bip39_vectors_256.json`: the 256-bit English entries from
   [trezor/python-mnemonic](https://github.com/trezor/python-mnemonic/blob/master/vectors.json),
   MIT license.

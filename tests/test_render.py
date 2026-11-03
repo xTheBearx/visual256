@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
-from visual256 import THEMES, Badge, decode, with_changes
+from visual256 import Badge, decode, with_changes
 from visual256.canvas import Canvas
 from visual256.cli import main
 from visual256.draw import H, W, draw_badge
@@ -11,12 +11,12 @@ from visual256.draw import H, W, draw_badge
 BASE = decode(hashlib.sha256(b"render").digest())
 
 
-@pytest.mark.parametrize("theme", list(THEMES))
+@pytest.mark.parametrize("theme", range(8))
 @pytest.mark.parametrize("layout", range(8))
 @pytest.mark.parametrize("display", range(4))
 def test_every_layout_display_and_theme_draws_valid_svg(theme, layout, display):
     c = Canvas(W, H)
-    draw_badge(c, with_changes(BASE, layout=layout, display=display), THEMES[theme])
+    draw_badge(c, with_changes(BASE, theme=theme, layout=layout, display=display))
     root = ET.fromstring(c.to_svg(256, 128))
     assert root.tag.endswith("svg")
     assert len(root.findall(".//{http://www.w3.org/2000/svg}path")) > 50
@@ -54,14 +54,28 @@ def test_data_uri_and_img_tag():
 
 def test_rendering_is_deterministic():
     b = Badge.from_text("same input")
-    assert b.svg("daylight") == b.svg("daylight")
+    assert b.svg() == b.svg()
+
+
+@pytest.mark.parametrize("field,count", [("shape", 8), ("vstyle", 8), ("grille", 8), ("hstyle", 8),
+                                         ("framestyle", 4), ("cheek", 4), ("rank", 4), ("mod", 4)])
+def test_every_value_of_each_face_feature_draws(field, count):
+    for v in range(count):
+        c = Canvas(W, H)
+        draw_badge(c, with_changes(BASE, **{field: v}))
+        ET.fromstring(c.to_svg())
+
+
+def test_theme_comes_from_the_bits():
+    svgs = {Badge.from_bytes(bytes([i << 5]) + bytes(31)).svg() for i in range(8)}
+    assert len(svgs) == 8
 
 
 def test_cli_writes_files(tmp_path, capsys):
     target = tmp_path / "file.bin"
     target.write_bytes(b"hello world")
     out = tmp_path / "badge"
-    assert main([str(target), "--format", "svg,words,describe", "-o", str(out), "--theme", "paper"]) == 0
+    assert main([str(target), "--format", "svg,words,describe", "-o", str(out)]) == 0
     assert (tmp_path / "badge.svg").exists()
     printed = capsys.readouterr().out
     assert len(printed.splitlines()[1].split()) == 24

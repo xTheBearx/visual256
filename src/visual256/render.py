@@ -11,7 +11,7 @@ from . import bip39
 from .canvas import Canvas
 from .draw import H, PAIR_H, PAIR_W, W, draw_badge, draw_pair
 from .spec import Features, decode, describe
-from .themes import Theme, get as get_theme
+from .themes import get as get_theme
 
 BADGE_ASPECT = W / H  # 2:1, drawn at 128 x 64 units
 
@@ -72,20 +72,23 @@ class Badge:
         """Spoken backup: 24 standard BIP-39 words per 256-bit part."""
         return [bip39.to_mnemonic(p) for p in self.parts]
 
-    def describe(self, theme: str | Theme = "cyberpunk") -> list[list[tuple[str, str, str]]]:
-        t = get_theme(theme)
-        return [describe(f, t.names) for f in self.features]
+    def describe(self) -> list[list[tuple[str, str, str]]]:
+        """Every feature in plain language, per 256-bit part. Color names come from the badge's theme."""
+        out = []
+        for f in self.features:
+            t = get_theme(f.theme)
+            out.append(describe(f, t.names, t.name))
+        return out
 
     # ---- rendering ----
-    def canvas(self, theme: str | Theme = "cyberpunk") -> Canvas:
-        t = get_theme(theme)
+    def canvas(self) -> Canvas:
         feats = self.features
         if len(feats) == 1:
             c = Canvas(W, H)
-            draw_badge(c, feats[0], t)
+            draw_badge(c, feats[0])
         else:
             c = Canvas(PAIR_W, PAIR_H)
-            draw_pair(c, feats, t)
+            draw_pair(c, feats)
         return c
 
     def size_for(self, width: float) -> tuple[float, float]:
@@ -93,41 +96,41 @@ class Badge:
             return width, width / BADGE_ASPECT
         return width, width * PAIR_H / PAIR_W
 
-    def svg(self, theme: str | Theme = "cyberpunk", width: float = 256) -> str:
+    def svg(self, width: float = 256) -> str:
         """SVG markup. `width` sets the width/height attributes; the drawing scales cleanly to any size."""
         w, h = self.size_for(width)
         title = "visual256 badge " + self.hex[:16] + "…"
-        return self.canvas(theme).to_svg(w, h, title=title)
+        return self.canvas().to_svg(w, h, title=title)
 
-    def png(self, theme: str | Theme = "cyberpunk", width: int = 256) -> bytes:
+    def png(self, width: int = 256) -> bytes:
         """PNG bytes at `width` pixels. Needs the `resvg-py` package (pip install visual256[png])."""
         try:
             import resvg_py
         except ImportError:
             raise RuntimeError("PNG output needs resvg-py: pip install 'visual256[png]'") from None
-        svg = self.svg(theme, width)
+        svg = self.svg(width)
         return bytes(resvg_py.svg_to_bytes(svg_string=svg))
 
-    def pdf(self, theme: str | Theme = "cyberpunk", width: float = 256) -> bytes:
+    def pdf(self, width: float = 256) -> bytes:
         """PDF bytes (vector). Needs cairosvg (pip install visual256[pdf]). Neon glow is not drawn in PDF."""
         try:
             import cairosvg
         except ImportError:
             raise RuntimeError("PDF output needs cairosvg: pip install 'visual256[pdf]'") from None
-        return cairosvg.svg2pdf(bytestring=self.svg(theme, width).encode("utf-8"))
+        return cairosvg.svg2pdf(bytestring=self.svg(width).encode("utf-8"))
 
-    def data_uri(self, theme: str | Theme = "cyberpunk", width: int = 256, fmt: str = "svg") -> str:
+    def data_uri(self, width: int = 256, fmt: str = "svg") -> str:
         if fmt == "svg":
-            return "data:image/svg+xml;base64," + base64.b64encode(self.svg(theme, width).encode()).decode()
+            return "data:image/svg+xml;base64," + base64.b64encode(self.svg(width).encode()).decode()
         if fmt == "png":
-            return "data:image/png;base64," + base64.b64encode(self.png(theme, width * 2)).decode()
+            return "data:image/png;base64," + base64.b64encode(self.png(width * 2)).decode()
         raise ValueError("fmt must be 'svg' or 'png'")
 
-    def html_img(self, theme: str | Theme = "cyberpunk", width: int = 128, fmt: str = "svg") -> str:
+    def html_img(self, width: int = 128, fmt: str = "svg") -> str:
         """An <img> tag for a web page. PNGs are rendered at 2x for sharp display on high-density screens."""
         w, h = self.size_for(width)
         alt = "Checksum badge for " + self.hex[:16] + "…"
-        return (f'<img src="{self.data_uri(theme, width, fmt)}" width="{round(w)}" height="{round(h)}" '
+        return (f'<img src="{self.data_uri(width, fmt)}" width="{round(w)}" height="{round(h)}" '
                 f'alt="{alt}">')
 
 

@@ -9,7 +9,7 @@ import math
 
 from .canvas import Canvas
 from .spec import STATUS_WORDS, Features
-from .themes import Theme
+from .themes import Theme, chip_ink, get as get_theme
 
 S = 480.0          # canvas height
 U = S / 64         # canvas pixels per badge unit
@@ -152,31 +152,36 @@ def layout_spec(L: int) -> dict:
     """Regions for each of the 8 layouts, in badge units."""
     def stacked(x0, x1):
         return dict(handle=[dict(text="both", x=x0, y=11.8, w=x1 - x0, align="left", size=8.4)],
-                    bars=[dict(ids=list(range(8)), x0=x0, x1=x1, y0=14.6, y1=25.6)],
-                    code=[dict(groups=[0, 1, 2, 3], x=x0, y=34.2, w=x1 - x0, align="left", size=6.2, lines=1)],
-                    detail=[dict(groups=[0, 1, 2, 3], x0=x0, y0=38.6, x1=x1, y1=59.6, gc=4, gr=1)])
+                    bars=[dict(ids=list(range(8)), x0=x0, x1=x1, y0=14.2, y1=24.2)],
+                    chips=[dict(ids=[0, 1, 2], x0=x0, y0=26.2, x1=x1, y1=34.6, col=False)],
+                    cells=[dict(ids=list(range(10)), x0=x0, y0=36.8, x1=x1, y1=60, gc=5, gr=2)])
 
     def grid(x0, x1):
-        mid = x0 + (x1 - x0) * .485
+        mid = x0 + (x1 - x0) * .5
         return dict(handle=[dict(text="both", x=x0, y=11.8, w=x1 - x0, align="left", size=8.4)],
-                    detail=[dict(groups=[0, 1, 2, 3], x0=x0, y0=15, x1=mid, y1=59.6, gc=2, gr=2)],
-                    bars=[dict(ids=list(range(8)), x0=mid + 2.6, x1=x1, y0=15, y1=36)],
-                    code=[dict(groups=[0, 1, 2, 3], x=mid + 2.6, y=46, w=x1 - mid - 2.6, align="left", size=6.2, lines=2)])
+                    cells=[dict(ids=list(range(10)), x0=x0, y0=15, x1=mid - 1.3, y1=60, gc=2, gr=5)],
+                    bars=[dict(ids=list(range(8)), x0=mid + 1.3, x1=x1, y0=15, y1=30.5)],
+                    chips=[dict(ids=[0, 1, 2], x0=mid + 1.3, y0=33, x1=x1, y1=60, col=True)])
 
     def split(detail_top):
         def col(x0, x1, side):
-            cx, g, b = (x0 + x1) / 2, ([2, 3] if side else [0, 1]), ([4, 5, 6, 7] if side else [0, 1, 2, 3])
+            cx = (x0 + x1) / 2
             hd = dict(text="w2" if side else "w1", x=cx, y=11.4, w=x1 - x0, align="center", size=7.8)
+            b = [4, 5, 6, 7] if side else [0, 1, 2, 3]
+            ch = [2] if side else [0]
+            cl = [5, 6, 7, 8, 9] if side else [0, 1, 2, 3, 4]
             if detail_top:
-                return dict(handle=hd, detail=dict(groups=g, x0=x0, y0=14, x1=x1, y1=36.4, gc=2, gr=1),
-                            code=dict(groups=g, x=cx, y=42.4, w=x1 - x0, align="center", size=6, lines=1),
-                            bars=dict(ids=b, x0=x0, x1=x1, y0=46, y1=59.6))
-            return dict(handle=hd, bars=dict(ids=b, x0=x0, x1=x1, y0=14, y1=24.6),
-                        code=dict(groups=g, x=cx, y=32, w=x1 - x0, align="center", size=6, lines=1),
-                        detail=dict(groups=g, x0=x0, y0=35.4, x1=x1, y1=59.6, gc=2, gr=1))
+                return dict(handle=hd, cells=dict(ids=cl, x0=x0, y0=13.8, x1=x1, y1=36.2, gc=3, gr=2),
+                            chips=dict(ids=ch, x0=x0, y0=38.2, x1=x1, y1=45.6, col=False),
+                            bars=dict(ids=b, x0=x0, x1=x1, y0=47.6, y1=60))
+            return dict(handle=hd, bars=dict(ids=b, x0=x0, x1=x1, y0=13.8, y1=23.4),
+                        chips=dict(ids=ch, x0=x0, y0=25.4, x1=x1, y1=32.8, col=False),
+                        cells=dict(ids=cl, x0=x0, y0=35, x1=x1, y1=60, gc=3, gr=2))
         a, c = col(3.5, 40.5, 0), col(87.5, 124.5, 1)
-        return dict(face=(64, 31, 1), div=[(43, 6, 43, 58), (85, 6, 85, 58)],
-                    **{k: [a[k], c[k]] for k in ("handle", "bars", "code", "detail")})
+        top_chip = dict(ids=[1], x0=47, y0=2.6, x1=81, y1=9.8, col=False)
+        return dict(face=(64, 34, .88), div=[(43, 6, 43, 58), (85, 6, 85, 58)],
+                    handle=[a["handle"], c["handle"]], bars=[a["bars"], c["bars"]],
+                    chips=[a["chips"], top_chip, c["chips"]], cells=[a["cells"], c["cells"]])
 
     if L == 0:
         return dict(face=(21.5, 31, 1), div=[(42.5, 6, 42.5, 58)], **stacked(45.6, 123.4))
@@ -191,47 +196,39 @@ def layout_spec(L: int) -> dict:
     if L == 5:
         return dict(face=(19.5, 39.5, .74), div=[(6, 13.6, 122, 13.6), (38, 17, 38, 60)],
                     handle=[dict(text="both", x=64, y=10.6, w=112, align="center", size=8.6)],
-                    bars=[dict(ids=list(range(8)), x0=41, x1=123.4, y0=16.6, y1=27)],
-                    code=[dict(groups=[0, 1, 2, 3], x=41, y=35, w=82.4, align="left", size=6.4, lines=1)],
-                    detail=[dict(groups=[0, 1, 2, 3], x0=41, y0=38.8, x1=123.4, y1=59.6, gc=4, gr=1)])
+                    bars=[dict(ids=list(range(8)), x0=41, x1=123.4, y0=16.4, y1=24.6)],
+                    chips=[dict(ids=[0, 1, 2], x0=41, y0=26.6, x1=123.4, y1=34.4, col=False)],
+                    cells=[dict(ids=list(range(10)), x0=41, y0=36.6, x1=123.4, y1=60, gc=5, gr=2)])
     if L == 6:
         return dict(face=(108.5, 26.5, .74), div=[(6, 50.6, 122, 50.6), (89, 5, 89, 48)],
                     handle=[dict(text="both", x=64, y=59.4, w=112, align="center", size=8.6)],
-                    detail=[dict(groups=[0, 1, 2, 3], x0=4.6, y0=4.6, x1=86, y1=25, gc=4, gr=1)],
-                    code=[dict(groups=[0, 1, 2, 3], x=4.6, y=32.8, w=81.4, align="left", size=6.4, lines=1)],
-                    bars=[dict(ids=list(range(8)), x0=4.6, x1=86, y0=36, y1=48)])
+                    cells=[dict(ids=list(range(10)), x0=4.6, y0=4.6, x1=86, y1=25.6, gc=5, gr=2)],
+                    chips=[dict(ids=[0, 1, 2], x0=4.6, y0=27.6, x1=86, y1=35.2, col=False)],
+                    bars=[dict(ids=list(range(8)), x0=4.6, x1=86, y0=37.4, y1=48)])
     return split(True)
 
 
 # ---------------------------------------------------------------- badge
-def draw_badge(ctx: Canvas, f: Features, theme: Theme) -> None:
-    """Draw one badge into ctx, occupying (0, 0)-(960, 480) in ctx's current transform."""
+def draw_badge(ctx: Canvas, f: Features, theme: Theme | None = None) -> None:
+    """Draw one badge into ctx, occupying (0, 0)-(960, 480) in ctx's current transform.
+    The theme comes from the badge's own bits unless one is passed (for previews)."""
+    t = theme or get_theme(f.theme)
     ctx.save()
     ctx.scale(U, U)
-    acc, vis, trim = theme.color(f.frame), theme.color(f.visor), theme.color(f.trim)
-    glow = Glow(ctx, theme)
+    acc, vis, trim, fcol = t.color(f.accent), t.color(f.visor), t.color(f.trim), t.color(f.frame)
+    glow = Glow(ctx, t)
     fr = frame_poly(f.corners)
     ctx.begin_path()
     poly(ctx, fr)
-    ctx.fill_style = theme.bg
+    ctx.fill_style = t.bg
     ctx.fill()
     ctx.save()
     ctx.clip()
-    background(ctx, theme)
+    background(ctx, t)
     ctx.restore()
-    glow(acc, 1.5)
-    ctx.begin_path()
-    poly(ctx, fr)
-    ctx.line_width, ctx.stroke_style, ctx.line_join = .8, acc, "miter"
-    ctx.stroke()
-    glow.off()
-    if f.frameline:
-        ctx.begin_path()
-        poly(ctx, frame_poly(f.corners, 1.7))
-        ctx.line_width, ctx.stroke_style = .35, acc
-        ctx.stroke()
+    draw_frame(ctx, f, fr, fcol, glow)
     spec = layout_spec(f.layout)
-    ctx.line_width, ctx.stroke_style, ctx.global_alpha = .3, acc, .55
+    ctx.line_width, ctx.stroke_style, ctx.global_alpha = .3, fcol, .55
     ctx.begin_path()
     for a, b, c, d in spec["div"]:
         ctx.move_to(a, b)
@@ -243,42 +240,42 @@ def draw_badge(ctx: Canvas, f: Features, theme: Theme) -> None:
     ctx.translate(fx, fy)
     ctx.scale(fs, fs)
     ctx.translate(-21.5, -31)
-    draw_face(ctx, f, 21.5, glow, vis, trim, theme)
+    draw_face(ctx, f, 21.5, glow, vis, trim, t)
     ctx.restore()
     w1, w2 = (w.upper() for w in f.words)
     for h in spec["handle"]:
         text = f"{w1}·{w2}" if h["text"] == "both" else (w1 if h["text"] == "w1" else w2)
-        handle_text(ctx, text, h["x"], h["y"], h["w"], h["align"], f.glitch, acc, h["size"], glow, theme)
+        handle_text(ctx, text, h["x"], h["y"], h["w"], h["align"], f.hstyle, acc, h["size"], glow, t)
     for b in spec["bars"]:
-        draw_bars(ctx, [f.bars[i] for i in b["ids"]], b["x0"], b["x1"], b["y0"], b["y1"], acc, glow, theme)
-    cg = f.char_groups
-    for c in spec["code"]:
-        draw_code(ctx, [cg[g] for g in c["groups"]], c, acc, glow)
-    for g in spec["detail"]:
-        draw_detail(ctx, f, g["groups"], g["x0"], g["y0"], g["x1"], g["y1"], g["gc"], g["gr"], vis, glow, theme)
+        draw_bars(ctx, [f.bars[i] for i in b["ids"]], b["x0"], b["x1"], b["y0"], b["y1"], acc, glow, t)
+    for c in spec["chips"]:
+        draw_chips(ctx, f, c, t)
+    for c in spec["cells"]:
+        draw_cells(ctx, f, c, vis, glow, t)
     ctx.restore()
 
 
-def background(ctx: Canvas, theme: Theme) -> None:
+def background(ctx: Canvas, t: Theme) -> None:
+    k = t.grid_kind
     ctx.begin_path()
-    if theme.grid_kind == "grid":
+    if k == "grid":
         for x in range(2, 128, 4):
             ctx.move_to(x, 0)
             ctx.line_to(x, 64)
         for y in range(2, 64, 4):
             ctx.move_to(0, y)
             ctx.line_to(128, y)
-        ctx.line_width, ctx.stroke_style = .15, theme.grid_color
+        ctx.line_width, ctx.stroke_style = .15, t.grid_color
         ctx.stroke()
-    elif theme.grid_kind == "hatch":
-        k = -64.0
-        while k < 128:
-            ctx.move_to(k, 64)
-            ctx.line_to(k + 64, 0)
-            k += 3.2
-        ctx.line_width, ctx.stroke_style = .18, theme.grid_color
+    elif k == "hatch":
+        x = -64.0
+        while x < 128:
+            ctx.move_to(x, 64)
+            ctx.line_to(x + 64, 0)
+            x += 3.2
+        ctx.line_width, ctx.stroke_style = .18, t.grid_color
         ctx.stroke()
-    else:
+    elif k == "dots":
         y = 1.5
         while y < 64:
             x = 1.5
@@ -286,11 +283,83 @@ def background(ctx: Canvas, theme: Theme) -> None:
                 ctx.rect(x - .25, y - .25, .5, .5)
                 x += 3
             y += 3
-        ctx.fill_style = theme.grid_color
+        ctx.fill_style = t.grid_color
+        ctx.fill()
+    elif k == "horizon":
+        for i in range(7):
+            y = 30 + i * i * .85
+            ctx.move_to(0, y)
+            ctx.line_to(128, y)
+        for xb in range(-56, 185, 12):
+            ctx.move_to(64 + (xb - 64) * .15, 30)
+            ctx.line_to(xb, 64)
+        ctx.line_width, ctx.stroke_style = .25, t.grid_color
+        ctx.stroke()
+    elif k == "scanlines":
+        y = .6
+        while y < 64:
+            ctx.move_to(0, y)
+            ctx.line_to(128, y)
+            y += 1.3
+        ctx.line_width, ctx.stroke_style = .35, t.grid_color
+        ctx.stroke()
+    elif k == "pixels":
+        s = 7
+        for _ in range(70):
+            s = (s * 75 + 74) % 65537
+            x = s % 1280 / 10
+            s = (s * 75 + 74) % 65537
+            y = s % 640 / 10
+            ctx.rect(x, y, .7, .7)
+        ctx.fill_style = t.grid_color
+        ctx.fill()
+    else:  # crosses
+        for y in range(3, 64, 6):
+            for x in range(3, 128, 6):
+                ctx.rect(x - .8, y - .1, 1.6, .2)
+                ctx.rect(x - .1, y - .8, .2, 1.6)
+        ctx.fill_style = t.grid_color
         ctx.fill()
 
 
-def draw_face(ctx: Canvas, f: Features, hx: float, glow: Glow, vis: str, trim: str, theme: Theme) -> None:
+def draw_frame(ctx: Canvas, f: Features, fr, fcol, glow: Glow) -> None:
+    st = f.framestyle
+    glow(fcol, 1.5)
+    ctx.begin_path()
+    poly(ctx, fr)
+    ctx.stroke_style, ctx.line_join = fcol, "miter"
+    if st == 2:
+        ctx.set_line_dash((3, 1.6))
+        ctx.line_width = .9
+        ctx.stroke()
+        ctx.set_line_dash(())
+    elif st == 3:
+        ctx.line_width, ctx.global_alpha = .3, .7
+        ctx.stroke()
+        ctx.global_alpha = 1
+        ctx.begin_path()
+        n = len(fr)
+        for i, (x, y) in enumerate(fr):
+            for j in (i - 1, (i + 1) % n):
+                px, py = fr[j]
+                d = math.hypot(px - x, py - y)
+                L = min(7, d / 2.5)
+                ctx.move_to(x, y)
+                ctx.line_to(x + (px - x) / d * L, y + (py - y) / d * L)
+        ctx.line_width = 1.6
+        ctx.stroke()
+    else:
+        ctx.line_width = .8
+        ctx.stroke()
+    glow.off()
+    if st == 1:
+        ctx.begin_path()
+        poly(ctx, frame_poly(f.corners, 1.7))
+        ctx.line_width = .35
+        ctx.stroke()
+
+
+def draw_face(ctx: Canvas, f: Features, hx: float, glow: Glow, vis: str, trim: str, t: Theme) -> None:
     shape, vst = f.shape, f.vstyle
 
     def head_path():
@@ -301,13 +370,26 @@ def draw_face(ctx: Canvas, f: Features, hx: float, glow: Glow, vis: str, trim: s
             poly(ctx, [(hx, 12), (hx + 13, 19), (hx + 12, 42), (hx, 49), (hx - 12, 42), (hx - 13, 19)])
         elif shape == 2:
             poly(ctx, [(hx - 8, 13), (hx + 8, 13), (hx + 13, 18), (hx + 13, 42), (hx + 8, 47), (hx - 8, 47), (hx - 13, 42), (hx - 13, 18)])
-        else:
+        elif shape == 3:
             ctx.move_to(hx - 13, 27)
             ctx.arc(hx, 27, 13, math.pi, TAU)
             ctx.line_to(hx + 13, 38)
             ctx.line_to(hx + 6, 48)
             ctx.line_to(hx - 6, 48)
             ctx.line_to(hx - 13, 38)
+            ctx.close_path()
+        elif shape == 4:
+            rr(ctx, hx - 12, 12, 24, 36, 10)
+        elif shape == 5:
+            poly(ctx, [(hx - 9, 13), (hx + 9, 13), (hx + 14, 46), (hx - 14, 46)])
+        elif shape == 6:
+            poly(ctx, [(hx - 13, 13), (hx + 13, 13), (hx + 13, 34), (hx, 50), (hx - 13, 34)])
+        else:
+            ctx.arc(hx, 25, 14, math.pi * .72, math.pi * 2.28)
+            ctx.line_to(hx + 7.5, 43)
+            ctx.line_to(hx + 6.5, 49)
+            ctx.line_to(hx - 6.5, 49)
+            ctx.line_to(hx - 7.5, 43)
             ctx.close_path()
 
     ctx.line_cap = "round"
@@ -334,7 +416,7 @@ def draw_face(ctx: Canvas, f: Features, hx: float, glow: Glow, vis: str, trim: s
         ctx.fill()
     glow.off()
     head_path()
-    ctx.fill_style = theme.panel
+    ctx.fill_style = t.panel
     ctx.fill()
     glow(trim, 1)
     ctx.line_width, ctx.stroke_style, ctx.line_join = .7, trim, "round"
@@ -344,7 +426,7 @@ def draw_face(ctx: Canvas, f: Features, hx: float, glow: Glow, vis: str, trim: s
         for s in (-1, 1):
             ctx.begin_path()
             ctx.arc(hx + s * 13.6, 30, 3.2, 0, TAU)
-            ctx.fill_style = theme.panel
+            ctx.fill_style = t.panel
             ctx.fill()
             glow(trim, 1)
             ctx.line_width, ctx.stroke_style = .6, trim
@@ -355,6 +437,14 @@ def draw_face(ctx: Canvas, f: Features, hx: float, glow: Glow, vis: str, trim: s
             ctx.fill_style = trim
             ctx.fill()
     draw_symbol(ctx, f.decal, hx, 19.6, 2.7, trim)
+    draw_visor(ctx, vst, hx, head_path, glow, vis, t)
+    draw_mouth(ctx, f.grille, hx, glow, vis, trim)
+    draw_cheeks(ctx, f.cheek, hx, trim)
+    ctx.line_cap = "butt"
+    draw_status(ctx, f, hx, glow, t)
+
+
+def draw_visor(ctx: Canvas, vst, hx, head_path, glow: Glow, vis, t: Theme) -> None:
     glow(vis, 2)
     ctx.fill_style = vis
     if vst == 0:
@@ -374,235 +464,368 @@ def draw_face(ctx: Canvas, f: Features, hx: float, glow: Glow, vis: str, trim: s
         ctx.arc(hx - 6, 28, 1.3, 0, TAU)
         ctx.move_to(hx + 7.3, 28)
         ctx.arc(hx + 6, 28, 1.3, 0, TAU)
-        ctx.fill_style = theme.bg
+        ctx.fill_style = t.bg
         ctx.fill()
     elif vst == 2:
         ctx.fill_rect(hx - 10, 27, 20, 1.9)
         glow.off()
         ctx.fill_style = "#FFFFFF"
         ctx.fill_rect(hx - 1.2, 27, 2.4, 1.9)
-    else:
+    elif vst == 3:
         ctx.begin_path()
         ctx.arc(hx, 28, 5.6, 0, TAU)
         ctx.fill()
         glow.off()
         ctx.begin_path()
         ctx.arc(hx, 28, 2.7, 0, TAU)
-        ctx.fill_style = theme.bg
+        ctx.fill_style = t.bg
         ctx.fill()
         ctx.begin_path()
         ctx.arc(hx, 28, 1.2, 0, TAU)
         ctx.fill_style = vis
         ctx.fill()
+    elif vst == 4:
+        ctx.begin_path()
+        rr(ctx, hx - 11.5, 24.6, 9.6, 7, 2.2)
+        rr(ctx, hx + 1.9, 24.6, 9.6, 7, 2.2)
+        ctx.fill()
+        ctx.begin_path()
+        ctx.move_to(hx - 2.2, 27.4)
+        ctx.line_to(hx + 2.2, 27.4)
+        ctx.line_width, ctx.stroke_style = .9, vis
+        ctx.stroke()
+    elif vst == 5:
+        ctx.save()
+        head_path()
+        ctx.clip()
+        ctx.begin_path()
+        poly(ctx, [(hx - 14, 23.5), (hx, 28.5), (hx + 14, 23.5), (hx + 14, 27.5), (hx, 32.5), (hx - 14, 27.5)])
+        ctx.fill()
+        ctx.restore()
+    elif vst == 6:
+        ctx.begin_path()
+        for dx in (-7.2, 0, 7.2):
+            ctx.move_to(hx + dx + 3, 28)
+            ctx.arc(hx + dx, 28, 3, 0, TAU)
+        ctx.fill()
+        glow.off()
+        ctx.begin_path()
+        for dx in (-7.2, 0, 7.2):
+            ctx.move_to(hx + dx + .9, 28)
+            ctx.arc(hx + dx, 28, .9, 0, TAU)
+        ctx.fill_style = t.bg
+        ctx.fill()
+    else:
+        ctx.save()
+        head_path()
+        ctx.clip()
+        ctx.fill_rect(hx - 14, 25, 28, 6)
+        glow.off()
+        ctx.fill_style = t.bg
+        for dx in (-8, -4, 0, 4, 8):
+            ctx.fill_rect(hx + dx - .4, 25, .8, 6)
+        ctx.restore()
     glow.off()
+
+
+def draw_mouth(ctx: Canvas, m, hx, glow: Glow, vis, trim) -> None:
     ctx.stroke_style = ctx.fill_style = trim
     ctx.line_width = .6
-    if f.grille == 0:
-        ctx.begin_path()
+    ctx.begin_path()
+    if m == 0:
         for y in (37.5, 39.6, 41.7):
             ctx.move_to(hx - 6, y)
             ctx.line_to(hx + 6, y)
         ctx.stroke()
-    elif f.grille == 1:
-        ctx.begin_path()
+    elif m == 1:
         for k in range(6):
             x = -6 + k * 2.4
             ctx.move_to(hx + x, 37)
             ctx.line_to(hx + x, 43)
         ctx.stroke()
-    elif f.grille == 2:
-        ctx.begin_path()
+    elif m == 2:
         for y in (38.3, 41.3):
             for k in range(5):
                 x = -6 + k * 3
                 ctx.move_to(hx + x + .6, y)
                 ctx.arc(hx + x, y, .6, 0, TAU)
         ctx.fill()
-    else:
+    elif m == 3:
         glow(vis, 1.5)
         ctx.fill_style = vis
         ctx.fill_rect(hx - 7, 39, 14, 1.7)
         glow.off()
-    ctx.line_cap = "butt"
-    st, sc = STATUS_WORDS[f.status], theme.color(f.scolor)
+    elif m == 4:
+        for k in range(7):
+            (ctx.line_to if k else ctx.move_to)(hx - 6 + k * 2, 38.8 if k % 2 == 0 else 41.2)
+        ctx.stroke()
+    elif m == 5:
+        ctx.arc(hx, 40, 3, 0, TAU)
+        ctx.stroke()
+        ctx.begin_path()
+        ctx.arc(hx, 40, 1.2, 0, TAU)
+        ctx.fill()
+    elif m == 6:
+        ctx.move_to(hx - 6, 38.4)
+        ctx.line_to(hx + 6, 38.4)
+        ctx.stroke()
+        ctx.begin_path()
+        for c in (hx - 3, hx + 3):
+            poly(ctx, [(c - 1.3, 38.4), (c + 1.3, 38.4), (c, 42.6)])
+        ctx.fill()
+    else:
+        ctx.move_to(hx - 6, 40)
+        ctx.line_to(hx + 6, 40)
+        for k in range(5):
+            x = hx - 5 + k * 2.5
+            ctx.move_to(x, 38.4)
+            ctx.line_to(x, 41.6)
+        ctx.stroke()
+
+
+def draw_cheeks(ctx: Canvas, c, hx, trim) -> None:
+    ctx.stroke_style = ctx.fill_style = trim
+    ctx.line_width = .55
+    for s in (-1, 1):
+        cx = hx + s * 8.8
+        ctx.begin_path()
+        if c == 0:
+            for k in (0, 1):
+                x = cx + (k - .5) * 1.6 * s
+                ctx.move_to(x, 32.8)
+                ctx.line_to(x - s * 1.2, 35.8)
+            ctx.stroke()
+        elif c == 1:
+            for dx in (-1.5, 0, 1.5):
+                ctx.move_to(cx + dx + .5, 34.4)
+                ctx.arc(cx + dx, 34.4, .5, 0, TAU)
+            ctx.fill()
+        elif c == 2:
+            ctx.move_to(cx - s * 1.8, 33)
+            ctx.line_to(cx, 33)
+            ctx.line_to(cx + s * 1.2, 35.4)
+            ctx.stroke()
+            ctx.begin_path()
+            ctx.arc(cx + s * 1.2, 35.4, .6, 0, TAU)
+            ctx.fill()
+        else:
+            poly(ctx, [(cx + 1.2 * math.cos(a), 34.2 + 1.2 * math.sin(a)) for a in (k * math.pi / 3 for k in range(6))])
+            ctx.line_width = .45
+            ctx.stroke()
+            ctx.begin_path()
+            ctx.arc(cx, 34.2, .35, 0, TAU)
+            ctx.fill()
+
+
+def draw_status(ctx: Canvas, f: Features, hx, glow: Glow, t: Theme) -> None:
+    st, sc, rank = STATUS_WORDS[f.status], t.color(f.scolor), f.rank + 1
     ctx.set_font("mono", 4.6)
-    stw = ctx.measure_text(st)
+    tw = ctx.measure_text(st)
+    rw = rank * 1.9 + .4
+    total = rw + 1.2 + tw
+    x0 = hx - total / 2 - 1.6
     ctx.begin_path()
-    ctx.rect(hx - stw / 2 - 1.8, 52.4, stw + 3.6, 6)
+    ctx.rect(x0, 52.4, total + 3.2, 6)
     glow(sc, 1)
     ctx.line_width, ctx.stroke_style = .45, sc
     ctx.stroke()
     glow.off()
-    ctx.fill_style, ctx.text_align, ctx.text_baseline = sc, "center", "middle"
-    ctx.fill_text(st, hx, 55.6)
+    ctx.begin_path()
+    for k in range(rank):
+        cx = x0 + 1.6 + k * 1.9 + .9
+        ctx.move_to(cx - .85, 56.6)
+        ctx.line_to(cx, 54.4)
+        ctx.line_to(cx + .85, 56.6)
+    ctx.line_width, ctx.line_join = .5, "miter"
+    ctx.stroke()
+    ctx.fill_style, ctx.text_align, ctx.text_baseline = sc, "left", "middle"
+    ctx.fill_text(st, x0 + 1.6 + rw + 1.2, 55.6)
 
 
-def handle_text(ctx: Canvas, text, x, y, max_w, align, glitch, acc, size, glow: Glow, theme: Theme) -> None:
-    fs = fit_font(ctx, text, max_w, theme.handle_font, size)
+def handle_text(ctx: Canvas, text, x, y, max_w, align, style, acc, size, glow: Glow, t: Theme) -> None:
+    fs = fit_font(ctx, text, max_w - (2.4 if style in (4, 6) else 0), t.handle_font, size)
     ctx.text_align, ctx.text_baseline = align, "alphabetic"
+    w = ctx.measure_text(text)
+    left = x if align == "left" else (x - w / 2 if align == "center" else x - w)
+    if style in (4, 6) and align == "left":
+        x, left = x + 1.2, left + 1.2
     o = .55
-    if glitch == 1:
-        ctx.fill_style = theme.chroma[0]
+    if style == 1:
+        ctx.fill_style = t.chroma[0]
         ctx.fill_text(text, x - o, y)
-        ctx.fill_style = theme.chroma[1]
+        ctx.fill_style = t.chroma[1]
         ctx.fill_text(text, x + o, y)
-    elif glitch == 2:
-        ctx.fill_style = theme.chroma[0]
+    elif style == 2:
+        ctx.fill_style = t.chroma[0]
         ctx.fill_text(text, x, y - o)
-        ctx.fill_style = theme.chroma[1]
+        ctx.fill_style = t.chroma[1]
         ctx.fill_text(text, x, y + o)
+    elif style == 4:
+        ctx.fill_style = acc
+        ctx.fill_rect(left - 1.2, y - fs * .82, w + 2.4, fs * 1.04)
+        ctx.fill_style = chip_ink(t, acc)
+        ctx.fill_text(text, x, y)
+        return
+    elif style == 7:
+        ctx.fill_style = acc
+        ctx.fill_text(text, x + .7, y + .7)
     glow(acc, 1.4)
-    ctx.fill_style = theme.handle
+    ctx.fill_style = t.handle
     ctx.fill_text(text, x, y)
     glow.off()
-    if glitch == 3:
-        w = ctx.measure_text(text)
-        left = x if align == "left" else (x - w / 2 if align == "center" else x - w)
+    if style == 3:
         ctx.save()
         ctx.begin_path()
-        ctx.rect(left - 2, y - fs * .56, w + 4, fs * .24)
+        ctx.rect(left - 2, y - fs * .5, w + 4, fs * .16)
         ctx.clip()
-        ctx.fill_style = theme.bg
+        ctx.fill_style = t.bg
         ctx.fill_rect(left - 2, y - fs, w + 4, fs * 1.2)
         ctx.fill_style = acc
-        ctx.fill_text(text, x + 1.4, y)
+        ctx.fill_text(text, x + .9, y)
         ctx.restore()
+    elif style == 5:
+        ctx.fill_style = acc
+        ctx.fill_rect(left, y + fs * .16, w, fs * .13)
+    elif style == 6:
+        ctx.begin_path()
+        ctx.rect(left - 1.2, y - fs * .82, w + 2.4, fs * 1.04)
+        ctx.line_width, ctx.stroke_style = .45, acc
+        ctx.stroke()
 
 
-def draw_bars(ctx: Canvas, vals, x0, x1, y0, y1, acc, glow: Glow, theme: Theme) -> None:
+def draw_bars(ctx: Canvas, vals, x0, x1, y0, y1, acc, glow: Glow, t: Theme) -> None:
     n, gap = len(vals), 1.4
     bw, bh = (x1 - x0 - (n - 1) * gap) / n, y1 - y0
-    seg = bh / 16
+    seg = bh / 8
     for i, v in enumerate(vals):
         x = x0 + i * (bw + gap)
-        for s in range(16):
+        for s in range(8):
             y = y0 + bh - (s + 1) * seg
             lit = s <= v
-            ctx.fill_style = (theme.peak if s == v else acc) if lit else theme.unlit
+            ctx.fill_style = (t.peak if s == v else acc) if lit else t.unlit
             if lit:
                 glow(acc, .8)
-            ctx.fill_rect(x, y + .1, bw, seg - .22)
+            ctx.fill_rect(x, y + .15, bw, seg - .35)
             glow.off()
 
 
-def draw_code(ctx: Canvas, groups, c, acc, glow: Glow) -> None:
-    if c["lines"] == 2:
-        half = len(groups) // 2
-        lines = ["·".join(groups[:half]), "·".join(groups[half:])]
+def draw_chips(ctx: Canvas, f: Features, r: dict, t: Theme) -> None:
+    ids, gap = r["ids"], 1.6
+    n = len(ids)
+    groups = f.char_groups
+    if r["col"]:
+        cw, ch = r["x1"] - r["x0"], (r["y1"] - r["y0"] - (n - 1) * gap) / n
     else:
-        lines = ["·".join(groups)]
-    size = c["size"]
-    for line in lines:
-        size = min(size, fit_font(ctx, line, c["w"], "mono", c["size"]))
-    ctx.set_font("mono", size)
-    ctx.text_align, ctx.text_baseline = c["align"], "alphabetic"
-    glow(acc, .7)
-    ctx.fill_style = acc
-    for i, line in enumerate(lines):
-        ctx.fill_text(line, c["x"], c["y"] + i * size * 1.25)
-    glow.off()
-
-
-# ---------------------------------------------------------------- detail block (4 displays)
-def draw_detail(ctx: Canvas, f: Features, ids, x0, y0, x1, y1, gcols, grows, vis, glow: Glow, theme: Theme) -> None:
-    """Each 20-bit group in its own box with corner brackets, drawn in the badge's display type."""
-    gap, t = 2.2, 1.6
-    gw, gh = (x1 - x0 - (gcols - 1) * gap) / gcols, (y1 - y0 - (grows - 1) * gap) / grows
-    for j, g in enumerate(ids):
-        gx, gy = x0 + (j % gcols) * (gw + gap), y0 + (j // gcols) * (gh + gap)
+        cw, ch = (r["x1"] - r["x0"] - (n - 1) * gap) / n, r["y1"] - r["y0"]
+    for j, i in enumerate(ids):
+        x = r["x0"] + (0 if r["col"] else j * (cw + gap))
+        y = r["y0"] + (j * (ch + gap) if r["col"] else 0)
+        color = t.color(f.chips[i])
         ctx.begin_path()
-        for cx, cy, dx, dy in ((gx, gy, 1, 1), (gx + gw, gy, -1, 1), (gx + gw, gy + gh, -1, -1), (gx, gy + gh, 1, -1)):
-            ctx.move_to(cx + dx * t, cy)
-            ctx.line_to(cx, cy)
-            ctx.line_to(cx, cy + dy * t)
-        ctx.line_width, ctx.stroke_style = .3, theme.bracket
-        ctx.stroke()
-        bx0, by0, bx1, by1 = gx + .7, gy + .7, gx + gw - .7, gy + gh - .7
-        if f.display == 0:
-            dot_grid(ctx, f.detail_group(g), bx0, by0, bx1, by1, 5, 4, vis, glow, theme)
-        elif f.display == 1:
-            shape_group(ctx, f.detail_nibbles(g), bx0, by0, bx1, by1, vis, glow)
-        elif f.display == 2:
-            barcode_group(ctx, f.detail_group(g), bx0, by0, bx1, by1, vis, glow)
-        else:
-            segment_group(ctx, f.detail_nibbles(g), bx0, by0, bx1, by1, vis, glow, theme)
+        rr(ctx, x, y, cw, ch, min(1.6, ch / 3))
+        ctx.fill_style = color
+        ctx.fill()
+        fit_font(ctx, groups[i], cw - 2.4, t.code_font, min(ch * .8, 7.6))
+        ctx.fill_style, ctx.text_align, ctx.text_baseline = chip_ink(t, color), "center", "middle"
+        ctx.fill_text(groups[i], x + cw / 2, y + ch / 2 + .2)
 
 
-def dot_grid(ctx: Canvas, bits, x0, y0, x1, y1, cols, rows, vis, glow: Glow, theme: Theme) -> None:
-    px, py = (x1 - x0) / cols, (y1 - y0) / rows
-    ds = min(px, py) * .66
-    for i, on in enumerate(bits):
-        x, y = x0 + (i % cols) * px + (px - ds) / 2, y0 + (i // cols) * py + (py - ds) / 2
-        if on:
-            glow(vis, .8)
-            ctx.fill_style = vis
-        else:
-            ctx.fill_style = theme.off
-        ctx.fill_rect(x, y, ds, ds)
-        glow.off()
+# ---------------------------------------------------------------- detail cells (4 displays)
+def draw_cells(ctx: Canvas, f: Features, r: dict, vis, glow: Glow, t: Theme) -> None:
+    """10 cells of 8 bits each, laid out in a grid; a short last row is centered."""
+    ids, gc, gr, gap = r["ids"], r["gc"], r["gr"], 1.6
+    cw = (r["x1"] - r["x0"] - (gc - 1) * gap) / gc
+    ch = (r["y1"] - r["y0"] - (gr - 1) * gap) / gr
+    for j, i in enumerate(ids):
+        row, col = divmod(j, gc)
+        in_row = min(gc, len(ids) - row * gc)
+        x = r["x0"] + (gc - in_row) * (cw + gap) / 2 + col * (cw + gap)
+        y = r["y0"] + row * (ch + gap)
+        draw_cell(ctx, f.display, f.cells[i], x, y, cw, ch, vis, glow, t)
 
 
-# Quincunx positions (reading order: top-left, top-right, center, bottom-left, bottom-right).
-QUINCUNX = ((.2, .24), (.8, .24), (.5, .5), (.2, .76), (.8, .76))
+def brackets(ctx: Canvas, x, y, w, h, t: Theme) -> None:
+    k = min(1.6, w / 4, h / 4)
+    ctx.begin_path()
+    for cx, cy, dx, dy in ((x, y, 1, 1), (x + w, y, -1, 1), (x + w, y + h, -1, -1), (x, y + h, 1, -1)):
+        ctx.move_to(cx + dx * k, cy)
+        ctx.line_to(cx, cy)
+        ctx.line_to(cx, cy + dy * k)
+    ctx.line_width, ctx.stroke_style = .3, t.bracket
+    ctx.stroke()
 
 
-def shape_group(ctx: Canvas, nibbles, x0, y0, x1, y1, vis, glow: Glow) -> None:
-    """5 shapes per group; each nibble = shape (circle, square, triangle, diamond) x fill (solid, outline, dotted, half)."""
-    w, h = x1 - x0, y1 - y0
-    r = min(w, h) * .17
-    for (u, v), n in zip(QUINCUNX, nibbles):
-        cx, cy, kind, fill = x0 + u * w, y0 + v * h, n >> 2, n & 3
-
-        def path():
-            ctx.begin_path()
-            if kind == 0:
-                ctx.arc(cx, cy, r, 0, TAU)
-            elif kind == 1:
-                ctx.rect(cx - r * .86, cy - r * .86, r * 1.72, r * 1.72)
-            elif kind == 2:
-                poly(ctx, [(cx, cy - r * 1.05), (cx + r * 1.05, cy + r * .8), (cx - r * 1.05, cy + r * .8)])
-            else:
-                poly(ctx, [(cx, cy - r * 1.15), (cx + r * 1.0, cy), (cx, cy + r * 1.15), (cx - r * 1.0, cy)])
-
-        glow(vis, .8)
-        ctx.fill_style = ctx.stroke_style = vis
-        ctx.line_width, ctx.line_join = r * .28, "round"
-        path()
-        if fill == 0:
-            ctx.fill()
-        else:
+def draw_cell(ctx: Canvas, display, c, x, y, w, h, vis, glow: Glow, t: Theme) -> None:
+    cx, cy = x + w / 2, y + h / 2
+    if display == 0:  # tile: color (high nibble) + symbol (low nibble)
+        color = t.color(c >> 4)
+        ctx.begin_path()
+        rr(ctx, x, y, w, h, min(1.2, h / 4))
+        ctx.fill_style = color
+        ctx.fill()
+        draw_symbol(ctx, c & 15, cx, cy, min(w, h) * .32, chip_ink(t, color))
+        return
+    brackets(ctx, x, y, w, h, t)
+    if display == 1:  # gem: color (high nibble), shape (2 bits), fill (2 bits)
+        draw_gem(ctx, (c >> 2) & 3, c & 3, cx, cy, min(w, h) * .33, t.color(c >> 4), glow)
+    elif display == 2:  # hex pair on a seven-segment display
+        dh = h * .72
+        dw = min(w * .34, dh * .58)
+        for k, n in enumerate((c >> 4, c & 15)):
+            sx = cx + (k - .5) * dw * 1.45
+            seven_seg(ctx, n, sx - dw / 2, cy - dh / 2, dw, dh, vis, glow, t)
+    else:  # arrow: direction (3 bits), color (4 bits), solid or outline (1 bit)
+        ctx.save()
+        ctx.translate(cx, cy)
+        ctx.rotate((c >> 5) * math.pi / 4)
+        r = min(w, h) * .36
+        ctx.scale(r, r)
+        sym_path(ctx, 14)
+        color = t.color((c >> 1) & 15)
+        glow(color, .8)
+        if c & 1:
+            ctx.line_width, ctx.stroke_style, ctx.line_join = .22, color, "round"
             ctx.stroke()
+        else:
+            ctx.fill_style = color
+            ctx.fill()
         glow.off()
-        if fill == 2:
-            ctx.begin_path()
-            ctx.arc(cx, cy + (r * .12 if kind == 2 else 0), r * .3, 0, TAU)
-            ctx.fill()
-        elif fill == 3:
-            ctx.save()
-            ctx.begin_path()
-            ctx.rect(cx - r * 1.3, cy, r * 2.6, r * 1.4)
-            ctx.clip()
-            path()
-            ctx.fill()
-            ctx.restore()
+        ctx.restore()
 
 
-def barcode_group(ctx: Canvas, bits, x0, y0, x1, y1, vis, glow: Glow) -> None:
-    """2 rows of 10 ticks; 1 = full height, 0 = short (bottom aligned), like a postal barcode."""
-    w, h = x1 - x0, y1 - y0
-    rg = h * .12
-    rh = (h - rg) / 2
-    px = w / 10
-    tw = px * .5
-    glow(vis, .8)
-    ctx.fill_style = vis
-    for i, b in enumerate(bits):
-        row, col = divmod(i, 10)
-        x = x0 + col * px + (px - tw) / 2
-        bottom = y0 + row * (rh + rg) + rh
-        th = rh if b else rh * .42
-        ctx.fill_rect(x, bottom - th, tw, th)
+def draw_gem(ctx: Canvas, kind, fill, cx, cy, r, color, glow: Glow) -> None:
+    def path():
+        ctx.begin_path()
+        if kind == 0:
+            ctx.arc(cx, cy, r, 0, TAU)
+        elif kind == 1:
+            ctx.rect(cx - r * .86, cy - r * .86, r * 1.72, r * 1.72)
+        elif kind == 2:
+            poly(ctx, [(cx, cy - r * 1.05), (cx + r * 1.05, cy + r * .8), (cx - r * 1.05, cy + r * .8)])
+        else:
+            poly(ctx, [(cx, cy - r * 1.15), (cx + r, cy), (cx, cy + r * 1.15), (cx - r, cy)])
+
+    glow(color, .8)
+    ctx.fill_style = ctx.stroke_style = color
+    ctx.line_width, ctx.line_join = r * .26, "round"
+    path()
+    if fill == 0:
+        ctx.fill()
+    else:
+        ctx.stroke()
     glow.off()
+    if fill == 2:
+        ctx.begin_path()
+        ctx.arc(cx, cy + (r * .12 if kind == 2 else 0), r * .32, 0, TAU)
+        ctx.fill()
+    elif fill == 3:
+        ctx.save()
+        ctx.begin_path()
+        ctx.rect(cx - r * 1.3, cy, r * 2.6, r * 1.4)
+        ctx.clip()
+        path()
+        ctx.fill()
+        ctx.restore()
 
 
 # a b c d e f g for hex digits 0-F
@@ -610,39 +833,26 @@ SEGMENTS = ("abcdef", "bc", "abdeg", "abcdg", "bcfg", "acdfg", "acdefg", "abc",
             "abcdefg", "abcdfg", "abcefg", "cdefg", "adef", "bcdeg", "adefg", "aefg")
 
 
-def segment_group(ctx: Canvas, nibbles, x0, y0, x1, y1, vis, glow: Glow, theme: Theme) -> None:
-    """5 hex digits on a seven-segment display: 3 on the top row, 2 below."""
-    w, h = x1 - x0, y1 - y0
-    cw, ch = w / 3, h / 2
-    for i, n in enumerate(nibbles):
-        row = 0 if i < 3 else 1
-        col = i if i < 3 else i - 3 + .5
-        dh = ch * .8
-        dw = min(cw * .72, dh * .58)
-        cx, cy = x0 + col * cw + cw / 2, y0 + row * ch + ch / 2
-        seven_seg(ctx, n, cx - dw / 2, cy - dh / 2, dw, dh, vis, glow, theme)
-
-
-def seven_seg(ctx: Canvas, n, x, y, w, h, vis, glow: Glow, theme: Theme) -> None:
-    t = w * .2
+def seven_seg(ctx: Canvas, n, x, y, w, h, vis, glow: Glow, t: Theme) -> None:
+    k = w * .22
     hh = h / 2
     rects = {
-        "a": (x + t * .6, y, w - t * 1.2, t),
-        "g": (x + t * .6, y + hh - t / 2, w - t * 1.2, t),
-        "d": (x + t * .6, y + h - t, w - t * 1.2, t),
-        "f": (x, y + t * .6, t, hh - t * .9),
-        "b": (x + w - t, y + t * .6, t, hh - t * .9),
-        "e": (x, y + hh + t * .3, t, hh - t * .9),
-        "c": (x + w - t, y + hh + t * .3, t, hh - t * .9),
+        "a": (x + k * .6, y, w - k * 1.2, k),
+        "g": (x + k * .6, y + hh - k / 2, w - k * 1.2, k),
+        "d": (x + k * .6, y + h - k, w - k * 1.2, k),
+        "f": (x, y + k * .6, k, hh - k * .9),
+        "b": (x + w - k, y + k * .6, k, hh - k * .9),
+        "e": (x, y + hh + k * .3, k, hh - k * .9),
+        "c": (x + w - k, y + hh + k * .3, k, hh - k * .9),
     }
     on = SEGMENTS[n]
-    for name, (rx, ry, rw, rh_) in rects.items():
+    for name, (rx, ry, rw, rh) in rects.items():
         if name in on:
             glow(vis, .8)
             ctx.fill_style = vis
         else:
-            ctx.fill_style = theme.unlit
-        ctx.fill_rect(rx, ry, rw, rh_)
+            ctx.fill_style = t.unlit
+        ctx.fill_rect(rx, ry, rw, rh)
         glow.off()
 
 
@@ -652,12 +862,14 @@ PAIR_W = W + 2 * PAIR_PAD
 PAIR_H = 2 * H + PAIR_GAP + 2 * PAIR_PAD + PAIR_FOOT
 
 
-def draw_pair(ctx: Canvas, parts: list[Features], theme: Theme) -> None:
-    """Both halves of a 512-bit hash in one frame, numbered 1 and 2 and joined by a rail."""
-    fg = theme.pair_fg
+def draw_pair(ctx: Canvas, parts: list[Features]) -> None:
+    """Both halves of a 512-bit hash in one frame, numbered 1 and 2 and joined by a rail.
+    Each badge uses its own theme; the frame takes its colors from part 1's theme."""
+    t = get_theme(parts[0].theme)
+    fg = t.pair_fg
     ctx.begin_path()
     rr(ctx, 0, 0, PAIR_W, PAIR_H, S * .1)
-    ctx.fill_style = theme.pair_bg
+    ctx.fill_style = t.pair_bg
     ctx.fill()
     ctx.begin_path()
     rr(ctx, S * .04, S * .04, PAIR_W - S * .08, PAIR_H - S * .08, S * .08)
@@ -674,14 +886,14 @@ def draw_pair(ctx: Canvas, parts: list[Features], theme: Theme) -> None:
     for (x, y), f in zip(pos, parts):
         ctx.save()
         ctx.translate(x, y)
-        draw_badge(ctx, f, theme)
+        draw_badge(ctx, f)
         ctx.restore()
     for i, (x, y) in enumerate(badges):
         ctx.begin_path()
         ctx.arc(x, y, S * .075, 0, TAU)
         ctx.fill_style = fg
         ctx.fill()
-        ctx.fill_style = theme.pair_bg
+        ctx.fill_style = t.pair_bg
         ctx.set_font("mono", S * .1)
         ctx.text_align, ctx.text_baseline = "center", "middle"
         ctx.fill_text(str(i + 1), x, y + S * .006)

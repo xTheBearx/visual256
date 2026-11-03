@@ -1,6 +1,6 @@
 <title>Netrunner ID Lab</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Chakra+Petch:wght@600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Spectral:wght@600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Chakra+Petch:wght@600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Spectral:wght@600&family=Audiowide&family=Silkscreen:wght@700&family=Saira+Stencil+One&display=swap">
 <style>
 /* Layout: one-style workbench. Input, hero badge beside its field readout, bit ruler, layout previews, test bench, spoken backup, notes. */
 :root{
@@ -109,9 +109,9 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
 
 <div class="wrap">
   <header>
-    <span class="eyebrow">Round 5 · one style, four themes</span>
+    <span class="eyebrow">Round 6 · spec v2</span>
     <h1>Netrunner ID Lab</h1>
-    <p class="lede">Eight card layouts, two BIP-39 handle words, and a detail tier that is half printed characters and half a 20-bit-per-group detail block. The detail block now has four displays chosen by the hash: dots, shapes, barcode ticks or hex segment digits. Themes change the look without changing the bits, so pick one theme and use it everywhere. This page mirrors the Python package in <a href="https://github.com/xTheBearx/visual256" target="_blank" rel="noopener">xTheBearx/visual256</a>.</p>
+    <p class="lede">Spec v2. The first 3 bits now pick one of eight themes, and bits have moved out of small marks into bigger features: more face parts, a rank, handle styles, color chips behind the characters, 8-level signal bars, and 10 detail cells that each carry a whole byte as a colored tile, gem, hex pair or arrow. This page mirrors the Python package in <a href="https://github.com/xTheBearx/visual256" target="_blank" rel="noopener">xTheBearx/visual256</a>.</p>
   </header>
 
   <section class="panel" aria-label="Input">
@@ -124,15 +124,6 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
         <button type="button" data-algo="SHA-512" aria-pressed="false">SHA-512</button>
       </div>
       <label class="check" for="hexmode"><input id="hexmode" type="checkbox"> Input is a hex hash</label>
-    </div>
-    <div class="row" style="align-items:center">
-      <span class="meta">Theme</span>
-      <div class="seg" id="theme" role="group" aria-label="Theme">
-        <button type="button" data-theme="cyberpunk" aria-pressed="true">Cyberpunk</button>
-        <button type="button" data-theme="daylight" aria-pressed="false">Daylight</button>
-        <button type="button" data-theme="paper" aria-pressed="false">Paper</button>
-        <button type="button" data-theme="blueprint" aria-pressed="false">Blueprint</button>
-      </div>
     </div>
     <p class="err" id="err" hidden></p>
     <div class="hexwrap" id="hex"></div>
@@ -148,10 +139,10 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
       <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
         <div class="ruler" id="ruler" aria-hidden="true"></div>
         <div class="rulerkey">
-          <span><b style="background:var(--seg-a)"></b>Headline · 64 bits</span>
-          <span><b style="background:var(--seg-bars)"></b>Signal bars · 32 bits</span>
-          <span><b style="background:var(--seg-chars)"></b>Characters · 80 bits</span>
-          <span><b style="background:var(--seg-dots)"></b>Detail block · 80 bits</span>
+          <span><b style="background:var(--seg-a)"></b>Headline · 80 bits</span>
+          <span><b style="background:var(--seg-bars)"></b>Signal bars · 24 bits</span>
+          <span><b style="background:var(--seg-chars)"></b>Chips and characters · 72 bits</span>
+          <span><b style="background:var(--seg-dots)"></b>Detail cells · 80 bits</span>
         </div>
         <p class="cap" id="partnote" hidden>Readout shows part 1.</p>
         <div class="tablewrap"><table class="fields" id="fields"></table></div>
@@ -170,15 +161,15 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
   <section>
     <div class="sec-head">
       <h2>Four detail displays</h2>
-      <p class="note">Bits 6–7 pick how the last 80 bits are drawn. Each group of 20 bits becomes 20 dots, 5 shapes (4 shapes × 4 fills), 20 barcode ticks, or 5 hex digits on a seven-segment display.</p>
+      <p class="note">Bits 6–7 pick how the 10 detail cells are drawn. Each cell is one byte: a colored tile with a symbol (4 + 4 bits), a gem (16 colors × 4 shapes × 4 fills), two hex digits, or an arrow (8 directions × 16 colors × solid or outline).</p>
     </div>
     <div class="panel"><div class="layouts" id="displays"></div></div>
   </section>
 
   <section>
     <div class="sec-head">
-      <h2>Four themes</h2>
-      <p class="note">The same hash in every theme. A theme is a rendering choice, not part of the hash: badges are only comparable in the same theme.</p>
+      <h2>Eight themes</h2>
+      <p class="note">The first 3 bits pick the theme, so it is one of the strongest features of a badge. These previews force each theme onto the same hash; only the highlighted one is real.</p>
     </div>
     <div class="panel"><div class="layouts" id="themes"></div></div>
   </section>
@@ -188,7 +179,7 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
     <div class="bench">
       <div class="panel">
         <h3>One-bit change</h3>
-        <p class="note">Headline flips change the face, colors, layout, display type or a handle word. Detail flips change one bar segment, one printed character or one part of the detail block.</p>
+        <p class="note">Headline flips change the theme, layout, face, colors, status or a handle word. Detail flips change one bar, one chip color, one character or one detail cell.</p>
         <div class="btns">
           <button class="btn" type="button" data-flip="any">Flip any bit</button>
           <button class="btn" type="button" data-flip="head">Flip a headline bit</button>
@@ -231,9 +222,9 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
       <div style="display:flex;flex-direction:column;gap:12px">
         <h3>Open questions</h3>
         <ul>
-          <li><strong>Theme as a deployment choice.</strong> Should one theme be the default everywhere, or should sites be allowed to pick? Comparing badges only works within one theme.</li>
-          <li><strong>Detail displays.</strong> Do any of the four read poorly at true size? Hex segments and shapes are the most legible to me; barcode ticks are the fastest to compare as a pattern.</li>
-          <li><strong>Project license.</strong> The repository has no license yet. The bundled fonts are SIL OFL and the BIP-39 list is MIT; which license do you want for the code?</li>
+          <li><strong>Readability at true size.</strong> The smallest elements are now about 10 × 14 units (detail cells) and 8 units tall (chips), up from 2 to 6 units. Do the true-size copies read well enough now?</li>
+          <li><strong>Themes.</strong> Are all eight distinct enough at a glance? The theme is now the single strongest feature, so any two that look alike weaken it.</li>
+          <li><strong>License.</strong> I recommend MIT; confirm and I'll add it.</li>
         </ul>
       </div>
     </div>
@@ -249,84 +240,113 @@ const BIP39 = 'abandon ability able about above absent absorb abstract absurd ab
 if(BIP39.length !== 2048) console.error('BIP-39 list has ' + BIP39.length + ' words');
 const B32 = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
-/* ---------- spec v1 (mirrors visual256/spec.py): 64 headline + 32 bars + 80 characters + 80 detail = 256 ---------- */
+/* ---------- spec v2 (mirrors visual256/spec.py): 80 headline + 24 bars + 12 chip colors + 60 characters + 80 detail = 256 ---------- */
 const SYM = ['circle','square','triangle','diamond','star','plus','saltire','heart','crescent','sun','drop','bolt','hexagon','ring','arrow','clover'];
 const STATUS=['ONLINE','GHOST','ROGUE','SYNCED','ROOTED','DARK','LIVE','BURNED','CLEAN','HOT','ZERO','LOCKED','SPOOFED','MIRROR','IDLE','VOID'];
+const THEME_IDS=['cyberpunk','daylight','paper','blueprint','synthwave','terminal','arcade','stealth'];
 const LAYOUTS=['Face left, stacked','Face right, stacked','Face center, bars on top','Face left, grid','Face right, grid','Banner on top, face left','Banner at bottom, face right','Face center, detail on top'];
 const CORNERS=['top-left and bottom-right cut','top-right and bottom-left cut','all four cut','both top corners cut'];
-const DISPLAYS=['dots','shapes','barcode','hex segments'];
-const HEADSHAPES=['round','angular','boxy','dome'], VISORS=['band','twin-lens','slit','mono-eye'], GRILLES=['vent grille','tooth grille','dot grille','LED mouth'], MODS=['antenna','ear discs','cable','fin'];
-const GLITCH=['clean','horizontal split','vertical split','slice shift'];
+const FRAME_STYLES=['single','double','dashed','corner brackets'];
+const DISPLAYS=['tiles','gems','hex pairs','arrows'];
+const ARROW_DIRS=['up','up-right','right','down-right','down','down-left','left','up-left'];
+const HEADSHAPES=['round','angular','boxy','dome','capsule','bucket','shield','skull'];
+const VISORS=['band','twin-lens','slit','mono-eye','goggles','chevron','triple-lens','grid'];
+const MOUTHS=['vents','teeth','dots','LED','zigzag','speaker','fangs','stitches'];
+const MODS=['antenna','ear discs','cable','fin'];
+const CHEEKS=['stripes','dots','circuit','bolts'];
+const HSTYLES=['clean','horizontal split','vertical split','slice shift','inverted','underline','boxed','shadow'];
+const GEM_SHAPES=['circle','square','triangle','diamond'], GEM_FILLS=['solid','outline','dotted','half'];
 
-/* ---------- themes (mirror visual256/themes.py): change the look, never the bits ---------- */
-const THEMES = {
-  cyberpunk:{ name:'Cyberpunk', bg:'#0A0913', panel:'#16132C', grid:'grid', gridColor:'rgba(120,140,255,.12)', glow:true, handle:'#F4F7FF', chroma:['rgba(0,229,255,.8)','rgba(255,43,241,.8)'], peak:'#FFFFFF', unlit:'rgba(255,255,255,.07)', off:'rgba(255,255,255,.08)', bracket:'rgba(255,255,255,.35)', font:'cyber', pairBg:'#0A0913', pairFg:'#00E5FF',
-    palette:[['Hot pink','#FF2E88'],['Magenta','#FF2BF1'],['Violet','#B04DFF'],['Ultraviolet','#6E5BFF'],['Electric blue','#2F7BFF'],['Cyan','#00E5FF'],['Aqua','#00FFC3'],['Neon green','#39FF14'],['Acid','#C6FF00'],['Yellow','#FFF200'],['Amber','#FFB000'],['Orange','#FF6A00'],['Red','#FF2A3D'],['Rose','#FF8FB8'],['Ice','#A8E6FF'],['White','#F4F7FF']] },
-  daylight:{ name:'Daylight', bg:'#F5F6F9', panel:'#FFFFFF', grid:'dots', gridColor:'rgba(30,40,70,.16)', glow:false, handle:'#14161C', chroma:['rgba(27,163,198,.85)','rgba(194,24,91,.85)'], peak:'#14161C', unlit:'rgba(20,24,40,.08)', off:'rgba(20,24,40,.10)', bracket:'rgba(20,24,40,.35)', font:'cyber', pairBg:'#F5F6F9', pairFg:'#1E3A8A',
-    palette:[['Red','#D7263D'],['Orange','#F26419'],['Amber','#E3A008'],['Lime','#7CB518'],['Green','#2E9E44'],['Teal','#0F8B8D'],['Cyan','#1BA3C6'],['Blue','#2563EB'],['Navy','#1E3A8A'],['Indigo','#5B4BD8'],['Purple','#8E3FC0'],['Magenta','#C2185B'],['Pink','#EC6FA6'],['Brown','#8D5524'],['Slate','#64748B'],['Black','#111318']] },
-  paper:{ name:'Paper', bg:'#F3ECD9', panel:'#FBF6E9', grid:'hatch', gridColor:'rgba(90,60,30,.10)', glow:false, handle:'#1E1B16', chroma:['rgba(35,70,184,.75)','rgba(200,32,47,.75)'], peak:'#1E1B16', unlit:'rgba(60,40,20,.09)', off:'rgba(60,40,20,.12)', bracket:'rgba(60,40,20,.4)', font:'serif', pairBg:'#F3ECD9', pairFg:'#1F3A6B',
-    palette:[['Navy','#1F3A6B'],['Oxblood','#7A1F2B'],['Forest','#23573A'],['Plum','#6B2A6E'],['Teal','#1F6E73'],['Sepia','#6B4A2B'],['Slate','#55606E'],['Crimson','#C0272F'],['Royal','#2F55C8'],['Olive','#6B7022'],['Ochre','#B07A12'],['Indigo','#4A2F9A'],['Moss','#4F8A2B'],['Rust','#B5501F'],['Charcoal','#232323'],['Rose','#B8426E']] },
-  blueprint:{ name:'Blueprint', bg:'#0F3A68', panel:'#164A80', grid:'grid', gridColor:'rgba(255,255,255,.14)', glow:false, handle:'#F4F8FF', chroma:['rgba(143,211,255,.85)','rgba(255,158,207,.85)'], peak:'#FFFFFF', unlit:'rgba(255,255,255,.10)', off:'rgba(255,255,255,.13)', bracket:'rgba(255,255,255,.45)', font:'mono', pairBg:'#0F3A68', pairFg:'#F4F8FF',
-    palette:[['White','#F4F8FF'],['Silver','#B9C6D8'],['Sky','#8FD3FF'],['Cyan','#3FE0E8'],['Teal','#2EC4B6'],['Mint','#8DF5B5'],['Lime','#C6F25A'],['Yellow','#FFE45E'],['Sand','#E9D7A5'],['Amber','#FFB547'],['Orange','#FF8A4C'],['Coral','#FF6B6B'],['Pink','#FF9ECF'],['Peach','#FFC9A3'],['Lilac','#C9A7FF'],['Violet','#9D8CFF']] },
-};
-const FONTS = { cyber:'"Chakra Petch", "JetBrains Mono", monospace', mono:'"JetBrains Mono", ui-monospace, monospace', serif:'Spectral, Georgia, serif' };
-const FONT_WEIGHT = { cyber:700, mono:600, serif:600 };
+/* ---------- themes (mirror visual256/themes.py); the hash picks one ---------- */
+const P = s => s.split('|').map(x => x.split(':'));
+const THEMES = [
+  { id:'cyberpunk', name:'Cyberpunk', bg:'#0A0913', panel:'#16132C', grid:'grid', gridColor:'rgba(120,140,255,.12)', glow:true, handle:'#F4F7FF', chroma:['rgba(0,229,255,.8)','rgba(255,43,241,.8)'], peak:'#FFFFFF', unlit:'rgba(255,255,255,.08)', bracket:'rgba(255,255,255,.35)', font:'cyber', code:'mono', pairBg:'#0A0913', pairFg:'#00E5FF', inkDark:'#111318', inkLight:'#FFFFFF',
+    palette:P('Hot pink:#FF2E88|Magenta:#FF2BF1|Violet:#B04DFF|Ultraviolet:#6E5BFF|Electric blue:#2F7BFF|Cyan:#00E5FF|Aqua:#00FFC3|Neon green:#39FF14|Acid:#C6FF00|Yellow:#FFF200|Amber:#FFB000|Orange:#FF6A00|Red:#FF2A3D|Rose:#FF8FB8|Ice:#A8E6FF|White:#F4F7FF') },
+  { id:'daylight', name:'Daylight', bg:'#F5F6F9', panel:'#FFFFFF', grid:'dots', gridColor:'rgba(30,40,70,.16)', glow:false, handle:'#14161C', chroma:['rgba(27,163,198,.85)','rgba(194,24,91,.85)'], peak:'#14161C', unlit:'rgba(20,24,40,.09)', bracket:'rgba(20,24,40,.35)', font:'cyber', code:'mono', pairBg:'#F5F6F9', pairFg:'#1E3A8A', inkDark:'#111318', inkLight:'#FFFFFF',
+    palette:P('Red:#D7263D|Orange:#F26419|Amber:#E3A008|Lime:#7CB518|Green:#2E9E44|Teal:#0F8B8D|Cyan:#1BA3C6|Blue:#2563EB|Navy:#1E3A8A|Indigo:#5B4BD8|Purple:#8E3FC0|Magenta:#C2185B|Pink:#EC6FA6|Brown:#8D5524|Slate:#64748B|Black:#111318') },
+  { id:'paper', name:'Paper', bg:'#F3ECD9', panel:'#FBF6E9', grid:'hatch', gridColor:'rgba(90,60,30,.10)', glow:false, handle:'#1E1B16', chroma:['rgba(35,70,184,.75)','rgba(200,32,47,.75)'], peak:'#1E1B16', unlit:'rgba(60,40,20,.10)', bracket:'rgba(60,40,20,.4)', font:'serif', code:'mono', pairBg:'#F3ECD9', pairFg:'#1F3A6B', inkDark:'#1E1B16', inkLight:'#FBF6E9',
+    palette:P('Navy:#1F3A6B|Oxblood:#7A1F2B|Forest:#23573A|Plum:#6B2A6E|Teal:#1F6E73|Sepia:#6B4A2B|Slate:#55606E|Crimson:#C0272F|Royal:#2F55C8|Olive:#6B7022|Ochre:#B07A12|Indigo:#4A2F9A|Moss:#4F8A2B|Rust:#B5501F|Charcoal:#232323|Rose:#B8426E') },
+  { id:'blueprint', name:'Blueprint', bg:'#0F3A68', panel:'#164A80', grid:'grid', gridColor:'rgba(255,255,255,.14)', glow:false, handle:'#F4F8FF', chroma:['rgba(143,211,255,.85)','rgba(255,158,207,.85)'], peak:'#FFFFFF', unlit:'rgba(255,255,255,.12)', bracket:'rgba(255,255,255,.45)', font:'mono', code:'mono', pairBg:'#0F3A68', pairFg:'#F4F8FF', inkDark:'#0F3A68', inkLight:'#FFFFFF',
+    palette:P('White:#F4F8FF|Silver:#B9C6D8|Sky:#8FD3FF|Cyan:#3FE0E8|Teal:#2EC4B6|Mint:#8DF5B5|Lime:#C6F25A|Yellow:#FFE45E|Sand:#E9D7A5|Amber:#FFB547|Orange:#FF8A4C|Coral:#FF6B6B|Pink:#FF9ECF|Peach:#FFC9A3|Lilac:#C9A7FF|Violet:#9D8CFF') },
+  { id:'synthwave', name:'Synthwave', bg:'#1A0B2E', panel:'#2A1347', grid:'horizon', gridColor:'rgba(255,90,200,.22)', glow:true, handle:'#FFE9FF', chroma:['rgba(0,229,255,.8)','rgba(255,214,0,.8)'], peak:'#FFFFFF', unlit:'rgba(255,255,255,.09)', bracket:'rgba(255,200,255,.4)', font:'retro', code:'mono', pairBg:'#1A0B2E', pairFg:'#FF3CAC', inkDark:'#1A0B2E', inkLight:'#FFFFFF',
+    palette:P('Hot pink:#FF3CAC|Orchid:#E040FB|Lavender:#C3A6FF|Periwinkle:#7C8CFF|Sky:#4FC3F7|Cyan:#18FFFF|Mint:#64FFDA|Lime:#B2FF59|Yellow:#FFEA00|Gold:#FFC400|Tangerine:#FF9100|Coral:#FF6E6E|Red:#FF1744|Peach:#FFD3B6|Rose:#FF9ACD|White:#FFFFFF') },
+  { id:'terminal', name:'Terminal', bg:'#0C0C0C', panel:'#171717', grid:'scanlines', gridColor:'rgba(255,255,255,.05)', glow:true, handle:'#E6E6E6', chroma:['rgba(0,255,255,.7)','rgba(255,0,255,.7)'], peak:'#FFFFFF', unlit:'rgba(255,255,255,.09)', bracket:'rgba(255,255,255,.35)', font:'mono', code:'mono', pairBg:'#0C0C0C', pairFg:'#50FA7B', inkDark:'#0C0C0C', inkLight:'#FFFFFF',
+    palette:P('Red:#FF5555|Orange:#FFB86C|Yellow:#F1FA8C|Lime:#A6E22E|Green:#50FA7B|Teal:#2AC3A2|Cyan:#8BE9FD|Blue:#61AFEF|Indigo:#7C83FD|Purple:#BD93F9|Magenta:#FF79C6|Pink:#FFB3D9|Tan:#C89F6D|Gray:#9DA5B4|White:#F8F8F2|Amber:#FFC857') },
+  { id:'arcade', name:'Arcade', bg:'#101030', panel:'#1C1C4A', grid:'pixels', gridColor:'rgba(255,255,255,.35)', glow:false, handle:'#FFFFFF', chroma:['#FF004D','#29ADFF'], peak:'#FFFFFF', unlit:'rgba(255,255,255,.11)', bracket:'rgba(255,255,255,.45)', font:'pixel', code:'pixel', pairBg:'#101030', pairFg:'#FFEC27', inkDark:'#101030', inkLight:'#FFFFFF',
+    palette:P('Red:#FF004D|Orange:#FFA300|Yellow:#FFEC27|Green:#00E436|Blue:#29ADFF|Lavender:#9C8CD8|Pink:#FF77A8|Peach:#FFCCAA|Cream:#FFF1E8|Silver:#C2C3C7|Brown:#C2683C|Plum:#B03A78|Forest:#1FA35A|Cyan:#00F5FF|Purple:#B65CFF|Lime:#A8E61D') },
+  { id:'stealth', name:'Stealth', bg:'#2B2E26', panel:'#3A3E33', grid:'crosses', gridColor:'rgba(220,230,200,.13)', glow:false, handle:'#ECE9DA', chroma:['rgba(255,140,0,.8)','rgba(120,200,255,.8)'], peak:'#FFFFFF', unlit:'rgba(236,233,218,.10)', bracket:'rgba(236,233,218,.4)', font:'stencil', code:'mono', pairBg:'#2B2E26', pairFg:'#FFD300', inkDark:'#2B2E26', inkLight:'#FFFFFF',
+    palette:P('Blaze:#FF6A13|Safety yellow:#FFD300|Signal red:#E5322D|Lime:#9BE22D|Mint:#7FE7C4|Sky:#7FC8F8|Cobalt:#4D7CFE|Violet:#A98BFF|Pink:#FF8FC8|Sand:#D9C9A3|Khaki:#B8B07A|Rust:#C8642D|Teal:#2FB5A5|Ivory:#F2EFE3|Steel:#9AA7B0|Amber:#FFB000') },
+];
+const FONTS = { cyber:'"Chakra Petch", "JetBrains Mono", monospace', mono:'"JetBrains Mono", ui-monospace, monospace', serif:'Spectral, Georgia, serif', retro:'Audiowide, "Chakra Petch", sans-serif', pixel:'Silkscreen, "JetBrains Mono", monospace', stencil:'"Saira Stencil One", "Chakra Petch", sans-serif' };
+const FONT_WEIGHT = { cyber:700, mono:600, serif:600, retro:400, pixel:700, stencil:400 };
 const tcol = (t, i) => t.palette[i&15][1], tname = (t, i) => t.palette[i&15][0];
+function lum(h){ const n = parseInt(h.slice(1,7),16); const ch = [n>>16&255, n>>8&255, n&255].map(v => { v /= 255; return v <= 0.03928 ? v/12.92 : ((v+0.055)/1.055)**2.4; }); return 0.2126*ch[0] + 0.7152*ch[1] + 0.0722*ch[2]; }
+const chipInk = (t, c) => lum(c) > 0.3 ? t.inkDark : t.inkLight;
 
 const FIELDS = [
-  ['layout',3,'Card layout','8 arrangements of face, handle, bars, characters and detail', d => `${d.layout} · ${LAYOUTS[d.layout].toLowerCase()}`],
+  ['theme',3,'Theme','8 looks: background, fonts and palette', d => THEMES[d.theme].name],
+  ['layout',3,'Card layout','8 arrangements', d => `${d.layout} · ${LAYOUTS[d.layout].toLowerCase()}`],
+  ['display',2,'Detail display','tiles · gems · hex pairs · arrows', d => DISPLAYS[d.display]],
   ['corners',2,'Frame corners','which corners are cut', d => CORNERS[d.corners]],
-  ['frameline',1,'Frame line','single · double', d => ['single','double'][d.frameline]],
-  ['display',2,'Detail display','dots · shapes · barcode · hex segments', d => DISPLAYS[d.display]],
-  ['frame',4,'Frame color','16 colors; also bars and characters', (d,t) => tname(t, d.frame)],
-  ['visor',4,'Visor color','16 colors; also the detail block', (d,t) => tname(t, d.visor)],
-  ['shape',2,'Head shape','round · angular · boxy · dome', d => HEADSHAPES[d.shape]],
-  ['trim',4,'Trim color','head outline, mods, decal', (d,t) => tname(t, d.trim)],
-  ['vstyle',2,'Visor style','band · twin-lens · slit · mono-eye', d => VISORS[d.vstyle]],
-  ['grille',2,'Grille','vent · tooth · dot · LED', d => GRILLES[d.grille]],
+  ['framestyle',2,'Frame style','single · double · dashed · brackets', d => FRAME_STYLES[d.framestyle]],
+  ['frame',4,'Frame color','frame and dividers', (d,t) => tname(t, d.frame)],
+  ['visor',4,'Visor color','visor', (d,t) => tname(t, d.visor)],
+  ['trim',4,'Trim color','head outline, mods, mouth, cheeks, decal', (d,t) => tname(t, d.trim)],
+  ['accent',4,'Accent color','signal bars and handle effects', (d,t) => tname(t, d.accent)],
+  ['shape',3,'Head shape','8 shapes', d => HEADSHAPES[d.shape]],
+  ['vstyle',3,'Visor style','8 visors', d => VISORS[d.vstyle]],
+  ['grille',3,'Mouth','8 mouths', d => MOUTHS[d.grille]],
   ['mod',2,'Head mod','antenna · ear discs · cable · fin', d => MODS[d.mod]],
   ['decal',4,'Forehead decal','16 symbols', d => SYM[d.decal]],
+  ['cheek',2,'Cheek marks','stripes · dots · circuit · bolts', d => CHEEKS[d.cheek]],
   ['status',4,'Status word','16 words', d => STATUS[d.status]],
-  ['scolor',4,'Status color','16 colors', (d,t) => tname(t, d.scolor)],
-  ['glitch',2,'Handle glitch','clean · split · vertical split · slice', d => GLITCH[d.glitch]],
+  ['scolor',4,'Status color','status chip', (d,t) => tname(t, d.scolor)],
+  ['rank',2,'Rank','1–4 chevrons', d => `${d.rank+1} chevron${d.rank ? 's' : ''}`],
+  ['hstyle',3,'Handle style','8 text treatments', d => HSTYLES[d.hstyle]],
   ['word1',11,'Handle word 1','BIP-39 word, 1 of 2,048', d => `${BIP39[d.word1]} (#${d.word1+1})`],
   ['word2',11,'Handle word 2','BIP-39 word, 1 of 2,048', d => `${BIP39[d.word2]} (#${d.word2+1})`],
-  ['bars',32,'Signal bars','8 bars × 1–16 lit segments', d => d.bars.map(v => v+1).join(' ')],
-  ['chars',80,'Characters','16 characters in 4 groups, 32-letter alphabet', d => charGroups(d).join(' ')],
-  ['detail',80,'Detail block','4 groups × 20 bits, drawn in the detail display', d => d.display === 3 ? [0,1,2,3].map(g => nibbles(d,g).map(n => n.toString(16).toUpperCase()).join('')).join(' ') + ' (hex)' : `${detailGroups(d).join(' ')} (as characters)`],
+  ['bars',24,'Signal bars','8 bars × 1–8 lit segments', d => d.bars.map(v => v+1).join(' ')],
+  ['chips',12,'Chip colors','3 chips × 16 colors', (d,t) => d.chips.map(c => tname(t, c)).join(', ')],
+  ['chars',60,'Characters','12 characters on 3 chips', d => charGroups(d).join(' ')],
+  ['cells',80,'Detail cells','10 cells × 8 bits, drawn in the detail display', (d,t) => describeCells(d, t)],
 ];
 let off = 0; for(const f of FIELDS){ f.off = off; off += f[1]; }
 if(off !== 256) console.error('bit layout sums to ' + off);
-const HEADLINE_BITS = 64;
+const HEADLINE_BITS = 80;
 function readBits(b, pos, n){ let v = 0; for(let i=0;i<n;i++){ const p = pos+i; v = v*2 + ((b[p>>3] >> (7-(p&7))) & 1); } return v; }
 function decode(b){
   const d = {};
   for(const f of FIELDS){
     const [k, n] = f;
-    if(k === 'bars'){ d.bars = []; for(let i=0;i<8;i++) d.bars.push(readBits(b, f.off+4*i, 4)); }
-    else if(k === 'chars'){ d.chars = []; for(let i=0;i<16;i++) d.chars.push(readBits(b, f.off+5*i, 5)); }
-    else if(k === 'detail'){ d.detail = []; for(let i=0;i<80;i++) d.detail.push(readBits(b, f.off+i, 1)); }
+    if(k === 'bars'){ d.bars = []; for(let i=0;i<8;i++) d.bars.push(readBits(b, f.off+3*i, 3)); }
+    else if(k === 'chips'){ d.chips = []; for(let i=0;i<3;i++) d.chips.push(readBits(b, f.off+4*i, 4)); }
+    else if(k === 'chars'){ d.chars = []; for(let i=0;i<12;i++) d.chars.push(readBits(b, f.off+5*i, 5)); }
+    else if(k === 'cells'){ d.cells = []; for(let i=0;i<10;i++) d.cells.push(readBits(b, f.off+8*i, 8)); }
     else d[k] = readBits(b, f.off, n);
   }
   return d;
 }
-const charGroups = d => [0,1,2,3].map(g => d.chars.slice(g*4, g*4+4).map(v => B32[v]).join(''));
-const group = (d, g) => d.detail.slice(g*20, g*20+20);
-const nibbles = (d, g) => { const b = group(d, g), out = []; for(let i=0;i<5;i++) out.push(b[i*4]*8 + b[i*4+1]*4 + b[i*4+2]*2 + b[i*4+3]); return out; };
-function detailGroups(d){ return [0,1,2,3].map(g => { const b = group(d, g); let s = ''; for(let c=0;c<4;c++){ let v=0; for(let k=0;k<5;k++) v = v*2 + b[c*5+k]; s += B32[v]; } return s; }); }
+const charGroups = d => [0,1,2].map(g => d.chars.slice(g*4, g*4+4).map(v => B32[v]).join(''));
+const hex2 = c => c.toString(16).toUpperCase().padStart(2,'0');
+function describeCells(d, t){
+  if(d.display === 0) return d.cells.map(c => `${tname(t, c>>4)} ${SYM[c&15]}`).join(', ');
+  if(d.display === 1) return d.cells.map(c => `${tname(t, c>>4)} ${GEM_FILLS[c&3]} ${GEM_SHAPES[(c>>2)&3]}`).join(', ');
+  if(d.display === 3) return d.cells.map(c => `${tname(t, (c>>1)&15)} ${ARROW_DIRS[c>>5]}${c&1 ? ' outline' : ''}`).join(', ');
+  return d.cells.map(hex2).join(' ');
+}
 const words = d => [BIP39[d.word1].toUpperCase(), BIP39[d.word2].toUpperCase()];
 
 /* ---------- the 8 layouts (mirror visual256/draw.py layout_spec) ---------- */
 function layoutSpec(L){
-  const stacked = (x0, x1) => ({ handle:[{text:'both', x:x0, y:11.8, w:x1-x0, align:'left', size:8.4}], bars:[{ids:[0,1,2,3,4,5,6,7], x0, x1, y0:14.6, y1:25.6}], code:[{groups:[0,1,2,3], x:x0, y:34.2, w:x1-x0, align:'left', size:6.2, lines:1}], detail:[{groups:[0,1,2,3], x0, y0:38.6, x1, y1:59.6, gc:4, gr:1}] });
-  const grid = (x0, x1) => { const mid = x0 + (x1-x0)*.485; return { handle:[{text:'both', x:x0, y:11.8, w:x1-x0, align:'left', size:8.4}], detail:[{groups:[0,1,2,3], x0, y0:15, x1:mid, y1:59.6, gc:2, gr:2}], bars:[{ids:[0,1,2,3,4,5,6,7], x0:mid+2.6, x1, y0:15, y1:36}], code:[{groups:[0,1,2,3], x:mid+2.6, y:46, w:x1-mid-2.6, align:'left', size:6.2, lines:2}] }; };
+  const stacked = (x0, x1) => ({ handle:[{text:'both', x:x0, y:11.8, w:x1-x0, align:'left', size:8.4}], bars:[{ids:[0,1,2,3,4,5,6,7], x0, x1, y0:14.2, y1:24.2}], chips:[{ids:[0,1,2], x0, y0:26.2, x1, y1:34.6, col:false}], cells:[{ids:[0,1,2,3,4,5,6,7,8,9], x0, y0:36.8, x1, y1:60, gc:5, gr:2}] });
+  const grid = (x0, x1) => { const mid = x0 + (x1-x0)*.5; return { handle:[{text:'both', x:x0, y:11.8, w:x1-x0, align:'left', size:8.4}], cells:[{ids:[0,1,2,3,4,5,6,7,8,9], x0, y0:15, x1:mid-1.3, y1:60, gc:2, gr:5}], bars:[{ids:[0,1,2,3,4,5,6,7], x0:mid+1.3, x1, y0:15, y1:30.5}], chips:[{ids:[0,1,2], x0:mid+1.3, y0:33, x1, y1:60, col:true}] }; };
   const split = top => {
-    const col = (x0, x1, side) => { const cx = (x0+x1)/2, g = side ? [2,3] : [0,1], b = side ? [4,5,6,7] : [0,1,2,3], hd = {text:side?'w2':'w1', x:cx, y:11.4, w:x1-x0, align:'center', size:7.8};
+    const col = (x0, x1, side) => { const cx = (x0+x1)/2, hd = {text:side?'w2':'w1', x:cx, y:11.4, w:x1-x0, align:'center', size:7.8}, b = side ? [4,5,6,7] : [0,1,2,3], ch = side ? [2] : [0], cl = side ? [5,6,7,8,9] : [0,1,2,3,4];
       return top
-        ? { handle:hd, detail:{groups:g, x0, y0:14, x1, y1:36.4, gc:2, gr:1}, code:{groups:g, x:cx, y:42.4, w:x1-x0, align:'center', size:6, lines:1}, bars:{ids:b, x0, x1, y0:46, y1:59.6} }
-        : { handle:hd, bars:{ids:b, x0, x1, y0:14, y1:24.6}, code:{groups:g, x:cx, y:32, w:x1-x0, align:'center', size:6, lines:1}, detail:{groups:g, x0, y0:35.4, x1, y1:59.6, gc:2, gr:1} }; };
-    const a = col(3.5, 40.5, 0), c = col(87.5, 124.5, 1);
-    return { face:[64,31,1], div:[[43,6,43,58],[85,6,85,58]], handle:[a.handle, c.handle], bars:[a.bars, c.bars], code:[a.code, c.code], detail:[a.detail, c.detail] };
+        ? { handle:hd, cells:{ids:cl, x0, y0:13.8, x1, y1:36.2, gc:3, gr:2}, chips:{ids:ch, x0, y0:38.2, x1, y1:45.6, col:false}, bars:{ids:b, x0, x1, y0:47.6, y1:60} }
+        : { handle:hd, bars:{ids:b, x0, x1, y0:13.8, y1:23.4}, chips:{ids:ch, x0, y0:25.4, x1, y1:32.8, col:false}, cells:{ids:cl, x0, y0:35, x1, y1:60, gc:3, gr:2} }; };
+    const a = col(3.5, 40.5, 0), c = col(87.5, 124.5, 1), topChip = {ids:[1], x0:47, y0:2.6, x1:81, y1:9.8, col:false};
+    return { face:[64,34,.88], div:[[43,6,43,58],[85,6,85,58]], handle:[a.handle, c.handle], bars:[a.bars, c.bars], chips:[a.chips, topChip, c.chips], cells:[a.cells, c.cells] };
   };
   switch(L){
     case 0: return { face:[21.5,31,1], div:[[42.5,6,42.5,58]], ...stacked(45.6, 123.4) };
@@ -334,8 +354,8 @@ function layoutSpec(L){
     case 2: return split(false);
     case 3: return { face:[21.5,31,1], div:[[42.5,6,42.5,58]], ...grid(45.6, 123.4) };
     case 4: return { face:[106.5,31,1], div:[[85.5,6,85.5,58]], ...grid(4.4, 82.6) };
-    case 5: return { face:[19.5,39.5,.74], div:[[6,13.6,122,13.6],[38,17,38,60]], handle:[{text:'both', x:64, y:10.6, w:112, align:'center', size:8.6}], bars:[{ids:[0,1,2,3,4,5,6,7], x0:41, x1:123.4, y0:16.6, y1:27}], code:[{groups:[0,1,2,3], x:41, y:35, w:82.4, align:'left', size:6.4, lines:1}], detail:[{groups:[0,1,2,3], x0:41, y0:38.8, x1:123.4, y1:59.6, gc:4, gr:1}] };
-    case 6: return { face:[108.5,26.5,.74], div:[[6,50.6,122,50.6],[89,5,89,48]], handle:[{text:'both', x:64, y:59.4, w:112, align:'center', size:8.6}], detail:[{groups:[0,1,2,3], x0:4.6, y0:4.6, x1:86, y1:25, gc:4, gr:1}], code:[{groups:[0,1,2,3], x:4.6, y:32.8, w:81.4, align:'left', size:6.4, lines:1}], bars:[{ids:[0,1,2,3,4,5,6,7], x0:4.6, x1:86, y0:36, y1:48}] };
+    case 5: return { face:[19.5,39.5,.74], div:[[6,13.6,122,13.6],[38,17,38,60]], handle:[{text:'both', x:64, y:10.6, w:112, align:'center', size:8.6}], bars:[{ids:[0,1,2,3,4,5,6,7], x0:41, x1:123.4, y0:16.4, y1:24.6}], chips:[{ids:[0,1,2], x0:41, y0:26.6, x1:123.4, y1:34.4, col:false}], cells:[{ids:[0,1,2,3,4,5,6,7,8,9], x0:41, y0:36.6, x1:123.4, y1:60, gc:5, gr:2}] };
+    case 6: return { face:[108.5,26.5,.74], div:[[6,50.6,122,50.6],[89,5,89,48]], handle:[{text:'both', x:64, y:59.4, w:112, align:'center', size:8.6}], cells:[{ids:[0,1,2,3,4,5,6,7,8,9], x0:4.6, y0:4.6, x1:86, y1:25.6, gc:5, gr:2}], chips:[{ids:[0,1,2], x0:4.6, y0:27.6, x1:86, y1:35.2, col:false}], bars:[{ids:[0,1,2,3,4,5,6,7], x0:4.6, x1:86, y0:37.4, y1:48}] };
     default: return split(true);
   }
 }
@@ -380,51 +400,64 @@ function framePoly(k, inset){
   return p;
 }
 function background(ctx, t){
-  ctx.beginPath();
-  if(t.grid === 'grid'){ for(let x=2;x<128;x+=4){ ctx.moveTo(x,0); ctx.lineTo(x,64); } for(let y=2;y<64;y+=4){ ctx.moveTo(0,y); ctx.lineTo(128,y); } ctx.lineWidth=.15; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
-  else if(t.grid === 'hatch'){ for(let k=-64;k<128;k+=3.2){ ctx.moveTo(k,64); ctx.lineTo(k+64,0); } ctx.lineWidth=.18; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
-  else { for(let y=1.5;y<64;y+=3) for(let x=1.5;x<128;x+=3) ctx.rect(x-.25,y-.25,.5,.5); ctx.fillStyle=t.gridColor; ctx.fill(); }
+  const k = t.grid; ctx.beginPath();
+  if(k === 'grid'){ for(let x=2;x<128;x+=4){ ctx.moveTo(x,0); ctx.lineTo(x,64); } for(let y=2;y<64;y+=4){ ctx.moveTo(0,y); ctx.lineTo(128,y); } ctx.lineWidth=.15; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
+  else if(k === 'hatch'){ for(let x=-64;x<128;x+=3.2){ ctx.moveTo(x,64); ctx.lineTo(x+64,0); } ctx.lineWidth=.18; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
+  else if(k === 'dots'){ for(let y=1.5;y<64;y+=3) for(let x=1.5;x<128;x+=3) ctx.rect(x-.25,y-.25,.5,.5); ctx.fillStyle=t.gridColor; ctx.fill(); }
+  else if(k === 'horizon'){ for(let i=0;i<7;i++){ const y = 30+i*i*.85; ctx.moveTo(0,y); ctx.lineTo(128,y); } for(let xb=-56;xb<185;xb+=12){ ctx.moveTo(64+(xb-64)*.15,30); ctx.lineTo(xb,64); } ctx.lineWidth=.25; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
+  else if(k === 'scanlines'){ for(let y=.6;y<64;y+=1.3){ ctx.moveTo(0,y); ctx.lineTo(128,y); } ctx.lineWidth=.35; ctx.strokeStyle=t.gridColor; ctx.stroke(); }
+  else if(k === 'pixels'){ let s = 7; for(let i=0;i<70;i++){ s = (s*75+74) % 65537; const x = s % 1280 / 10; s = (s*75+74) % 65537; const y = s % 640 / 10; ctx.rect(x,y,.7,.7); } ctx.fillStyle=t.gridColor; ctx.fill(); }
+  else { for(let y=3;y<64;y+=6) for(let x=3;x<128;x+=6){ ctx.rect(x-.8,y-.1,1.6,.2); ctx.rect(x-.1,y-.8,.2,1.6); } ctx.fillStyle=t.gridColor; ctx.fill(); }
 }
 
 /* ---------- the badge (mirrors visual256/draw.py draw_badge) ---------- */
-function drawNetrunner(ctx, d, t){
+function drawNetrunner(ctx, d){
+  const t = THEMES[d.theme];
   ctx.save(); ctx.scale(U,U);
-  const acc = tcol(t, d.frame), vis = tcol(t, d.visor), trim = tcol(t, d.trim);
+  const acc = tcol(t, d.accent), vis = tcol(t, d.visor), trim = tcol(t, d.trim), fcol = tcol(t, d.frame);
   const glow = (c, blur) => { if(t.glow){ ctx.shadowColor = c; ctx.shadowBlur = (blur || 2) * U; } }, noglow = () => { ctx.shadowBlur = 0; };
   const fr = framePoly(d.corners);
   ctx.beginPath(); poly(ctx, fr); ctx.fillStyle = t.bg; ctx.fill();
   ctx.save(); ctx.clip(); background(ctx, t); ctx.restore();
-  glow(acc, 1.5); ctx.beginPath(); poly(ctx, fr); ctx.lineWidth = .8; ctx.strokeStyle = acc; ctx.lineJoin = 'miter'; ctx.stroke(); noglow();
-  if(d.frameline){ ctx.beginPath(); poly(ctx, framePoly(d.corners, 1.7)); ctx.lineWidth = .35; ctx.strokeStyle = acc; ctx.stroke(); }
+  drawFrame(ctx, d, fr, fcol, glow, noglow);
   const spec = layoutSpec(d.layout);
-  ctx.lineWidth = .3; ctx.strokeStyle = acc; ctx.globalAlpha = .55; ctx.beginPath();
+  ctx.lineWidth = .3; ctx.strokeStyle = fcol; ctx.globalAlpha = .55; ctx.beginPath();
   for(const [a,b,c2,e] of spec.div){ ctx.moveTo(a,b); ctx.lineTo(c2,e); }
   ctx.stroke(); ctx.globalAlpha = 1;
   const [fx, fy, fs] = spec.face;
   ctx.save(); ctx.translate(fx, fy); ctx.scale(fs, fs); ctx.translate(-21.5, -31); drawFace(ctx, d, 21.5, glow, noglow, vis, trim, t); ctx.restore();
   const w = words(d);
-  for(const h of spec.handle){ const text = h.text === 'both' ? `${w[0]}·${w[1]}` : h.text === 'w1' ? w[0] : w[1]; handleText(ctx, text, h.x, h.y, h.w, h.align, d.glitch, acc, h.size, glow, noglow, t); }
+  for(const h of spec.handle){ const text = h.text === 'both' ? `${w[0]}·${w[1]}` : h.text === 'w1' ? w[0] : w[1]; handleText(ctx, text, h.x, h.y, h.w, h.align, d.hstyle, acc, h.size, glow, noglow, t); }
   for(const b of spec.bars) drawBars(ctx, b.ids.map(i => d.bars[i]), b.x0, b.x1, b.y0, b.y1, acc, glow, noglow, t);
-  const cg = charGroups(d);
-  for(const c of spec.code) drawCode(ctx, c.groups.map(g => cg[g]), c, acc, glow, noglow);
-  for(const g of spec.detail) drawDetail(ctx, d, g.groups, g.x0, g.y0, g.x1, g.y1, g.gc, g.gr, vis, glow, noglow, t);
+  for(const c of spec.chips) drawChips(ctx, d, c, t);
+  for(const c of spec.cells) drawCells(ctx, d, c, vis, glow, noglow, t);
   ctx.restore();
 }
-function drawCode(ctx, groups, c, acc, glow, noglow){
-  const lines = c.lines === 2 ? [groups.slice(0, groups.length/2).join('·'), groups.slice(groups.length/2).join('·')] : [groups.join('·')];
-  let size = c.size; for(const l of lines) size = Math.min(size, fitFont(ctx, l, c.w, 'mono', c.size));
-  setFont(ctx, 'mono', size); ctx.textAlign = c.align; ctx.textBaseline = 'alphabetic';
-  glow(acc, .7); ctx.fillStyle = acc;
-  lines.forEach((l, i) => ctx.fillText(l, c.x, c.y + i * size * 1.25));
+function drawFrame(ctx, d, fr, fcol, glow, noglow){
+  const st = d.framestyle;
+  glow(fcol, 1.5); ctx.beginPath(); poly(ctx, fr); ctx.strokeStyle = fcol; ctx.lineJoin = 'miter';
+  if(st === 2){ ctx.setLineDash([3,1.6]); ctx.lineWidth = .9; ctx.stroke(); ctx.setLineDash([]); }
+  else if(st === 3){
+    ctx.lineWidth = .3; ctx.globalAlpha = .7; ctx.stroke(); ctx.globalAlpha = 1;
+    ctx.beginPath(); const n = fr.length;
+    fr.forEach(([x, y], i) => { for(const j of [i-1 < 0 ? n-1 : i-1, (i+1) % n]){ const [px, py] = fr[j], dd = Math.hypot(px-x, py-y), L = Math.min(7, dd/2.5); ctx.moveTo(x, y); ctx.lineTo(x+(px-x)/dd*L, y+(py-y)/dd*L); } });
+    ctx.lineWidth = 1.6; ctx.stroke();
+  }
+  else { ctx.lineWidth = .8; ctx.stroke(); }
   noglow();
+  if(st === 1){ ctx.beginPath(); poly(ctx, framePoly(d.corners, 1.7)); ctx.lineWidth = .35; ctx.stroke(); }
 }
 function drawFace(ctx, d, hx, glow, noglow, vis, trim, t){
-  const shape = d.shape, vst = d.vstyle;
+  const shape = d.shape;
   const headPath = () => { ctx.beginPath();
     if(shape===0) ctx.ellipse(hx,30,13,17,0,0,TAU);
     else if(shape===1) poly(ctx,[[hx,12],[hx+13,19],[hx+12,42],[hx,49],[hx-12,42],[hx-13,19]]);
     else if(shape===2) poly(ctx,[[hx-8,13],[hx+8,13],[hx+13,18],[hx+13,42],[hx+8,47],[hx-8,47],[hx-13,42],[hx-13,18]]);
-    else { ctx.moveTo(hx-13,27); ctx.arc(hx,27,13,Math.PI,TAU); ctx.lineTo(hx+13,38); ctx.lineTo(hx+6,48); ctx.lineTo(hx-6,48); ctx.lineTo(hx-13,38); ctx.closePath(); } };
+    else if(shape===3){ ctx.moveTo(hx-13,27); ctx.arc(hx,27,13,Math.PI,TAU); ctx.lineTo(hx+13,38); ctx.lineTo(hx+6,48); ctx.lineTo(hx-6,48); ctx.lineTo(hx-13,38); ctx.closePath(); }
+    else if(shape===4) rr(ctx,hx-12,12,24,36,10);
+    else if(shape===5) poly(ctx,[[hx-9,13],[hx+9,13],[hx+14,46],[hx-14,46]]);
+    else if(shape===6) poly(ctx,[[hx-13,13],[hx+13,13],[hx+13,34],[hx,50],[hx-13,34]]);
+    else { ctx.arc(hx,25,14,Math.PI*.72,Math.PI*2.28); ctx.lineTo(hx+7.5,43); ctx.lineTo(hx+6.5,49); ctx.lineTo(hx-6.5,49); ctx.lineTo(hx-7.5,43); ctx.closePath(); } };
   ctx.lineCap = 'round';
   glow(trim,1.2); ctx.strokeStyle = trim; ctx.fillStyle = trim;
   if(d.mod===0){ ctx.beginPath(); ctx.moveTo(hx+7,18); ctx.lineTo(hx+14,5.5); ctx.lineWidth=.7; ctx.stroke(); ctx.beginPath(); ctx.arc(hx+14,5.5,1.4,0,TAU); ctx.fill(); }
@@ -434,110 +467,138 @@ function drawFace(ctx, d, hx, glow, noglow, vis, trim, t){
   headPath(); ctx.fillStyle = t.panel; ctx.fill(); glow(trim,1); ctx.lineWidth=.7; ctx.strokeStyle=trim; ctx.lineJoin='round'; ctx.stroke(); noglow();
   if(d.mod===1) for(const s of [-1,1]){ ctx.beginPath(); ctx.arc(hx+s*13.6,30,3.2,0,TAU); ctx.fillStyle=t.panel; ctx.fill(); glow(trim,1); ctx.lineWidth=.6; ctx.strokeStyle=trim; ctx.stroke(); noglow(); ctx.beginPath(); ctx.arc(hx+s*13.6,30,1,0,TAU); ctx.fillStyle=trim; ctx.fill(); }
   drawSymbol(ctx, d.decal, hx, 19.6, 2.7, trim);
-  glow(vis,2); ctx.fillStyle = vis;
-  if(vst===0){ ctx.save(); headPath(); ctx.clip(); ctx.fillRect(hx-14,25,28,6); ctx.restore(); }
-  else if(vst===1){ ctx.beginPath(); ctx.arc(hx-6,28,4.2,0,TAU); ctx.moveTo(hx+10.2,28); ctx.arc(hx+6,28,4.2,0,TAU); ctx.fill(); noglow(); ctx.beginPath(); ctx.arc(hx-6,28,1.3,0,TAU); ctx.moveTo(hx+7.3,28); ctx.arc(hx+6,28,1.3,0,TAU); ctx.fillStyle=t.bg; ctx.fill(); }
-  else if(vst===2){ ctx.fillRect(hx-10,27,20,1.9); noglow(); ctx.fillStyle='#FFFFFF'; ctx.fillRect(hx-1.2,27,2.4,1.9); }
-  else { ctx.beginPath(); ctx.arc(hx,28,5.6,0,TAU); ctx.fill(); noglow(); ctx.beginPath(); ctx.arc(hx,28,2.7,0,TAU); ctx.fillStyle=t.bg; ctx.fill(); ctx.beginPath(); ctx.arc(hx,28,1.2,0,TAU); ctx.fillStyle=vis; ctx.fill(); }
-  noglow();
-  ctx.strokeStyle = trim; ctx.fillStyle = trim; ctx.lineWidth = .6;
-  if(d.grille===0){ ctx.beginPath(); for(const y of [37.5,39.6,41.7]){ ctx.moveTo(hx-6,y); ctx.lineTo(hx+6,y); } ctx.stroke(); }
-  else if(d.grille===1){ ctx.beginPath(); for(let k=0;k<6;k++){ const x=-6+k*2.4; ctx.moveTo(hx+x,37); ctx.lineTo(hx+x,43); } ctx.stroke(); }
-  else if(d.grille===2){ ctx.beginPath(); for(const y of [38.3,41.3]) for(let k=0;k<5;k++){ const x=-6+k*3; ctx.moveTo(hx+x+.6,y); ctx.arc(hx+x,y,.6,0,TAU); } ctx.fill(); }
-  else { glow(vis,1.5); ctx.fillStyle=vis; ctx.fillRect(hx-7,39,14,1.7); noglow(); }
+  drawVisor(ctx, d.vstyle, hx, headPath, glow, noglow, vis, t);
+  drawMouth(ctx, d.grille, hx, glow, noglow, vis, trim);
+  drawCheeks(ctx, d.cheek, hx, trim);
   ctx.lineCap = 'butt';
-  const st = STATUS[d.status], sc = tcol(t, d.scolor);
-  setFont(ctx, 'mono', 4.6); const stw = ctx.measureText(st).width;
-  ctx.beginPath(); ctx.rect(hx-stw/2-1.8,52.4,stw+3.6,6); glow(sc,1); ctx.lineWidth=.45; ctx.strokeStyle=sc; ctx.stroke(); noglow();
-  ctx.fillStyle = sc; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(st, hx, 55.6);
+  drawStatus(ctx, d, hx, glow, noglow, t);
 }
-function handleText(ctx, text, x, y, maxW, align, glitch, acc, size, glow, noglow, t){
-  const fs = fitFont(ctx, text, maxW, t.font, size); ctx.textAlign = align; ctx.textBaseline = 'alphabetic';
-  const o = .55;
-  if(glitch === 1){ ctx.fillStyle=t.chroma[0]; ctx.fillText(text,x-o,y); ctx.fillStyle=t.chroma[1]; ctx.fillText(text,x+o,y); }
-  else if(glitch === 2){ ctx.fillStyle=t.chroma[0]; ctx.fillText(text,x,y-o); ctx.fillStyle=t.chroma[1]; ctx.fillText(text,x,y+o); }
-  glow(acc,1.4); ctx.fillStyle=t.handle; ctx.fillText(text,x,y); noglow();
-  if(glitch === 3){
-    const w = ctx.measureText(text).width, left = align === 'left' ? x : align === 'center' ? x - w/2 : x - w;
-    ctx.save(); ctx.beginPath(); ctx.rect(left-2, y-fs*.56, w+4, fs*.24); ctx.clip();
-    ctx.fillStyle = t.bg; ctx.fillRect(left-2, y-fs, w+4, fs*1.2);
-    ctx.fillStyle = acc; ctx.fillText(text, x+1.4, y); ctx.restore();
+function drawVisor(ctx, v, hx, headPath, glow, noglow, vis, t){
+  glow(vis,2); ctx.fillStyle = vis;
+  if(v===0){ ctx.save(); headPath(); ctx.clip(); ctx.fillRect(hx-14,25,28,6); ctx.restore(); }
+  else if(v===1){ ctx.beginPath(); ctx.arc(hx-6,28,4.2,0,TAU); ctx.moveTo(hx+10.2,28); ctx.arc(hx+6,28,4.2,0,TAU); ctx.fill(); noglow(); ctx.beginPath(); ctx.arc(hx-6,28,1.3,0,TAU); ctx.moveTo(hx+7.3,28); ctx.arc(hx+6,28,1.3,0,TAU); ctx.fillStyle=t.bg; ctx.fill(); }
+  else if(v===2){ ctx.fillRect(hx-10,27,20,1.9); noglow(); ctx.fillStyle='#FFFFFF'; ctx.fillRect(hx-1.2,27,2.4,1.9); }
+  else if(v===3){ ctx.beginPath(); ctx.arc(hx,28,5.6,0,TAU); ctx.fill(); noglow(); ctx.beginPath(); ctx.arc(hx,28,2.7,0,TAU); ctx.fillStyle=t.bg; ctx.fill(); ctx.beginPath(); ctx.arc(hx,28,1.2,0,TAU); ctx.fillStyle=vis; ctx.fill(); }
+  else if(v===4){ ctx.beginPath(); rr(ctx,hx-11.5,24.6,9.6,7,2.2); rr(ctx,hx+1.9,24.6,9.6,7,2.2); ctx.fill(); ctx.beginPath(); ctx.moveTo(hx-2.2,27.4); ctx.lineTo(hx+2.2,27.4); ctx.lineWidth=.9; ctx.strokeStyle=vis; ctx.stroke(); }
+  else if(v===5){ ctx.save(); headPath(); ctx.clip(); ctx.beginPath(); poly(ctx,[[hx-14,23.5],[hx,28.5],[hx+14,23.5],[hx+14,27.5],[hx,32.5],[hx-14,27.5]]); ctx.fill(); ctx.restore(); }
+  else if(v===6){ ctx.beginPath(); for(const dx of [-7.2,0,7.2]){ ctx.moveTo(hx+dx+3,28); ctx.arc(hx+dx,28,3,0,TAU); } ctx.fill(); noglow(); ctx.beginPath(); for(const dx of [-7.2,0,7.2]){ ctx.moveTo(hx+dx+.9,28); ctx.arc(hx+dx,28,.9,0,TAU); } ctx.fillStyle=t.bg; ctx.fill(); }
+  else { ctx.save(); headPath(); ctx.clip(); ctx.fillRect(hx-14,25,28,6); noglow(); ctx.fillStyle=t.bg; for(const dx of [-8,-4,0,4,8]) ctx.fillRect(hx+dx-.4,25,.8,6); ctx.restore(); }
+  noglow();
+}
+function drawMouth(ctx, m, hx, glow, noglow, vis, trim){
+  ctx.strokeStyle = trim; ctx.fillStyle = trim; ctx.lineWidth = .6; ctx.beginPath();
+  if(m===0){ for(const y of [37.5,39.6,41.7]){ ctx.moveTo(hx-6,y); ctx.lineTo(hx+6,y); } ctx.stroke(); }
+  else if(m===1){ for(let k=0;k<6;k++){ const x=-6+k*2.4; ctx.moveTo(hx+x,37); ctx.lineTo(hx+x,43); } ctx.stroke(); }
+  else if(m===2){ for(const y of [38.3,41.3]) for(let k=0;k<5;k++){ const x=-6+k*3; ctx.moveTo(hx+x+.6,y); ctx.arc(hx+x,y,.6,0,TAU); } ctx.fill(); }
+  else if(m===3){ glow(vis,1.5); ctx.fillStyle=vis; ctx.fillRect(hx-7,39,14,1.7); noglow(); }
+  else if(m===4){ for(let k=0;k<7;k++){ const x=hx-6+k*2, y=k%2===0?38.8:41.2; k ? ctx.lineTo(x,y) : ctx.moveTo(x,y); } ctx.stroke(); }
+  else if(m===5){ ctx.arc(hx,40,3,0,TAU); ctx.stroke(); ctx.beginPath(); ctx.arc(hx,40,1.2,0,TAU); ctx.fill(); }
+  else if(m===6){ ctx.moveTo(hx-6,38.4); ctx.lineTo(hx+6,38.4); ctx.stroke(); ctx.beginPath(); for(const c of [hx-3,hx+3]) poly(ctx,[[c-1.3,38.4],[c+1.3,38.4],[c,42.6]]); ctx.fill(); }
+  else { ctx.moveTo(hx-6,40); ctx.lineTo(hx+6,40); for(let k=0;k<5;k++){ const x=hx-5+k*2.5; ctx.moveTo(x,38.4); ctx.lineTo(x,41.6); } ctx.stroke(); }
+}
+function drawCheeks(ctx, c, hx, trim){
+  ctx.strokeStyle = trim; ctx.fillStyle = trim; ctx.lineWidth = .55;
+  for(const s of [-1,1]){ const cx = hx + s*8.8; ctx.beginPath();
+    if(c===0){ for(const k of [0,1]){ const x = cx+(k-.5)*1.6*s; ctx.moveTo(x,32.8); ctx.lineTo(x-s*1.2,35.8); } ctx.stroke(); }
+    else if(c===1){ for(const dx of [-1.5,0,1.5]){ ctx.moveTo(cx+dx+.5,34.4); ctx.arc(cx+dx,34.4,.5,0,TAU); } ctx.fill(); }
+    else if(c===2){ ctx.moveTo(cx-s*1.8,33); ctx.lineTo(cx,33); ctx.lineTo(cx+s*1.2,35.4); ctx.stroke(); ctx.beginPath(); ctx.arc(cx+s*1.2,35.4,.6,0,TAU); ctx.fill(); }
+    else { const p = []; for(let k=0;k<6;k++){ const a = k*Math.PI/3; p.push([cx+1.2*Math.cos(a), 34.2+1.2*Math.sin(a)]); } poly(ctx,p); ctx.lineWidth=.45; ctx.stroke(); ctx.beginPath(); ctx.arc(cx,34.2,.35,0,TAU); ctx.fill(); }
   }
 }
+function drawStatus(ctx, d, hx, glow, noglow, t){
+  const st = STATUS[d.status], sc = tcol(t, d.scolor), rank = d.rank + 1;
+  setFont(ctx, 'mono', 4.6); const tw = ctx.measureText(st).width, rw = rank*1.9 + .4, total = rw + 1.2 + tw, x0 = hx - total/2 - 1.6;
+  ctx.beginPath(); ctx.rect(x0,52.4,total+3.2,6); glow(sc,1); ctx.lineWidth=.45; ctx.strokeStyle=sc; ctx.stroke(); noglow();
+  ctx.beginPath(); for(let k=0;k<rank;k++){ const cx = x0+1.6+k*1.9+.9; ctx.moveTo(cx-.85,56.6); ctx.lineTo(cx,54.4); ctx.lineTo(cx+.85,56.6); }
+  ctx.lineWidth=.5; ctx.lineJoin='miter'; ctx.stroke();
+  ctx.fillStyle = sc; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(st, x0+1.6+rw+1.2, 55.6);
+}
+function handleText(ctx, text, x, y, maxW, align, style, acc, size, glow, noglow, t){
+  const fs = fitFont(ctx, text, maxW - (style === 4 || style === 6 ? 2.4 : 0), t.font, size); ctx.textAlign = align; ctx.textBaseline = 'alphabetic';
+  const w = ctx.measureText(text).width; let left = align === 'left' ? x : align === 'center' ? x - w/2 : x - w;
+  if((style === 4 || style === 6) && align === 'left'){ x += 1.2; left += 1.2; }
+  const o = .55;
+  if(style === 1){ ctx.fillStyle=t.chroma[0]; ctx.fillText(text,x-o,y); ctx.fillStyle=t.chroma[1]; ctx.fillText(text,x+o,y); }
+  else if(style === 2){ ctx.fillStyle=t.chroma[0]; ctx.fillText(text,x,y-o); ctx.fillStyle=t.chroma[1]; ctx.fillText(text,x,y+o); }
+  else if(style === 4){ ctx.fillStyle = acc; ctx.fillRect(left-1.2, y-fs*.82, w+2.4, fs*1.04); ctx.fillStyle = chipInk(t, acc); ctx.fillText(text, x, y); return; }
+  else if(style === 7){ ctx.fillStyle = acc; ctx.fillText(text, x+.7, y+.7); }
+  glow(acc,1.4); ctx.fillStyle=t.handle; ctx.fillText(text,x,y); noglow();
+  if(style === 3){ ctx.save(); ctx.beginPath(); ctx.rect(left-2, y-fs*.5, w+4, fs*.16); ctx.clip(); ctx.fillStyle = t.bg; ctx.fillRect(left-2, y-fs, w+4, fs*1.2); ctx.fillStyle = acc; ctx.fillText(text, x+.9, y); ctx.restore(); }
+  else if(style === 5){ ctx.fillStyle = acc; ctx.fillRect(left, y+fs*.16, w, fs*.13); }
+  else if(style === 6){ ctx.beginPath(); ctx.rect(left-1.2, y-fs*.82, w+2.4, fs*1.04); ctx.lineWidth = .45; ctx.strokeStyle = acc; ctx.stroke(); }
+}
 function drawBars(ctx, vals, x0, x1, y0, y1, acc, glow, noglow, t){
-  const n = vals.length, gap = 1.4, bw = (x1-x0-(n-1)*gap)/n, bh = y1-y0, seg = bh/16;
+  const n = vals.length, gap = 1.4, bw = (x1-x0-(n-1)*gap)/n, bh = y1-y0, seg = bh/8;
   for(let i=0;i<n;i++){ const x = x0+i*(bw+gap);
-    for(let s=0;s<16;s++){ const y = y0+bh-(s+1)*seg, lit = s <= vals[i];
+    for(let s=0;s<8;s++){ const y = y0+bh-(s+1)*seg, lit = s <= vals[i];
       ctx.fillStyle = lit ? (s === vals[i] ? t.peak : acc) : t.unlit;
-      if(lit) glow(acc,.8); ctx.fillRect(x, y+.1, bw, seg-.22); noglow(); } }
+      if(lit) glow(acc,.8); ctx.fillRect(x, y+.15, bw, seg-.35); noglow(); } }
 }
-/* ---------- detail block: 4 displays of the same 20-bit groups ---------- */
-function drawDetail(ctx, d, ids, x0, y0, x1, y1, gcols, grows, vis, glow, noglow, t){
-  const gap = 2.2, gw = (x1-x0-(gcols-1)*gap)/gcols, gh = (y1-y0-(grows-1)*gap)/grows, tk = 1.6;
-  ids.forEach((g, j) => {
-    const gx = x0 + (j%gcols)*(gw+gap), gy = y0 + ((j/gcols)|0)*(gh+gap);
-    ctx.beginPath();
-    for(const [cx,cy,dx,dy] of [[gx,gy,1,1],[gx+gw,gy,-1,1],[gx+gw,gy+gh,-1,-1],[gx,gy+gh,1,-1]]){ ctx.moveTo(cx+dx*tk,cy); ctx.lineTo(cx,cy); ctx.lineTo(cx,cy+dy*tk); }
-    ctx.lineWidth = .3; ctx.strokeStyle = t.bracket; ctx.stroke();
-    const bx0 = gx+.7, by0 = gy+.7, bx1 = gx+gw-.7, by1 = gy+gh-.7;
-    if(d.display === 0) dotGrid(ctx, group(d, g), bx0, by0, bx1, by1, 5, 4, vis, glow, noglow, t);
-    else if(d.display === 1) shapeGroup(ctx, nibbles(d, g), bx0, by0, bx1, by1, vis, glow, noglow);
-    else if(d.display === 2) barcodeGroup(ctx, group(d, g), bx0, by0, bx1, by1, vis, glow, noglow);
-    else segmentGroup(ctx, nibbles(d, g), bx0, by0, bx1, by1, vis, glow, noglow, t);
+function drawChips(ctx, d, r, t){
+  const ids = r.ids, gap = 1.6, n = ids.length, groups = charGroups(d);
+  const cw = r.col ? r.x1-r.x0 : (r.x1-r.x0-(n-1)*gap)/n, ch = r.col ? (r.y1-r.y0-(n-1)*gap)/n : r.y1-r.y0;
+  ids.forEach((i, j) => {
+    const x = r.x0 + (r.col ? 0 : j*(cw+gap)), y = r.y0 + (r.col ? j*(ch+gap) : 0), color = tcol(t, d.chips[i]);
+    ctx.beginPath(); rr(ctx, x, y, cw, ch, Math.min(1.6, ch/3)); ctx.fillStyle = color; ctx.fill();
+    fitFont(ctx, groups[i], cw-2.4, t.code, Math.min(ch*.8, 7.6));
+    ctx.fillStyle = chipInk(t, color); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(groups[i], x+cw/2, y+ch/2+.2);
   });
 }
-function dotGrid(ctx, bits, x0, y0, x1, y1, cols, rows, vis, glow, noglow, t){
-  const px = (x1-x0)/cols, py = (y1-y0)/rows, ds = Math.min(px,py)*.66;
-  bits.forEach((on, i) => { const x = x0+(i%cols)*px+(px-ds)/2, y = y0+((i/cols)|0)*py+(py-ds)/2;
-    if(on){ glow(vis,.8); ctx.fillStyle = vis; } else ctx.fillStyle = t.off;
-    ctx.fillRect(x, y, ds, ds); noglow(); });
+/* ---------- detail cells: 4 displays of the same 10 bytes ---------- */
+function drawCells(ctx, d, r, vis, glow, noglow, t){
+  const ids = r.ids, gc = r.gc, gr = r.gr, gap = 1.6, cw = (r.x1-r.x0-(gc-1)*gap)/gc, ch = (r.y1-r.y0-(gr-1)*gap)/gr;
+  ids.forEach((i, j) => { const row = Math.floor(j/gc), col = j % gc, inRow = Math.min(gc, ids.length - row*gc);
+    const x = r.x0 + (gc-inRow)*(cw+gap)/2 + col*(cw+gap), y = r.y0 + row*(ch+gap);
+    drawCell(ctx, d.display, d.cells[i], x, y, cw, ch, vis, glow, noglow, t); });
 }
-const QUINCUNX = [[.2,.24],[.8,.24],[.5,.5],[.2,.76],[.8,.76]];
-function shapeGroup(ctx, nib, x0, y0, x1, y1, vis, glow, noglow){
-  const w = x1-x0, h = y1-y0, r = Math.min(w,h)*.17;
-  QUINCUNX.forEach(([u,v], i) => {
-    const n = nib[i], cx = x0+u*w, cy = y0+v*h, kind = n >> 2, fill = n & 3;
-    const path = () => { ctx.beginPath();
-      if(kind===0) ctx.arc(cx,cy,r,0,TAU);
-      else if(kind===1) ctx.rect(cx-r*.86,cy-r*.86,r*1.72,r*1.72);
-      else if(kind===2) poly(ctx,[[cx,cy-r*1.05],[cx+r*1.05,cy+r*.8],[cx-r*1.05,cy+r*.8]]);
-      else poly(ctx,[[cx,cy-r*1.15],[cx+r,cy],[cx,cy+r*1.15],[cx-r,cy]]); };
-    glow(vis,.8); ctx.fillStyle = ctx.strokeStyle = vis; ctx.lineWidth = r*.28; ctx.lineJoin = 'round';
-    path(); if(fill===0) ctx.fill(); else ctx.stroke(); noglow();
-    if(fill===2){ ctx.beginPath(); ctx.arc(cx, cy+(kind===2?r*.12:0), r*.3, 0, TAU); ctx.fill(); }
-    else if(fill===3){ ctx.save(); ctx.beginPath(); ctx.rect(cx-r*1.3, cy, r*2.6, r*1.4); ctx.clip(); path(); ctx.fill(); ctx.restore(); }
-  });
+function brackets(ctx, x, y, w, h, t){
+  const k = Math.min(1.6, w/4, h/4); ctx.beginPath();
+  for(const [cx,cy,dx,dy] of [[x,y,1,1],[x+w,y,-1,1],[x+w,y+h,-1,-1],[x,y+h,1,-1]]){ ctx.moveTo(cx+dx*k,cy); ctx.lineTo(cx,cy); ctx.lineTo(cx,cy+dy*k); }
+  ctx.lineWidth = .3; ctx.strokeStyle = t.bracket; ctx.stroke();
 }
-function barcodeGroup(ctx, bits, x0, y0, x1, y1, vis, glow, noglow){
-  const w = x1-x0, h = y1-y0, rg = h*.12, rh = (h-rg)/2, px = w/10, tw = px*.5;
-  glow(vis,.8); ctx.fillStyle = vis;
-  bits.forEach((b, i) => { const row = (i/10)|0, col = i%10, x = x0+col*px+(px-tw)/2, bottom = y0+row*(rh+rg)+rh, th = b ? rh : rh*.42; ctx.fillRect(x, bottom-th, tw, th); });
-  noglow();
+function drawCell(ctx, display, c, x, y, w, h, vis, glow, noglow, t){
+  const cx = x+w/2, cy = y+h/2;
+  if(display === 0){ const color = tcol(t, c>>4); ctx.beginPath(); rr(ctx, x, y, w, h, Math.min(1.2, h/4)); ctx.fillStyle = color; ctx.fill(); drawSymbol(ctx, c&15, cx, cy, Math.min(w,h)*.32, chipInk(t, color)); return; }
+  brackets(ctx, x, y, w, h, t);
+  if(display === 1) drawGem(ctx, (c>>2)&3, c&3, cx, cy, Math.min(w,h)*.33, tcol(t, c>>4), glow, noglow);
+  else if(display === 2){ const dh = h*.72, dw = Math.min(w*.34, dh*.58); [c>>4, c&15].forEach((n, k) => { const sx = cx + (k-.5)*dw*1.45; sevenSeg(ctx, n, sx-dw/2, cy-dh/2, dw, dh, vis, glow, noglow, t); }); }
+  else {
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate((c>>5)*Math.PI/4); const r = Math.min(w,h)*.36; ctx.scale(r, r); symPath(ctx, 14);
+    const color = tcol(t, (c>>1)&15); glow(color,.8);
+    if(c & 1){ ctx.lineWidth = .22; ctx.strokeStyle = color; ctx.lineJoin = 'round'; ctx.stroke(); } else { ctx.fillStyle = color; ctx.fill(); }
+    noglow(); ctx.restore();
+  }
+}
+function drawGem(ctx, kind, fill, cx, cy, r, color, glow, noglow){
+  const path = () => { ctx.beginPath();
+    if(kind===0) ctx.arc(cx,cy,r,0,TAU);
+    else if(kind===1) ctx.rect(cx-r*.86,cy-r*.86,r*1.72,r*1.72);
+    else if(kind===2) poly(ctx,[[cx,cy-r*1.05],[cx+r*1.05,cy+r*.8],[cx-r*1.05,cy+r*.8]]);
+    else poly(ctx,[[cx,cy-r*1.15],[cx+r,cy],[cx,cy+r*1.15],[cx-r,cy]]); };
+  glow(color,.8); ctx.fillStyle = ctx.strokeStyle = color; ctx.lineWidth = r*.26; ctx.lineJoin = 'round';
+  path(); if(fill===0) ctx.fill(); else ctx.stroke(); noglow();
+  if(fill===2){ ctx.beginPath(); ctx.arc(cx, cy+(kind===2?r*.12:0), r*.32, 0, TAU); ctx.fill(); }
+  else if(fill===3){ ctx.save(); ctx.beginPath(); ctx.rect(cx-r*1.3, cy, r*2.6, r*1.4); ctx.clip(); path(); ctx.fill(); ctx.restore(); }
 }
 const SEGMENTS = ['abcdef','bc','abdeg','abcdg','bcfg','acdfg','acdefg','abc','abcdefg','abcdfg','abcefg','cdefg','adef','bcdeg','adefg','aefg'];
-function segmentGroup(ctx, nib, x0, y0, x1, y1, vis, glow, noglow, t){
-  const w = x1-x0, h = y1-y0, cw = w/3, ch = h/2;
-  nib.forEach((n, i) => { const row = i < 3 ? 0 : 1, col = i < 3 ? i : i-3+.5, dh = ch*.8, dw = Math.min(cw*.72, dh*.58), cx = x0+col*cw+cw/2, cy = y0+row*ch+ch/2;
-    sevenSeg(ctx, n, cx-dw/2, cy-dh/2, dw, dh, vis, glow, noglow, t); });
-}
 function sevenSeg(ctx, n, x, y, w, h, vis, glow, noglow, t){
-  const tk = w*.2, hh = h/2;
-  const R = { a:[x+tk*.6,y,w-tk*1.2,tk], g:[x+tk*.6,y+hh-tk/2,w-tk*1.2,tk], d:[x+tk*.6,y+h-tk,w-tk*1.2,tk], f:[x,y+tk*.6,tk,hh-tk*.9], b:[x+w-tk,y+tk*.6,tk,hh-tk*.9], e:[x,y+hh+tk*.3,tk,hh-tk*.9], c:[x+w-tk,y+hh+tk*.3,tk,hh-tk*.9] };
-  for(const [k, r] of Object.entries(R)){ if(SEGMENTS[n].includes(k)){ glow(vis,.8); ctx.fillStyle = vis; } else ctx.fillStyle = t.unlit; ctx.fillRect(...r); noglow(); }
+  const k = w*.22, hh = h/2;
+  const R = { a:[x+k*.6,y,w-k*1.2,k], g:[x+k*.6,y+hh-k/2,w-k*1.2,k], d:[x+k*.6,y+h-k,w-k*1.2,k], f:[x,y+k*.6,k,hh-k*.9], b:[x+w-k,y+k*.6,k,hh-k*.9], e:[x,y+hh+k*.3,k,hh-k*.9], c:[x+w-k,y+hh+k*.3,k,hh-k*.9] };
+  for(const [name, r] of Object.entries(R)){ if(SEGMENTS[n].includes(name)){ glow(vis,.8); ctx.fillStyle = vis; } else ctx.fillStyle = t.unlit; ctx.fillRect(...r); noglow(); }
 }
 
 /* ---------- canvases, 512-bit pairs, painting ---------- */
 const cache = new Map();
 const toHex = u => Array.from(u, x => x.toString(16).padStart(2,'0')).join('');
-function glyph(bytes, theme, over){
-  const key = toHex(bytes) + ':' + theme + ':' + JSON.stringify(over || {}); let c = cache.get(key); if(c) return c;
+function glyph(bytes, over){
+  const key = toHex(bytes) + ':' + JSON.stringify(over || {}); let c = cache.get(key); if(c) return c;
   const d = Object.assign(decode(bytes), over || {});
-  c = document.createElement('canvas'); c.width = 2*S; c.height = S; drawNetrunner(c.getContext('2d'), d, THEMES[theme]);
+  c = document.createElement('canvas'); c.width = 2*S; c.height = S; drawNetrunner(c.getContext('2d'), d);
   if(cache.size > 400) cache.clear(); cache.set(key, c); return c;
 }
-function pairCanvas(bytes, theme){
-  const key = 'pair:' + toHex(bytes) + ':' + theme; let c = cache.get(key); if(c) return c;
-  const t = THEMES[theme], g = [glyph(bytes.slice(0,32), theme), glyph(bytes.slice(32), theme)], w = g[0].width, h = g[0].height;
+function pairCanvas(bytes){
+  const key = 'pair:' + toHex(bytes); let c = cache.get(key); if(c) return c;
+  const t = THEMES[decode(bytes.slice(0,32)).theme], g = [glyph(bytes.slice(0,32)), glyph(bytes.slice(32))], w = g[0].width, h = g[0].height;
   const pad = S*.22, gap = S*.15, foot = S*.26, W = w + 2*pad, H = 2*h + gap + 2*pad + foot, fg = t.pairFg;
   c = document.createElement('canvas'); c.width = Math.round(W); c.height = Math.round(H); const ctx = c.getContext('2d');
   ctx.beginPath(); rr(ctx,0,0,W,H,S*.1); ctx.fillStyle = t.pairBg; ctx.fill();
@@ -550,7 +611,7 @@ function pairCanvas(bytes, theme){
   ctx.fillText('SHA-512 · 2 PARTS · READ 1 THEN 2', W/2, H - pad*.35 - foot/2);
   if(cache.size > 400) cache.clear(); cache.set(key, c); return c;
 }
-const art = (bytes, theme) => bytes.length === 64 ? pairCanvas(bytes, theme || state.theme) : glyph(bytes, theme || state.theme);
+const art = bytes => bytes.length === 64 ? pairCanvas(bytes) : glyph(bytes);
 function paint(cv, src, cssW, forceDpr){
   const cssH = Math.round(cssW * src.height / src.width), dpr = forceDpr || Math.min(window.devicePixelRatio || 1, 3);
   const pw = Math.round(cssW * dpr), ph = Math.round(cssH * dpr);
@@ -562,18 +623,18 @@ function paint(cv, src, cssW, forceDpr){
 const parts = bytes => bytes.length === 64 ? [bytes.slice(0,32), bytes.slice(32)] : [bytes];
 
 /* ---------- page state and rendering ---------- */
-const state = { text:'release-2.4.1.tar.gz', lastText:'release-2.4.1.tar.gz', algo:'SHA-256', hex:false, bytes:null, theme:'cyberpunk', flip:{bit:70}, gallery:[] };
+const state = { text:'release-2.4.1.tar.gz', lastText:'release-2.4.1.tar.gz', algo:'SHA-256', hex:false, bytes:null, flip:{bit:90}, gallery:[] };
 const SAMPLES = ['release-2.4.2.tar.gz','release-2.4.1.tar.gz.sig','ubuntu-26.04-desktop-amd64.iso','id_ed25519.pub','backup-2026-11-01.zip','invoice-0417.pdf','firmware-v3.1.bin'];
 async function digest(str, algo){ return new Uint8Array(await crypto.subtle.digest(algo, typeof str === 'string' ? new TextEncoder().encode(str) : str)); }
 function parseHex(s){ const t = s.replace(/[\s:-]/g,'').toLowerCase(); if(!/^[0-9a-f]*$/.test(t) || (t.length !== 64 && t.length !== 128)) return null; return new Uint8Array(t.match(/../g).map(h => parseInt(h, 16))); }
 const fieldAt = bit => FIELDS.find(f => bit >= f.off && bit < f.off + f[1]);
 
 function buildStatic(){
-  $('#ruler').innerHTML = FIELDS.map((f, i) => `<i data-field="${i}" title="${f[2]} · ${f[1]} bits" style="flex:${f[1]} 0 0;background:${f[0]==='bars'?'var(--seg-bars)':f[0]==='chars'?'var(--seg-chars)':f[0]==='detail'?'var(--seg-dots)':(i%2?'var(--seg-b)':'var(--seg-a)')}"></i>`).join('');
+  $('#ruler').innerHTML = FIELDS.map((f, i) => `<i data-field="${i}" title="${f[2]} · ${f[1]} bits" style="flex:${f[1]} 0 0;background:${f[0]==='bars'?'var(--seg-bars)':(f[0]==='chars'||f[0]==='chips')?'var(--seg-chars)':f[0]==='cells'?'var(--seg-dots)':(i%2?'var(--seg-b)':'var(--seg-a)')}"></i>`).join('');
   let html = '<thead><tr><th>Bits</th><th>Feature</th><th>This hash</th></tr></thead><tbody>';
   FIELDS.forEach((f, i) => {
-    if(i === 0) html += '<tr class="group"><td colspan="3">Headline · 64 bits</td></tr>';
-    if(f[0] === 'bars') html += '<tr class="group"><td colspan="3">Detail · 192 bits</td></tr>';
+    if(i === 0) html += '<tr class="group"><td colspan="3">Headline · 80 bits</td></tr>';
+    if(f[0] === 'bars') html += '<tr class="group"><td colspan="3">Detail · 176 bits</td></tr>';
     html += `<tr tabindex="0" data-field="${i}"><td class="bits">${f.off}–${f.off+f[1]-1}</td><td class="what"><strong>${f[2]}</strong><span>${f[3]}</span></td><td class="val" data-val="${i}"></td></tr>`;
   });
   $('#fields').innerHTML = html + '</tbody>';
@@ -590,23 +651,23 @@ function renderHero(){
   $('#heroMinis').innerHTML = minis.map(m => `<div class="mini"><canvas></canvas><span class="cap">${m[2]}</span></div>`).join('');
   $('#heroMinis').querySelectorAll('canvas').forEach((cv, i) => paint(cv, src, minis[i][0], minis[i][1] || 0));
   const d = decode(parts(state.bytes)[0]);
-  document.querySelectorAll('[data-val]').forEach(td => { td.textContent = FIELDS[+td.dataset.val][4](d, THEMES[state.theme]); });
+  document.querySelectorAll('[data-val]').forEach(td => { td.textContent = FIELDS[+td.dataset.val][4](d, THEMES[d.theme]); });
   $('#partnote').hidden = !two;
 }
 function renderLayouts(){
   const p = parts(state.bytes)[0], real = decode(p).layout;
   $('#layouts').innerHTML = LAYOUTS.map((name, i) => `<figure class="${i === real ? 'real' : ''}"><canvas></canvas><figcaption><strong>${i} · ${name}</strong>${i === real ? '<br>This hash' : '<br>Preview'}</figcaption></figure>`).join('');
-  $('#layouts').querySelectorAll('canvas').forEach((cv, i) => paint(cv, glyph(p, state.theme, {layout:i}), 250));
+  $('#layouts').querySelectorAll('canvas').forEach((cv, i) => paint(cv, glyph(p, {layout:i}), 250));
 }
 function renderDisplays(){
   const p = parts(state.bytes)[0], real = decode(p).display;
   $('#displays').innerHTML = DISPLAYS.map((name, i) => `<figure class="${i === real ? 'real' : ''}"><canvas></canvas><figcaption><strong>${i} · ${name}</strong>${i === real ? '<br>This hash' : '<br>Preview'}</figcaption></figure>`).join('');
-  $('#displays').querySelectorAll('canvas').forEach((cv, i) => paint(cv, glyph(p, state.theme, {display:i}), 250));
+  $('#displays').querySelectorAll('canvas').forEach((cv, i) => paint(cv, glyph(p, {display:i}), 250));
 }
 function renderThemes(){
-  const keys = Object.keys(THEMES);
-  $('#themes').innerHTML = keys.map(k => `<figure class="${k === state.theme ? 'real' : ''}"><canvas></canvas><figcaption><strong>${THEMES[k].name}</strong>${k === state.theme ? '<br>Selected' : ''}</figcaption></figure>`).join('');
-  $('#themes').querySelectorAll('canvas').forEach((cv, i) => paint(cv, art(state.bytes, keys[i]), state.bytes.length === 64 ? 200 : 250));
+  const p = parts(state.bytes)[0], real = decode(p).theme;
+  $('#themes').innerHTML = THEMES.map((th, i) => `<figure class="${i === real ? 'real' : ''}"><canvas></canvas><figcaption><strong>${i} · ${th.name}</strong>${i === real ? '<br>This hash' : '<br>Preview'}</figcaption></figure>`).join('');
+  $('#themes').querySelectorAll('canvas').forEach((cv, i) => paint(cv, glyph(p, {theme:i}), 250));
 }
 function renderAll(){ renderHero(); renderLayouts(); renderDisplays(); renderThemes(); renderFlip(); renderGallery(); }
 function renderFlip(){
@@ -616,9 +677,11 @@ function renderFlip(){
   paint($('#flipA'), art(state.bytes), w); paint($('#flipB'), art(after), w);
   const f = fieldAt(local);
   let what = f[2];
-  if(f[0] === 'bars') what += `, bar ${((local - f.off) >> 2) + 1}`;
-  if(f[0] === 'chars'){ const k = local - f.off; what += `, character ${(k/5|0) + 1} of 16`; }
-  if(f[0] === 'detail'){ const k = local - f.off; what += `, group ${(k/20|0) + 1}, bit ${k%20 + 1}`; }
+  const k = local - f.off;
+  if(f[0] === 'bars') what += `, bar ${(k/3|0) + 1}`;
+  if(f[0] === 'chips') what += `, chip ${(k/4|0) + 1}`;
+  if(f[0] === 'chars') what += `, character ${(k/5|0) + 1} of 12`;
+  if(f[0] === 'cells') what += `, cell ${(k/8|0) + 1} of 10`;
   $('#flipmsg').innerHTML = `Flipped bit ${local}${two ? ` of part ${part+1}` : ''}. Changed: <strong>${esc(what)}</strong>. ${local < HEADLINE_BITS ? 'This is a headline feature.' : 'This is a detail feature.'}`;
 }
 function renderGallery(){
@@ -668,7 +731,6 @@ $('#hexmode').addEventListener('change', e => {
   else { state.text = state.lastText; src.placeholder = ''; }
   src.value = state.text; update();
 });
-$('#theme').addEventListener('click', e => { const bt = e.target.closest('button[data-theme]'); if(!bt) return; state.theme = bt.dataset.theme; document.querySelectorAll('#theme button').forEach(x => x.setAttribute('aria-pressed', String(x === bt))); if(state.bytes) renderAll(); });
 document.querySelectorAll('[data-flip]').forEach(bt => bt.addEventListener('click', () => {
   if(!state.bytes) return;
   const r = Math.random, kind = bt.dataset.flip;
@@ -690,7 +752,7 @@ document.addEventListener('mouseout', e => { if(e.target.closest('[data-field], 
 document.addEventListener('focusin', e => { const r = e.target.closest('tr[data-field]'); if(r) hlField(+r.dataset.field); });
 document.addEventListener('focusout', e => { if(e.target.closest('tr[data-field]')) clearHl(); });
 if(document.fonts && document.fonts.load){
-  Promise.all(['700 12px "Chakra Petch"','600 12px "JetBrains Mono"','600 12px Spectral'].map(f => document.fonts.load(f).catch(() => null)))
+  Promise.all(['700 12px "Chakra Petch"','600 12px "JetBrains Mono"','600 12px Spectral','400 12px Audiowide','700 12px Silkscreen','400 12px "Saira Stencil One"'].map(f => document.fonts.load(f).catch(() => null)))
     .then(() => { cache.clear(); if(state.bytes) renderAll(); });
 }
 update();

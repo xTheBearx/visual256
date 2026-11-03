@@ -1,8 +1,8 @@
 """Bundled fonts, text measurement and text-to-outline conversion.
 
 Text is drawn as filled outlines, so an SVG looks identical everywhere, with no font installed.
-Fonts are subset copies of Chakra Petch Bold, JetBrains Mono SemiBold and Spectral SemiBold,
-all under the SIL Open Font License (see the OFL-*.txt files next to them).
+Fonts are subset copies of Chakra Petch, JetBrains Mono, Spectral, Audiowide, Silkscreen and
+Saira Stencil One, all under the SIL Open Font License (see the OFL-*.txt files next to them).
 """
 
 from __future__ import annotations
@@ -18,6 +18,9 @@ FONT_FILES = {
     "cyber": "ChakraPetch-Bold.ttf",
     "mono": "JetBrainsMono-SemiBold.ttf",
     "serif": "Spectral-SemiBold.ttf",
+    "retro": "Audiowide-Regular.ttf",
+    "pixel": "Silkscreen-Bold.ttf",
+    "stencil": "SairaStencilOne-Regular.ttf",
 }
 
 

@@ -2,7 +2,7 @@
 
     >>> from visual256 import Badge
     >>> badge = Badge.from_text("hello")
-    >>> svg = badge.svg(theme="cyberpunk", width=256)
+    >>> svg = badge.svg(width=256)
     >>> badge.mnemonic()[0][:3]
     ['coconut', 'mystery', 'hub']
 """
@@ -13,6 +13,6 @@ from .render import Badge
 from .spec import SPEC_VERSION, Features, decode, describe, encode, with_changes
 from .themes import THEMES, Theme
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __all__ = ["Badge", "Features", "decode", "encode", "describe", "with_changes", "bip39", "ALPHABET",
            "THEMES", "Theme", "SPEC_VERSION", "__version__"]
