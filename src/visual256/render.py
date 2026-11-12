@@ -9,10 +9,12 @@ from pathlib import Path
 
 from . import bip39
 from .canvas import Canvas
+from .document import DocFeatures, doc_decode, doc_describe, doc_mix, draw_document_badge, draw_document_pair
 from .draw import H, PAIR_H, PAIR_W, W, draw_badge, draw_pair
 from .spec import Features, decode, describe, mix
 from .themes import get as get_theme
 
+STYLES = ("netrunner", "document")
 BADGE_ASPECT = W / H  # 2:1, drawn on a 128 x 64 unit grid; design (true) size 256 x 128 pixels
 
 
@@ -21,42 +23,48 @@ class Badge:
     """A 256-bit or 512-bit checksum and the badge(s) that show it.
 
     The badges show `mix(digest)`, a SHA-256 of the whole checksum per part, so a one-bit change in
-    the checksum changes everything. The spoken backup (`mnemonic`) encodes the checksum itself."""
+    the checksum changes everything. The spoken backup (`mnemonic`) encodes the checksum itself.
+
+    `style` picks the look: "netrunner" (the neon ID card) or "document" (flat and print-friendly,
+    for engineering documents). The two styles use different bits, so their badges are unrelated."""
 
     digest: bytes
+    style: str = "netrunner"
 
     def __post_init__(self):
+        if self.style not in STYLES:
+            raise ValueError("style must be one of: " + ", ".join(STYLES))
         if len(self.digest) not in (32, 64):
             raise ValueError("visual256 draws 256-bit (32-byte) or 512-bit (64-byte) digests")
 
     # ---- constructors ----
     @classmethod
-    def from_bytes(cls, digest: bytes) -> "Badge":
-        return cls(bytes(digest))
+    def from_bytes(cls, digest: bytes, style: str = "netrunner") -> "Badge":
+        return cls(bytes(digest), style)
 
     @classmethod
-    def from_hex(cls, text: str) -> "Badge":
+    def from_hex(cls, text: str, style: str = "netrunner") -> "Badge":
         clean = "".join(ch for ch in text if ch not in " :-\n\t")
         try:
-            return cls(bytes.fromhex(clean))
+            return cls(bytes.fromhex(clean), style)
         except ValueError:
             raise ValueError("expected 64 or 128 hex characters") from None
 
     @classmethod
-    def from_data(cls, data: bytes, algo: str = "sha256") -> "Badge":
-        return cls(_hash(algo).__call__(data).digest())
+    def from_data(cls, data: bytes, algo: str = "sha256", style: str = "netrunner") -> "Badge":
+        return cls(_hash(algo).__call__(data).digest(), style)
 
     @classmethod
-    def from_text(cls, text: str, algo: str = "sha256") -> "Badge":
-        return cls.from_data(text.encode("utf-8"), algo)
+    def from_text(cls, text: str, algo: str = "sha256", style: str = "netrunner") -> "Badge":
+        return cls.from_data(text.encode("utf-8"), algo, style)
 
     @classmethod
-    def from_file(cls, path: str | Path, algo: str = "sha256") -> "Badge":
+    def from_file(cls, path: str | Path, algo: str = "sha256", style: str = "netrunner") -> "Badge":
         h = _hash(algo)()
         with open(path, "rb") as fh:
             for chunk in iter(lambda: fh.read(1 << 20), b""):
                 h.update(chunk)
-        return cls(h.digest())
+        return cls(h.digest(), style)
 
     # ---- data ----
     @property
@@ -66,12 +74,13 @@ class Badge:
 
     @property
     def parts(self) -> list[bytes]:
-        """Badge bits, one 32-byte value per badge (see spec.mix)."""
-        return mix(self.digest)
+        """Badge bits, one 32-byte value per badge (see spec.mix and document.doc_mix)."""
+        return doc_mix(self.digest) if self.style == "document" else mix(self.digest)
 
     @property
-    def features(self) -> list[Features]:
-        return [decode(p) for p in self.parts]
+    def features(self) -> list[Features] | list[DocFeatures]:
+        dec = doc_decode if self.style == "document" else decode
+        return [dec(p) for p in self.parts]
 
     @property
     def hex(self) -> str:
@@ -83,6 +92,8 @@ class Badge:
 
     def describe(self) -> list[list[tuple[str, str, str]]]:
         """Every feature in plain language, per 256-bit part. Color names come from the badge's theme."""
+        if self.style == "document":
+            return [doc_describe(f) for f in self.features]
         out = []
         for f in self.features:
             t = get_theme(f.theme)
@@ -92,6 +103,15 @@ class Badge:
     # ---- rendering ----
     def canvas(self) -> Canvas:
         feats = self.features
+        if self.style == "document":
+            hexes = tuple(p.hex() for p in self.checksum_parts)
+            if len(feats) == 1:
+                c = Canvas(W, H)
+                draw_document_badge(c, feats[0], hexes[0])
+            else:
+                c = Canvas(PAIR_W, PAIR_H)
+                draw_document_pair(c, feats, hexes)
+            return c
         if len(feats) == 1:
             c = Canvas(W, H)
             draw_badge(c, feats[0])

@@ -7,18 +7,20 @@ import sys
 from pathlib import Path
 
 from . import __version__
-from .render import Badge
+from .render import STYLES, Badge
 
 FORMATS = ("svg", "png", "pdf", "datauri", "html", "words", "describe")
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(prog="visual256", description="Draw a checksum as a Netrunner ID badge.")
+    p = argparse.ArgumentParser(prog="visual256", description="Draw a checksum as a badge: a Netrunner ID or a Document badge.")
     src = p.add_mutually_exclusive_group(required=True)
     src.add_argument("file", nargs="?", help="file to hash")
     src.add_argument("--text", help="hash this text instead of a file")
     src.add_argument("--hex", help="use this hex digest (64 or 128 hex characters) as-is")
     p.add_argument("--algo", default="sha256", choices=("sha256", "sha512"), help="hash algorithm (default sha256)")
+    p.add_argument("--style", default="netrunner", choices=STYLES,
+                   help="badge style: netrunner (neon ID card) or document (flat, for engineering documents)")
     p.add_argument("--format", default="svg",
                    help="comma-separated: " + ", ".join(FORMATS) + " (default svg)")
     p.add_argument("--width", type=int, default=256, help="output width in pixels (default 256)")
@@ -28,11 +30,11 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         if a.hex:
-            badge = Badge.from_hex(a.hex)
+            badge = Badge.from_hex(a.hex, a.style)
         elif a.text is not None:
-            badge = Badge.from_text(a.text, a.algo)
+            badge = Badge.from_text(a.text, a.algo, a.style)
         else:
-            badge = Badge.from_file(a.file, a.algo)
+            badge = Badge.from_file(a.file, a.algo, a.style)
     except (OSError, ValueError) as e:
         print(f"visual256: {e}", file=sys.stderr)
         return 2

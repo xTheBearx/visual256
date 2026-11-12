@@ -7,12 +7,12 @@
     ['coconut', 'mystery', 'hub']
 """
 
-from . import bip39
+from . import bip39, document
 from .bits import ALPHABET
-from .render import Badge
+from .render import STYLES, Badge
 from .spec import SPEC_VERSION, Features, decode, describe, encode, mix, with_changes
 from .themes import THEMES, Theme
 
 __version__ = "0.1.0"
 __all__ = ["Badge", "Features", "decode", "encode", "describe", "mix", "with_changes", "bip39", "ALPHABET",
-           "THEMES", "Theme", "SPEC_VERSION", "__version__"]
+           "THEMES", "Theme", "STYLES", "document", "SPEC_VERSION", "__version__"]

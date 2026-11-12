@@ -19,7 +19,8 @@ in one of four directions:
 | ![cyberpunk](docs/examples/cyberpunk.svg)<br>Cyberpunk · `release-1.2.tar.gz` | ![daylight](docs/examples/daylight.svg)<br>Daylight · `release-1.0.tar.gz` | ![paper](docs/examples/paper.svg)<br>Paper · `release-1.15.tar.gz` | ![blueprint](docs/examples/blueprint.svg)<br>Blueprint · `release-1.17.tar.gz` |
 | ![candy](docs/examples/candy.svg)<br>Candy · `release-1.23.tar.gz` | ![mint](docs/examples/mint.svg)<br>Mint · `release-1.6.tar.gz` | ![ember](docs/examples/ember.svg)<br>Ember · `release-1.9.tar.gz` | ![jungle](docs/examples/jungle.svg)<br>Jungle · `release-1.1.tar.gz` |
 
-Each example is the real SHA-256 badge of the file name shown.
+Each example is the real SHA-256 badge of the file name shown. A second style, the flat
+[Document badge](#document-style), is made for engineering documents.
 
 ## Install
 
@@ -49,6 +50,10 @@ visual256 --text "hello" --algo sha512 --format svg
 visual256 --hex 5a725ab992a13c91274e2cc90248be7fe397a725a8a530ea09312bbd5d78e18e --format describe,words
 ```
 
+```bash
+visual256 drawing.pdf --style document --format svg,pdf
+```
+
 Formats: `svg`, `png`, `pdf`, `datauri`, `html` (an `<img>` tag), `words` (24-word spoken backup)
 and `describe` (every feature in plain language). Files are written next to the input, or to the
 path given with `-o` (without extension).
@@ -69,6 +74,8 @@ for bits, label, value in badge.describe()[0]:
 
 `badge.parts` holds the mixed badge bits (`visual256.mix(checksum)`). `visual256.decode(bits)`
 returns a badge's `Features`; `visual256.encode(features)` turns them back into the same 32 bytes.
+Every constructor takes `style="document"` for the [Document badge](#document-style); its
+counterparts live in `visual256.document` (`doc_mix`, `doc_decode`, `doc_encode`).
 
 ## How a checksum becomes a badge
 
@@ -209,6 +216,61 @@ badges depend on the whole checksum. The frame takes its colors from badge 1's t
 
 ![SHA-512 of "hello"](docs/examples/sha512-pair.svg)
 
+## Document style
+
+The second style is the **Document badge**, made for engineering documents: flat color, no
+gradients or glow, one technical typeface, and neutral spelling-alphabet code words in place of
+status words. Ask for it with `--style document` or `Badge.from_file(path, style="document")`.
+
+| | | | |
+|---|---|---|---|
+| ![drawing](docs/examples/doc-drawing.svg)<br>Drawing sheet · `drawing-rev-9.pdf` | ![blueprint](docs/examples/doc-blueprint.svg)<br>Blueprint · `drawing-rev-12.pdf` | ![whiteprint](docs/examples/doc-whiteprint.svg)<br>Whiteprint · `drawing-rev-403.pdf` | ![graph](docs/examples/doc-graph.svg)<br>Graph paper · `drawing-rev-20.pdf` |
+| ![manila](docs/examples/doc-manila.svg)<br>Manila · `drawing-rev-115.pdf` | ![slate](docs/examples/doc-slate.svg)<br>Slate · `drawing-rev-3.pdf` | ![hivis](docs/examples/doc-hivis.svg)<br>Hi-vis · `drawing-rev-2.pdf` | ![mono](docs/examples/doc-mono.svg)<br>Mono · `drawing-rev-1.pdf` |
+
+What you see at a glance, largest first:
+
+- **Sheet** (8): Drawing sheet, Blueprint, Whiteprint, Graph paper, Manila, Slate, Hi-vis and Mono.
+- **Subject** (128): one large flat silhouette, on the left or the right half.
+- **Key color** (8 per sheet): fills the subject and the monogram box and tints the background motif.
+  On the Mono sheet, which prints in pure black and white plus one grey tint, the key is one of 8
+  fill patterns instead (solid, blank, diagonal hatch, back hatch, cross hatch, horizontal lines, vertical lines, dots).
+- **Outline** (8): square, rounded, top-right and bottom-left cut, top-left and bottom-right cut, all four cut, side notches, rounded outer end, top and bottom notches.
+- **Background motif** (8): panel, diagonal band, disc, corner block, none, horizontal band, rings, hatched panel.
+- **Handle and monogram**: two BIP-39 words and two large characters.
+
+Below the handle are the first and last 8 hex digits of the checksum itself, so the badge can be
+checked against a written checksum, then the code word, 10 more characters, 2 swatches and the
+data strip. The hex digits are the only part that is not drawn from the badge bits.
+
+The Document badge has its own bits, `document.doc_mix(checksum)`: SHA-256 of
+`"visual256/document/0.1"`, the part index and the whole checksum. A file's Document badge and its
+Netrunner ID are therefore unrelated. All 256 bits are drawn, most significant bit first, and
+`document.doc_encode(document.doc_decode(bits)) == bits`:
+
+| Bits | Width | Feature | Controls |
+|---|---|---|---|
+| 0–2 | 3 | Theme | 8 sheets: paper, ink and the 8-color palette |
+| 3–5 | 3 | Key color | subject, monogram box and background motif (a fill pattern on the Mono sheet) |
+| 6–8 | 3 | Outline | 8 badge outlines |
+| 9–11 | 3 | Background motif | 8 large shapes behind the subject, in a pale tint of the key color |
+| 12–12 | 1 | Subject side | subject on the left or on the right |
+| 13–19 | 7 | Subject | 128 subjects in 11 kinds (listed below) |
+| 20–23 | 4 | Code word | one of 16 spelling-alphabet words |
+| 24–34 | 11 | Handle word 1 | BIP-39 word, 1 of 2048 |
+| 35–45 | 11 | Handle word 2 | BIP-39 word, 1 of 2048 |
+| 46–51 | 6 | Swatches | 2 palette entries, 3 bits each |
+| 52–111 | 60 | Characters | 12 characters, 5 bits each: the 2-character monogram, then two groups of 5 |
+| 112–255 | 144 | Data strip | 3 rows of 48 cells; a set bit is an inked cell |
+
+Subjects, in order: **tool** (12): hammer, wrench, screwdriver, saw, scissors, paintbrush, light bulb, pliers, axe, magnet, drill, ruler; **shape** (11): circle, square, triangle, diamond, star, hexagon, heart, plus, arrow, ring, chevron; **sign** (11): stop sign, yield sign, traffic light, warning sign, one-way sign, railroad crossing, no entry, speed limit, traffic cone, parking sign, curve ahead; **instrument** (11): guitar, drum, trumpet, saxophone, harp, xylophone, maracas, tambourine, accordion, handbell, metronome; **computer** (11): floppy disk, monitor, computer mouse, power button, wifi, cursor, folder, game controller, padlock, hourglass, magnifier; **insignia** (11): winged orb, triple chevron, ringed star, crossed blades, banded shield, crown, trident, atom, anchor, cog, laurel; **piece** (11): pawn, rook, knight, bishop, king, die, puzzle piece, playing card, domino, meeple, dartboard; **space** (10): ringed planet, crescent moon, comet, spiral galaxy, astronaut helmet, satellite, telescope, constellation, asteroid, lunar lander; **weather** (10): sun, rain cloud, thunderstorm, snowflake, rainbow, tornado, umbrella, thermometer, windsock, snowman; **game** (16): bullet, crosshair, fire, water, lightning, ice crystal, leaf, health pack, potion, coin, key, bomb, sword, kite shield, bow, treasure chest; **flag** (14): waving flag, pennant, swallowtail, checkered flag, pirate flag, hanging banner, signal flag, cross flag, striped flag, crossed flags, golf flag, bunting, tattered flag, summit flag.
+
+Within a sheet no two palette colors are closer than 15 in CIEDE2000, and every color has at
+least 2:1 contrast against the sheet.
+
+SHA-512 checksums are drawn as two Document badges on one plain sheet, numbered 1 and 2:
+
+![SHA-512 of "hello", Document style](docs/examples/doc-sha512-pair.svg)
+
 ## Spoken backup
 
 `badge.mnemonic()` and `--format words` give the standard BIP-39 encoding of the checksum itself,
@@ -238,7 +300,8 @@ pytest
 The tests check that every badge value survives `encode(decode(x))`, that flipping any single
 checksum bit changes more than a quarter of the bits of every badge, the official BIP-39 test
 vectors, palette contrast in every theme, and that every theme × layout × display combination and
-every value of each face feature draws valid SVG.
+every value of each face feature draws valid SVG. For the Document style they also check that
+flipping any single badge bit changes the drawing.
 
 ## License
 
