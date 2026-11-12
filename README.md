@@ -283,9 +283,10 @@ the checksum; the first four letters of each word are enough.
 
 [`docs/netrunner-lab.html`](docs/netrunner-lab.html) is a self-contained page that draws the same
 badges in the browser, with every layout, display and theme side by side, a one-bit-flip test and
-a readout of every feature. It is built from `docs/lab-template.html` by `python docs/build_lab.py`,
+a readout of every feature, plus a section that draws the Document badge of the same input with
+its readout, sheets, outlines and motifs. It is built from `docs/lab-template.html` by `python docs/build_lab.py`,
 which injects the theme collection and word list from the package. Its drawing code mirrors
-`src/visual256/draw.py`; change both together.
+`src/visual256/draw.py` and `src/visual256/document.py`; change both together.
 
 ## Development
 

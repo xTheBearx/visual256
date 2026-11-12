@@ -1,7 +1,7 @@
 """Build docs/netrunner-lab.html from docs/lab-template.html.
 
-Injects the BIP-39 word list, the theme collection and the icon geometry (instruments, computer
-symbols, shapes, insignia) from the Python package, so the browser preview always uses the same data
+Injects the BIP-39 word list, the theme collection, the icon geometry and the Document style's
+data from the Python package, so the browser preview always uses the same data
 as the package. Run after changing themes.py or icons.py:
 
     python docs/build_lab.py
@@ -10,7 +10,7 @@ as the package. Run after changing themes.py or icons.py:
 import json
 from pathlib import Path
 
-from visual256 import bip39, icons
+from visual256 import bip39, document, icons
 from visual256.fonts import glyph_path
 from visual256.themes import THEMES_LIST
 
@@ -47,10 +47,21 @@ def icons_json() -> str:
     return json.dumps(out, separators=(",", ":"))
 
 
+def doc_json() -> str:
+    out = {
+        "fields": [list(f) for f in document.DOC_FIELDS],
+        "sheets": [{"id": s.id, "name": s.name, "bg": s.bg, "ink": s.ink, "rule": s.rule, "grid": s.grid,
+                    "patterns": s.patterns, "palette": [list(p) for p in s.palette]} for s in document.SHEETS],
+        "outlines": list(document.OUTLINES), "motifs": list(document.MOTIFS), "codeWords": list(document.CODE_WORDS),
+        "patterns": list(document.PATTERNS), "subjects": [list(x) for x in document.DOC_SUBJECTS],
+    }
+    return json.dumps(out, separators=(",", ":"))
+
+
 def main() -> None:
     template = (HERE / "lab-template.html").read_text(encoding="utf-8")
     page = template.replace("__BIP39__", " ".join(bip39.wordlist())).replace("__THEMES_JSON__", theme_json())
-    page = page.replace("__ICONS_JSON__", icons_json())
+    page = page.replace("__ICONS_JSON__", icons_json()).replace("__DOC_JSON__", doc_json())
     (HERE / "netrunner-lab.html").write_text(page, encoding="utf-8")
     print(HERE / "netrunner-lab.html")
 

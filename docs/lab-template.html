@@ -214,6 +214,31 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
     </div>
   </section>
 
+  <section>
+    <div class="sec-head">
+      <h2>Document style</h2>
+      <p class="note">The same input as a Document badge: flat color for engineering documents, with its own bits (<code>visual256/document/0.1</code>), so it is unrelated to the Netrunner ID above. At a glance it varies by sheet, subject, key color, outline, background motif and side. The hex digits under the handle are the first and last 8 of the checksum itself.</p>
+    </div>
+    <div class="panel">
+      <div class="hero">
+        <div class="stage">
+          <canvas id="docCanvas" role="img" aria-label="Document badge"></canvas>
+          <div class="minis" id="docMinis"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+          <p class="cap" id="docpartnote" hidden>Readout shows part 1.</p>
+          <div class="tablewrap"><table class="fields" id="docfields"></table></div>
+        </div>
+      </div>
+    </div>
+    <div class="sec-head"><h3>Eight sheets</h3><p class="note">Bits 0–2. The Mono sheet prints in black and white: its key color and swatches become fill patterns.</p></div>
+    <div class="panel"><div class="layouts" id="docsheets"></div></div>
+    <div class="sec-head"><h3>Eight outlines</h3><p class="note">Bits 6–8.</p></div>
+    <div class="panel"><div class="layouts" id="docoutlines"></div></div>
+    <div class="sec-head"><h3>Eight background motifs</h3><p class="note">Bits 9–11, in a pale tint of the key color.</p></div>
+    <div class="panel"><div class="layouts" id="docmotifs"></div></div>
+  </section>
+
   <section class="panel spoken">
     <div class="sec-head">
       <h2>Spoken backup</h2>
@@ -1357,13 +1382,205 @@ function paint(cv, src, cssW, forceDpr){
   const ctx = cv.getContext('2d'); ctx.imageSmoothingQuality = 'high'; ctx.clearRect(0,0,pw,ph); ctx.drawImage(s,0,0,pw,ph);
 }
 
+/* ---------- Document style (mirrors src/visual256/document.py; change both together) ---------- */
+const DOC = __DOC_JSON__;
+const DOC_MIX_TAG = 'visual256/document/0.1';
+function docDecode(b){
+  const d = {}; let pos = 0;
+  for(const [k, n] of DOC.fields){ d[k] = readBits(b, pos, n); pos += n; }
+  d.swatches = [0,1].map(i => readBits(b, 46+3*i, 3));
+  d.chars = Array.from({length:12}, (_, i) => readBits(b, 52+5*i, 5));
+  d.strip = Array.from({length:144}, (_, i) => readBits(b, 112+i, 1));
+  return d;
+}
+const docNames = sh => sh.patterns ? DOC.patterns : sh.palette.map(p => p[0]);
+const docMonogram = d => d.chars.slice(0,2).map(v => B32[v]).join('');
+const docGroups = d => [d.chars.slice(2,7), d.chars.slice(7)].map(g => g.map(v => B32[v]).join(''));
+const docSubjectName = i => { const [k, n] = DOC.subjects[i]; return k === 'shape' ? 'large ' + n : n; };
+function docStripHex(d){ let h = ''; for(let i=0;i<144;i+=4) h += (d.strip[i]*8 + d.strip[i+1]*4 + d.strip[i+2]*2 + d.strip[i+3]).toString(16).toUpperCase(); return h; }
+function docDescribe(d){
+  const sh = DOC.sheets[d.theme], n = docNames(sh);
+  const v = { theme:sh.name, key:n[d.key], outline:DOC.outlines[d.outline], motif:DOC.motifs[d.motif], side:['left','right'][d.side], subject:docSubjectName(d.subject), code:DOC.codeWords[d.code],
+    word1:`${BIP39[d.word1]} (#${d.word1+1})`, word2:`${BIP39[d.word2]} (#${d.word2+1})` };
+  const out = []; let pos = 0;
+  for(const [k, bits, label, what] of DOC.fields){ out.push([`${pos}-${pos+bits-1}`, label, v[k], what]); pos += bits; }
+  out.push(['46-51', 'Swatches', d.swatches.map(c => n[c]).join(', '), '2 palette entries, 3 bits each']);
+  out.push(['52-111', 'Characters', [docMonogram(d), ...docGroups(d)].join(' '), 'a 2-character monogram, then two groups of 5']);
+  out.push(['112-255', 'Data strip (hex)', docStripHex(d), '3 rows of 48 cells; a set bit is an inked cell']);
+  return out;
+}
+const DX0 = 1, DY0 = 1, DX1 = 127, DY1 = 63, DSW = 55, DBW = 65, DCUT = 5.5, DROUND = 8, DNOTCH = 3;
+const docGeom = side => side ? [DX1 - DSW/2, DX1 - DSW, DX0 + 4.5] : [DX0 + DSW/2, DX0 + DSW, DX0 + DSW + 2.6];
+const docMix = (a, b, k) => '#' + [1,3,5].map(i => { const x = parseInt(a.slice(i,i+2),16), y = parseInt(b.slice(i,i+2),16); return Math.round(x + (y-x)*k).toString(16).padStart(2,'0').toUpperCase(); }).join('');
+const docContrast = (a, b) => { const la = lum(a), lb = lum(b); return (Math.max(la,lb)+.05)/(Math.min(la,lb)+.05); };
+function docOutline(ctx, kind, side){
+  const PI = Math.PI, cut = ({2:[0,1,0,1], 3:[1,0,1,0], 4:[1,1,1,1]})[kind] || [0,0,0,0];
+  const rnd = kind === 1 ? [1,1,1,1] : kind === 6 ? (side ? [0,1,1,0] : [1,0,0,1]) : [0,0,0,0];
+  const inset = cut.map((c, i) => c ? DCUT : rnd[i] ? DROUND : 0), div = docGeom(side)[1], mid = (DY0+DY1)/2, n = DNOTCH, r = DROUND;
+  ctx.beginPath(); ctx.moveTo(DX0 + inset[0], DY0);
+  if(kind === 7){ ctx.lineTo(div - n, DY0); ctx.arc(div, DY0, n, PI, 0, true); }
+  ctx.lineTo(DX1 - inset[1], DY0);
+  if(rnd[1]) ctx.arc(DX1 - r, DY0 + r, r, -PI/2, 0); else ctx.lineTo(DX1, DY0 + inset[1]);
+  if(kind === 5){ ctx.lineTo(DX1, mid - n); ctx.arc(DX1, mid, n, -PI/2, -1.5*PI, true); }
+  ctx.lineTo(DX1, DY1 - inset[2]);
+  if(rnd[2]) ctx.arc(DX1 - r, DY1 - r, r, 0, PI/2); else ctx.lineTo(DX1 - inset[2], DY1);
+  if(kind === 7){ ctx.lineTo(div + n, DY1); ctx.arc(div, DY1, n, 0, -PI, true); }
+  ctx.lineTo(DX0 + inset[3], DY1);
+  if(rnd[3]) ctx.arc(DX0 + r, DY1 - r, r, PI/2, PI); else ctx.lineTo(DX0, DY1 - inset[3]);
+  if(kind === 5){ ctx.lineTo(DX0, mid + n); ctx.arc(DX0, mid, n, PI/2, -PI/2, true); }
+  ctx.lineTo(DX0, DY0 + inset[0]);
+  if(rnd[0]) ctx.arc(DX0 + r, DY0 + r, r, PI, 1.5*PI);
+  ctx.closePath();
+}
+function docHatch(ctx, pattern, x0, y0, x1, y1, color, step, width){
+  step = step || 1.7; width = width || .42;
+  const name = DOC.patterns[pattern]; if(name === 'blank') return;
+  ctx.fillStyle = ctx.strokeStyle = color;
+  if(name === 'solid'){ ctx.fillRect(x0, y0, x1-x0, y1-y0); return; }
+  ctx.lineWidth = width; ctx.lineCap = 'butt';
+  if(name === 'dots'){
+    ctx.beginPath();
+    for(let j = Math.floor(y0/step); j*step <= y1+step; j++) for(let i = Math.floor(x0/step); i*step <= x1+step; i++){ const cx = (i + (j % 2 ? .5 : 0))*step; ctx.moveTo(cx+.45, j*step); ctx.arc(cx, j*step, .45, 0, TAU); }
+    ctx.fill(); return;
+  }
+  const h = y1 - y0, d = step*1.3; ctx.beginPath();
+  if(name === 'horizontal lines' || name === 'cross hatch') for(let j = Math.ceil(y0/step); j*step <= y1; j++){ ctx.moveTo(x0, j*step); ctx.lineTo(x1, j*step); }
+  if(name === 'vertical lines' || name === 'cross hatch') for(let i = Math.ceil(x0/step); i*step <= x1; i++){ ctx.moveTo(i*step, y0); ctx.lineTo(i*step, y1); }
+  if(name === 'diagonal hatch') for(let k = Math.ceil((x0+y0)/d); k*d <= x1+y1; k++){ ctx.moveTo(k*d - y0, y0); ctx.lineTo(k*d - y0 - h, y1); }
+  if(name === 'back hatch') for(let k = Math.ceil((x0-y1)/d); k*d <= x1-y0; k++){ ctx.moveTo(k*d + y0, y0); ctx.lineTo(k*d + y0 + h, y1); }
+  ctx.stroke();
+}
+function docMotif(ctx, d, tint, cx){
+  const x0 = cx - DSW/2, m = d.side ? -1 : 1, name = DOC.motifs[d.motif];
+  ctx.save(); ctx.beginPath(); ctx.rect(x0, 0, DSW, 64); ctx.clip(); ctx.fillStyle = tint;
+  if(name === 'panel') ctx.fillRect(x0, 0, DSW, 64);
+  else if(name === 'diagonal band'){ ctx.beginPath(); poly(ctx, [[cx-m*22,64],[cx+m*4,64],[cx+m*22,0],[cx-m*4,0]]); ctx.fill(); }
+  else if(name === 'disc'){ ctx.beginPath(); ctx.arc(cx, 32.5, 24.5, 0, TAU); ctx.fill(); }
+  else if(name === 'corner block'){ ctx.beginPath(); poly(ctx, [[cx-m*28,64],[cx-m*28,12],[cx+m*24,64]]); ctx.fill(); }
+  else if(name === 'horizontal band') ctx.fillRect(x0, 21, DSW, 23);
+  else if(name === 'rings'){ ctx.strokeStyle = tint; ctx.lineWidth = 2.6; for(const r of [9,16.5,24]){ ctx.beginPath(); ctx.arc(cx, 32.5, r, 0, TAU); ctx.stroke(); } }
+  else if(name === 'hatched panel') docHatch(ctx, 2, x0, 0, x0 + DSW, 64, tint, 3.4, 1.3);
+  ctx.restore();
+}
+function docPaint(ctx, sh, index, path, box){
+  path();
+  if(!sh.patterns){ ctx.fillStyle = sh.palette[index][1]; ctx.fill(); return; }
+  ctx.fillStyle = sh.bg; ctx.fill(); ctx.save(); ctx.clip(); docHatch(ctx, index, ...box, sh.ink); ctx.restore();
+}
+function docSubject(ctx, d, sh, cx){
+  const [kind, name] = DOC.subjects[d.subject], sp = ICONS[kind].specs[name], ink = sh.ink;
+  const solidInk = sh.patterns ? DOC.patterns[d.key] === 'solid' : sh.palette[d.key][1] === ink;
+  const over = solidInk && sp.body.length ? sh.bg : ink;
+  ctx.save(); ctx.translate(cx, 33.2); ctx.scale(1.27, 1.27); ctx.translate(0, -28); ctx.lineCap = ctx.lineJoin = 'round';
+  strokes(ctx, sp.lines, ink);
+  for(const [k, a] of sp.body){
+    const path = () => { ctx.beginPath(); plantShape(ctx, k, a); };
+    docPaint(ctx, sh, d.key, path, shapeBox(k, a));
+    path(); ctx.lineWidth = .8; ctx.strokeStyle = ink; ctx.stroke();
+  }
+  if(sp.solid.length){
+    ctx.beginPath(); for(const [k, a] of sp.solid) plantShape(ctx, k, a);
+    ctx.fillStyle = over; ctx.fill();
+    if(over !== ink){ ctx.lineWidth = .5; ctx.strokeStyle = ink; ctx.stroke(); }
+  }
+  strokes(ctx, sp.front || [], over);
+  ctx.restore();
+}
+/* one Document badge in 128 x 64 units; hex is the checksum part printed for cross-checking */
+function drawDocument(ctx, d, hex){
+  const sh = DOC.sheets[d.theme], bg = sh.bg, ink = sh.ink, rule = sh.rule;
+  const key = sh.patterns ? ink : sh.palette[d.key][1], tint = sh.patterns ? '#E2E2E2' : docMix(bg, key, .17);
+  const [cx, div, L] = docGeom(d.side), R = L + DBW;
+  ctx.save(); ctx.lineJoin = 'round';
+  ctx.save(); docOutline(ctx, d.outline, d.side); ctx.fillStyle = bg; ctx.fill(); ctx.clip();
+  if(sh.grid){ ctx.lineWidth = .15; ctx.strokeStyle = sh.grid; ctx.beginPath(); for(let x=4;x<128;x+=4){ ctx.moveTo(x,0); ctx.lineTo(x,64); } for(let y=4;y<64;y+=4){ ctx.moveTo(0,y); ctx.lineTo(128,y); } ctx.stroke(); }
+  docMotif(ctx, d, tint, cx);
+  ctx.restore();
+  docSubject(ctx, d, sh, cx);
+  const line = (xa, ya, xb, yb) => { ctx.beginPath(); ctx.moveTo(xa, ya); ctx.lineTo(xb, yb); ctx.lineWidth = .35; ctx.strokeStyle = rule; ctx.stroke(); };
+  line(div, 6, div, 58);
+  const w1 = BIP39[d.word1].toUpperCase(), w2 = BIP39[d.word2].toUpperCase();
+  let size = 8.6; setFont(ctx, 'cyber', size);
+  const widest = Math.max(ctx.measureText(w1).width, ctx.measureText(w2).width);
+  if(widest > 43.5){ size *= 43.5/widest; setFont(ctx, 'cyber', size); }
+  ctx.fillStyle = ink; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText(w1, L, 12.4); ctx.fillText(w2, L, 21.6);
+  ctx.fillStyle = key; ctx.fillRect(R - 18, 5.2, 18, 17.6);
+  ctx.fillStyle = docContrast(bg, key) >= docContrast(ink, key) ? bg : ink;
+  setFont(ctx, 'mono', 11.6); ctx.textAlign = 'center'; ctx.fillText(docMonogram(d), R - 9, 18.2);
+  line(L, 25.4, R, 25.4);
+  ctx.fillStyle = ink;
+  if(hex){
+    setFont(ctx, 'mono', 3.9); ctx.textAlign = 'left';
+    const first = hex.slice(0,8).toUpperCase(), last = hex.slice(-8).toUpperCase();
+    ctx.fillText(first, L, 32.6);
+    const x = L + ctx.measureText(first).width;
+    for(let k=0;k<3;k++) ctx.fillRect(x + .75 + k*1.05, 32, .55, .6);
+    ctx.fillText(last, x + 4.2, 32.6);
+    line(R - 21.6, 25.4, R - 21.6, 36);
+  }
+  ctx.fillStyle = ink; setFont(ctx, 'mono', 4.1); ctx.textAlign = 'right'; ctx.fillText(DOC.codeWords[d.code], R, 32.6);
+  line(L, 36, R, 36);
+  setFont(ctx, 'mono', 5.8); ctx.textAlign = 'left'; ctx.fillText(docGroups(d).join(' '), L, 43.8);
+  d.swatches.forEach((c, i) => {
+    const x = R - 13.4 + i*7.4, y = 38.4, s = 6, path = () => { ctx.beginPath(); ctx.rect(x, y, s, s); };
+    docPaint(ctx, sh, c, path, [x, y, x+s, y+s]);
+    path(); ctx.lineWidth = .35; ctx.strokeStyle = ink; ctx.stroke();
+  });
+  line(L, 46.8, R, 46.8);
+  const cw = DBW/48; ctx.fillStyle = ink; ctx.beginPath();
+  d.strip.forEach((bit, i) => { if(bit) ctx.rect(L + (i % 48)*cw, 48.6 + Math.floor(i/48)*4.2, cw + .02, 3.4); });
+  ctx.fill();
+  docOutline(ctx, d.outline, d.side); ctx.lineWidth = 1.1; ctx.strokeStyle = ink; ctx.stroke();
+  ctx.restore();
+}
+function docGlyph(bits, hex, over, k){
+  k = k || 1;
+  const key = 'doc:' + toHex(bits) + ':' + hex + ':' + JSON.stringify(over || {}) + ':' + k; let c = cache.get(key); if(c) return c;
+  const d = Object.assign(docDecode(bits), over || {});
+  c = document.createElement('canvas'); c.width = Math.round(2*S*k); c.height = Math.round(S*k);
+  const ctx = c.getContext('2d'); ctx.scale(k*U, k*U); drawDocument(ctx, d, hex);
+  if(cache.size > 160) cache.clear(); cache.set(key, c); return c;
+}
+function docPair(mixed, hexes){
+  const g = mixed.map((m, i) => docGlyph(m, hexes[i])), w = g[0].width, h = g[0].height, bgc = '#FFFFFF', fg = '#14171A';
+  const pad = S*.22, gap = S*.15, foot = S*.26, W = w + 2*pad, H = 2*h + gap + 2*pad + foot;
+  const c = document.createElement('canvas'); c.width = Math.round(W); c.height = Math.round(H); const ctx = c.getContext('2d');
+  ctx.fillStyle = bgc; ctx.fillRect(0, 0, W, H); ctx.lineWidth = S*.012; ctx.strokeStyle = fg; ctx.strokeRect(S*.04, S*.04, W - S*.08, H - S*.08);
+  const pos = [[pad,pad],[pad,pad+h+gap]], marks = pos.map(([x,y]) => [pad/2, y+S*.2]);
+  ctx.beginPath(); ctx.moveTo(...marks[0]); ctx.lineTo(...marks[1]); ctx.lineWidth = S*.02; ctx.stroke();
+  pos.forEach(([x,y],i) => ctx.drawImage(g[i], x, y));
+  marks.forEach(([x,y],i) => { ctx.beginPath(); ctx.arc(x,y,S*.075,0,TAU); ctx.fillStyle = fg; ctx.fill(); ctx.fillStyle = bgc; setFont(ctx, 'mono', S*.1); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(i+1), x, y+S*.006); });
+  ctx.fillStyle = fg; setFont(ctx, 'mono', S*.11); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('SHA-512 · 2 PARTS · READ 1 THEN 2', W/2, H - pad*.35 - foot/2);
+  return c;
+}
+const docHexes = bytes => Array.from({length: bytes.length/32}, (_, i) => toHex(bytes.slice(i*32, i*32+32)));
+function renderDocument(){
+  const mixed = state.docMixed, hexes = docHexes(state.bytes), two = mixed.length === 2;
+  const src = two ? docPair(mixed, hexes) : docGlyph(mixed[0], hexes[0]);
+  paint($('#docCanvas'), src, two ? 360 : 400);
+  const minis = two ? [[256,0,'256 wide']] : [[256,0,'256 × 128'],[256,1,'256 × 128 on a 1× screen']];
+  $('#docMinis').innerHTML = minis.map(m => `<div class="mini"><canvas></canvas><span class="cap">${m[2]}</span></div>`).join('');
+  $('#docMinis').querySelectorAll('canvas').forEach((cv, i) => paint(cv, src, minis[i][0], minis[i][1] || 0));
+  const d = docDecode(mixed[0]);
+  $('#docfields').innerHTML = '<thead><tr><th>Bits</th><th>Feature</th><th>This hash</th></tr></thead><tbody>' + docDescribe(d).map(([bits, label, value, what]) =>
+    `<tr><td class="bits">${bits.replace('-', '–')}</td><td class="what"><strong>${esc(label)}</strong><span>${esc(what)}</span></td><td class="val">${esc(value)}</td></tr>`).join('') + '</tbody>';
+  $('#docpartnote').hidden = !two;
+  const grid = (host, names, key) => {
+    $(host).innerHTML = names.map((name, i) => `<figure class="${i === d[key] ? 'real' : ''}"><canvas></canvas><figcaption><strong>${i} · ${esc(name)}</strong>${i === d[key] ? '<br>This hash' : '<br>Preview'}</figcaption></figure>`).join('');
+    $(host).querySelectorAll('canvas').forEach((cv, i) => paint(cv, docGlyph(mixed[0], hexes[0], {[key]: i}, .45), 230));
+  };
+  grid('#docsheets', DOC.sheets.map(sh => sh.name), 'theme'); grid('#docoutlines', DOC.outlines, 'outline'); grid('#docmotifs', DOC.motifs, 'motif');
+}
+
 /* ---------- page state and rendering ---------- */
 const state = { text:'release-2.4.1.tar.gz', lastText:'release-2.4.1.tar.gz', algo:'SHA-256', hex:false, bytes:null, mixed:null, flip:{bit:200}, gallery:[] };
 const SAMPLES = ['release-2.4.2.tar.gz','release-2.4.1.tar.gz.sig','ubuntu-26.04-desktop-amd64.iso','id_ed25519.pub','backup-2026-11-01.zip','invoice-0417.pdf','firmware-v3.1.bin'];
 async function digest(data, algo){ return new Uint8Array(await crypto.subtle.digest(algo, typeof data === 'string' ? new TextEncoder().encode(data) : data)); }
 /* mirrors visual256.spec.mix: badge part i = SHA-256(MIX_TAG || i || whole checksum) */
-async function mix(checksum){
-  const tag = new TextEncoder().encode(MIX_TAG), n = checksum.length / 32, out = [];
+async function mix(checksum, tagText){
+  const tag = new TextEncoder().encode(tagText || MIX_TAG), n = checksum.length / 32, out = [];
   for(let i=0;i<n;i++){ const buf = new Uint8Array(tag.length + 1 + checksum.length); buf.set(tag); buf[tag.length] = i; buf.set(checksum, tag.length + 1); out.push(await digest(buf, 'SHA-256')); }
   return out;
 }
@@ -1434,7 +1651,7 @@ function renderGallery(){
   host.innerHTML = state.gallery.map(g => `<figure><canvas></canvas><figcaption title="${esc(g.label)}">${esc(g.label)}</figcaption></figure>`).join('');
   host.querySelectorAll('canvas').forEach((cv, i) => paint(cv, art(state.gallery[i].mixed), 128));
 }
-function renderAll(){ renderHero(); renderSubjects(); renderLayouts(); renderDisplays(); renderThemes(); renderBackgrounds(); renderFlip(); renderGallery(); }
+function renderAll(){ renderHero(); renderDocument(); renderSubjects(); renderLayouts(); renderDisplays(); renderThemes(); renderBackgrounds(); renderFlip(); renderGallery(); }
 async function bip39Words(bytes32){
   const cs = (await digest(bytes32, 'SHA-256'))[0], all = new Uint8Array(33); all.set(bytes32); all[32] = cs;
   const out = []; for(let i=0;i<24;i++) out.push(BIP39[readBits(all, i*11, 11)]); return out;
@@ -1455,10 +1672,10 @@ async function update(){
     try { bytes = await digest(state.text, state.algo); }
     catch(e){ err.textContent = 'This browser could not compute the hash. Turn on "Input is a hex hash" and paste a hash instead.'; err.hidden = false; return; }
   }
-  const mixed = await mix(bytes);
+  const mixed = await mix(bytes), docMixed = await mix(bytes, DOC_MIX_TAG);
   if(my !== token) return;
-  err.hidden = true; state.bytes = bytes; state.mixed = mixed;
-  renderHex(); renderHero(); renderSubjects(); renderLayouts(); renderDisplays(); renderThemes(); renderBackgrounds(); renderFlip(); renderSpoken(my);
+  err.hidden = true; state.bytes = bytes; state.mixed = mixed; state.docMixed = docMixed;
+  renderHex(); renderHero(); renderDocument(); renderSubjects(); renderLayouts(); renderDisplays(); renderThemes(); renderBackgrounds(); renderFlip(); renderSpoken(my);
   const algo = bytes.length === 64 ? 'SHA-512' : 'SHA-256';
   let rest; try { rest = await Promise.all(SAMPLES.map(async s => ({ label:s, mixed:await mix(await digest(s, algo)) }))); } catch(e){ rest = []; }
   if(my !== token) return;
