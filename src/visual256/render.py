@@ -13,7 +13,7 @@ from .draw import H, PAIR_H, PAIR_W, W, draw_badge, draw_pair
 from .spec import Features, decode, describe, mix
 from .themes import get as get_theme
 
-BADGE_ASPECT = W / H  # 2:1, drawn at 128 x 64 units
+BADGE_ASPECT = W / H  # 2:1, drawn on a 128 x 64 unit grid; design (true) size 256 x 128 pixels
 
 
 @dataclass(frozen=True)
@@ -135,7 +135,7 @@ class Badge:
             return "data:image/png;base64," + base64.b64encode(self.png(width * 2)).decode()
         raise ValueError("fmt must be 'svg' or 'png'")
 
-    def html_img(self, width: int = 128, fmt: str = "svg") -> str:
+    def html_img(self, width: int = 256, fmt: str = "svg") -> str:
         """An <img> tag for a web page. PNGs are rendered at 2x for sharp display on high-density screens."""
         w, h = self.size_for(width)
         alt = "Checksum badge for " + self.hex[:16] + "…"

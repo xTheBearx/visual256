@@ -1391,7 +1391,7 @@ function renderHex(){
 function renderHero(){
   const two = state.mixed.length === 2, src = art(state.mixed);
   paint($('#heroCanvas'), src, two ? 360 : 400);
-  const minis = two ? [[128,0,'128 wide']] : [[128,0,'128 × 64'],[128,1,'128 × 64 on a 1× screen']];
+  const minis = two ? [[256,0,'256 wide']] : [[256,0,'256 × 128'],[256,1,'256 × 128 on a 1× screen']];
   $('#heroMinis').innerHTML = minis.map(m => `<div class="mini"><canvas></canvas><span class="cap">${m[2]}</span></div>`).join('');
   $('#heroMinis').querySelectorAll('canvas').forEach((cv, i) => paint(cv, src, minis[i][0], minis[i][1] || 0));
   const d = decode(state.mixed[0]);

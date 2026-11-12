@@ -1,4 +1,5 @@
-"""Draws a Netrunner ID badge. Coordinates are 128 x 64 badge units on a 960 x 480 canvas.
+"""Draws a Netrunner ID badge. Coordinates are 128 x 64 badge units on a 960 x 480 canvas; the
+badge is designed to be seen at 256 x 128 pixels (2 pixels per unit).
 
 This file mirrors the browser preview (docs/netrunner-lab.html) line for line; keep them in sync.
 """

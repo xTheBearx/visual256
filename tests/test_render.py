@@ -50,6 +50,7 @@ def test_data_uri_and_img_tag():
     assert b.data_uri().startswith("data:image/svg+xml;base64,")
     tag = b.html_img(width=128)
     assert tag.startswith("<img ") and 'width="128"' in tag and 'height="64"' in tag
+    assert 'width="256"' in b.html_img() and 'height="128"' in b.html_img()  # design size
 
 
 def test_rendering_is_deterministic():

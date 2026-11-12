@@ -6,7 +6,7 @@ Turn a 256-bit checksum into a small picture people can recognize and compare at
 > **Development version 0.1.** The bit layout, themes and drawings may still change. Every
 > change stays at 0.1 until the first release, so badges are not yet stable between commits.
 
-The first style is the **Netrunner ID**: a 128 × 64 badge with a portrait, a two-word handle, a
+The first style is the **Netrunner ID**: a 256 × 128 badge with a portrait, a two-word handle, a
 status chip, signal bars, 12 printed characters on colored chips and 10 detail cells. The portrait
 is one of 256 subjects in 23 kinds, from android heads, animals and vehicles to flags, road signs,
 game icons and single characters. The badge bits
@@ -61,7 +61,7 @@ from visual256 import Badge
 badge = Badge.from_file("release.tar.gz")   # or from_text, from_hex, from_bytes
 svg = badge.svg(width=256)                   # str
 png = badge.png(width=512)                   # bytes, needs resvg-py
-tag = badge.html_img(width=128)              # <img> with an embedded SVG
+tag = badge.html_img()                       # <img> with an embedded SVG, 256 × 128
 words = badge.mnemonic()                     # [[24 BIP-39 words]] per 256-bit part
 for bits, label, value in badge.describe()[0]:
     print(bits, label, value)
