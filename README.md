@@ -238,9 +238,13 @@ What you see at a glance, largest first:
 - **Outline** (8): square, rounded, top-right and bottom-left cut, top-left and bottom-right cut, all four cut, side notches, rounded outer end, top and bottom notches.
 - **Background motif** (8): panel, diagonal band, disc, corner block, none, horizontal band, rings, hatched panel.
 - **Handle and monogram**: two BIP-39 words and two large characters.
-- **Glyphs** (21): one larger mark and two rows of 10, each 1 of 16 shapes
+- **Glyphs** (16): one larger mark and 15 in two rows, each 1 of 16 shapes
   (circle, square, triangle, diamond, star, plus, saltire, heart, crescent, sun, drop, bolt, hourglass, ring, arrow, clover) in 1 of 8 colors. The whole set is drawn in one of 4 styles:
   plain, square tiles, round tiles, framed.
+- **Bars** (2): each glyph row also holds one horizontal bar, 3 glyphs wide in one row and 2 wide
+  in the other, at one of 8 places. A bar has 1 of 8 styles (progress, two-tone, slider, striped, segments, dashed, offset pair, marker), two
+  colors, round or square ends, and a level from 1 to 16 that sets where its two colors meet (in
+  the segments style, which of 4 segments are filled).
 
 Below the handle are the first and last 8 hex digits of the checksum itself, so the badge can be
 checked against a written checksum, then the code word and 10 more characters. The hex digits are
@@ -265,7 +269,11 @@ All 256 badge bits are drawn, most significant bit first, and
 | 27–37 | 11 | Handle word 1 | BIP-39 word, 1 of 2048 |
 | 38–48 | 11 | Handle word 2 | BIP-39 word, 1 of 2048 |
 | 49–108 | 60 | Characters | 12 characters, 5 bits each: the 2-character monogram, then two groups of 5 |
-| 109–255 | 147 | Glyphs | 21 glyphs, 7 bits each: 1 of 8 palette colors (3 bits), then 1 of 16 shapes (4 bits) |
+| 109–115 | 7 | Mark | the larger glyph: 1 of 8 palette colors (3 bits), then 1 of 16 shapes (4 bits) |
+| 116 | 1 | Wide bar row | which row holds the 3-wide bar; the other holds the 2-wide bar |
+| 117–133 | 17 | Top bar | position (3), style (3), color (3), second color (3), level (4), ends (1) |
+| 134–150 | 17 | Bottom bar | the same fields |
+| 151–255 | 105 | Glyphs | 15 glyphs, 7 bits each, filling both rows around the bars |
 
 Subjects, in order: **engineering** (17): gear, gear pair, gate valve, globe valve, hex bolt, hex nut, resistor, capacitor, coil spring, I-beam, pressure gauge, ball bearing, piston, pump, diode, battery, LED; **tool** (12): hammer, wrench, screwdriver, saw, scissors, paintbrush, light bulb, pliers, axe, magnet, drill, ruler; **shape** (11): circle, square, triangle, diamond, star, hexagon, heart, plus, arrow, ring, chevron; **sign** (11): stop sign, yield sign, traffic light, warning sign, one-way sign, railroad crossing, no entry, speed limit, traffic cone, parking sign, curve ahead; **instrument** (11): guitar, drum, trumpet, saxophone, harp, xylophone, maracas, tambourine, accordion, handbell, metronome; **computer** (11): floppy disk, monitor, computer mouse, power button, wifi, cursor, folder, game controller, padlock, hourglass, magnifier; **insignia** (10): winged orb, triple chevron, ringed star, crossed blades, banded shield, crown, trident, atom, anchor, laurel; **piece** (11): pawn, rook, knight, bishop, king, die, puzzle piece, playing card, domino, meeple, dartboard; **space** (10): ringed planet, crescent moon, comet, spiral galaxy, astronaut helmet, satellite, telescope, constellation, asteroid, lunar lander; **weather** (10): sun, rain cloud, thunderstorm, snowflake, rainbow, tornado, umbrella, thermometer, windsock, snowman; **flag** (14): waving flag, pennant, swallowtail, checkered flag, pirate flag, hanging banner, signal flag, cross flag, striped flag, crossed flags, golf flag, bunting, tattered flag, summit flag.
 
@@ -289,7 +297,7 @@ the checksum; the first four letters of each word are enough.
 [`docs/netrunner-lab.html`](docs/netrunner-lab.html) is a self-contained page that draws the same
 badges in the browser, with every layout, display and theme side by side, a one-bit-flip test and
 a readout of every feature, plus a section that draws the Document badge of the same input with
-its readout, sheets, outlines, motifs and glyph styles. It is built from `docs/lab-template.html` by `python docs/build_lab.py`,
+its readout, sheets, outlines, motifs, glyph styles and bar styles. It is built from `docs/lab-template.html` by `python docs/build_lab.py`,
 which injects the theme collection and word list from the package. Its drawing code mirrors
 `src/visual256/draw.py` and `src/visual256/document.py`; change both together.
 

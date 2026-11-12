@@ -20,7 +20,8 @@ def render(f, hx="ab" * 32) -> str:
 
 
 def test_layout_adds_up_to_256_bits():
-    assert sum(n for _, n, _, _ in doc.DOC_FIELDS) + 12 * 5 + doc.N_GLYPHS * 7 == 256
+    assert sum(n for _, n, _, _ in doc.DOC_FIELDS) + 12 * 5 + 1 + 2 * doc.BAR_BITS + doc.N_GLYPHS * 7 == 256
+    assert doc.BAR_BITS == 17 and len(doc.BAR_STYLES) == 8
     assert len(doc.DOC_SUBJECTS) == 128 and len(set(doc.DOC_SUBJECTS)) == 128
     assert len(doc.SHEETS) == 16 and len(doc.OUTLINES) == len(doc.MOTIFS) == 8 and len(doc.GLYPH_STYLES) == 4
     assert sum(k == "engineering" for k, _ in doc.DOC_SUBJECTS) == 17
@@ -62,6 +63,29 @@ def test_every_subject_outline_motif_and_sheet_renders():
     for style in range(4):  # all 128 glyph values look different in every glyph style
         g = doc.doc_with_changes(f, gstyle=style)
         assert len({render(doc.doc_with_changes(g, glyphs=(v,) + g.glyphs[1:])) for v in range(128)}) == 128
+
+
+def test_bars_take_two_and_three_slots_and_every_bar_value_shows():
+    f = doc.doc_decode(bits_for(5))
+    assert sorted(doc.bar_width(f, r) for r in (0, 1)) == [2, 3]
+    assert doc.bar_width(doc.doc_with_changes(f, wide=0), 0) == 3 and doc.bar_width(doc.doc_with_changes(f, wide=1), 1) == 3
+    for row in (0, 1):
+        for wide in (0, 1):
+            seen = set()
+            for style in range(8):
+                for cap in (0, 1):
+                    for level in range(16):
+                        for pos in (0, 7):
+                            bars = list(f.bars)
+                            bars[row] = (pos, style, 1, 5, level, cap)
+                            seen.add(render(doc.doc_with_changes(f, wide=wide, bars=tuple(bars))))
+            assert len(seen) == 8 * 2 * 16 * 2
+    # both colors of a bar always show, even when the level is at either end
+    for style in range(8):
+        for level in (0, 15):
+            base = doc.doc_with_changes(f, bars=((3, style, 1, 5, level, 0), f.bars[1]))
+            assert render(base) != render(doc.doc_with_changes(base, bars=((3, style, 2, 5, level, 0), f.bars[1])))
+            assert render(base) != render(doc.doc_with_changes(base, bars=((3, style, 1, 6, level, 0), f.bars[1])))
 
 
 def test_describe_covers_all_bits_in_order():

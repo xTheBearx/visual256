@@ -5,8 +5,11 @@ own layout (MSB first):
 
     bits    0-48   headline features (see DOC_FIELDS)
     bits   49-108  12 printed characters, 5 bits each: a 2-character monogram, then two groups of 5
-    bits  109-255  21 colored glyphs, 7 bits each (3-bit color, then 4-bit shape): one larger mark
-                   beside the characters, then two rows of 10
+    bits  109-115  the mark: one larger colored glyph beside the characters (3-bit color, 4-bit shape)
+    bit   116      which of the two bottom rows holds the 3-wide bar (the other holds the 2-wide bar)
+    bits  117-150  2 horizontal bars, 17 bits each: position in its row (3), style (3), color (3),
+                   second color (3), level (4), round or square ends (1)
+    bits  151-255  15 colored glyphs, 7 bits each, filling the two rows around the bars
 
 The badge is a fingerprint of the checksum, not a way to carry it. All 256 badge bits are drawn
 (`doc_encode(doc_decode(b)) == b`), but they are a SHA-256 mix of the checksum, which cannot be
@@ -46,14 +49,19 @@ DOC_FIELDS: tuple[tuple[str, int, str, str], ...] = (
     ("word2", 11, "Handle word 2", "BIP-39 word, 1 of 2048"),
 )
 DOC_HEADLINE_BITS = sum(f[1] for f in DOC_FIELDS)
-N_GLYPHS, GLYPH_COLS = 21, 10
-assert DOC_HEADLINE_BITS == 49 and DOC_HEADLINE_BITS + 12 * 5 + N_GLYPHS * 7 == 256
+N_GLYPHS, GLYPH_COLS = 16, 10  # the mark, then 15 glyphs sharing two rows of 10 slots with a 3-wide and a 2-wide bar
+# (name, bits) of one bar
+BAR_FIELDS = (("pos", 3), ("style", 3), ("color", 3), ("color2", 3), ("level", 4), ("cap", 1))
+BAR_BITS = sum(n for _, n in BAR_FIELDS)
+assert DOC_HEADLINE_BITS == 49 and DOC_HEADLINE_BITS + 12 * 5 + 1 + 2 * BAR_BITS + N_GLYPHS * 7 == 256
 
 OUTLINES = ("square", "rounded", "top-right and bottom-left cut", "top-left and bottom-right cut", "all four cut",
             "side notches", "rounded outer end", "top and bottom notches")
 MOTIFS = ("panel", "diagonal band", "disc", "corner block", "none", "horizontal band", "rings", "hatched panel")
 SIDES = ("left", "right")
 GLYPH_STYLES = ("plain", "square tiles", "round tiles", "framed")
+BAR_STYLES = ("progress", "two-tone", "slider", "striped", "segments", "dashed", "offset pair", "marker")
+BAR_CAPS = ("square", "round")
 CODE_WORDS = ("ALFA", "BRAVO", "CHARLIE", "DELTA", "ECHO", "FOXTROT", "GOLF", "HOTEL", "INDIA", "JULIETT", "KILO",
               "LIMA", "MIKE", "NOVEMBER", "OSCAR", "PAPA")
 # the insignia cog is left out: it looks like the engineering gear
@@ -137,7 +145,9 @@ class DocFeatures:
     word1: int
     word2: int
     chars: tuple[int, ...]     # 12 values, 0-31 (alphabet indices)
-    glyphs: tuple[int, ...]    # 21 values, 0-127: color (3 bits) then shape (4 bits)
+    glyphs: tuple[int, ...]    # 16 values, 0-127: color (3 bits) then shape (4 bits); the first is the mark
+    wide: int                  # 0: the top row holds the 3-wide bar, 1: the bottom row does
+    bars: tuple[tuple[int, ...], ...]  # top and bottom bar, each (pos, style, color, color2, level, cap)
 
     @property
     def theme_id(self) -> str:
@@ -167,20 +177,28 @@ def doc_decode(bits: bytes) -> DocFeatures:
     r = BitReader(bits)
     head = {name: r.read(n) for name, n, _, _ in DOC_FIELDS}
     chars = tuple(r.read(5) for _ in range(12))
-    glyphs = tuple(r.read(7) for _ in range(N_GLYPHS))
-    return DocFeatures(**head, chars=chars, glyphs=glyphs)
+    mark = r.read(7)
+    wide = r.read(1)
+    bars = tuple(tuple(r.read(n) for _, n in BAR_FIELDS) for _ in range(2))
+    glyphs = (mark,) + tuple(r.read(7) for _ in range(N_GLYPHS - 1))
+    return DocFeatures(**head, chars=chars, glyphs=glyphs, wide=wide, bars=bars)
 
 
 def doc_encode(f: DocFeatures) -> bytes:
     """Inverse of doc_decode: rebuild the exact 32 badge bytes from a badge's features."""
-    if (len(f.chars), len(f.glyphs)) != (12, N_GLYPHS):
-        raise ValueError(f"chars and glyphs must have 12 and {N_GLYPHS} entries")
+    if (len(f.chars), len(f.glyphs), len(f.bars)) != (12, N_GLYPHS, 2):
+        raise ValueError(f"chars, glyphs and bars must have 12, {N_GLYPHS} and 2 entries")
     w = BitWriter()
     for name, n, _, _ in DOC_FIELDS:
         w.write(getattr(f, name), n)
     for v in f.chars:
         w.write(v, 5)
-    for v in f.glyphs:
+    w.write(f.glyphs[0], 7)
+    w.write(f.wide, 1)
+    for bar in f.bars:
+        for v, (_, n) in zip(bar, BAR_FIELDS):
+            w.write(v, n)
+    for v in f.glyphs[1:]:
         w.write(v, 7)
     return w.to_bytes()
 
@@ -194,6 +212,11 @@ def doc_with_changes(f: DocFeatures, **changes) -> DocFeatures:
 def subject_name(subject: int) -> str:
     kind, name = DOC_SUBJECTS[subject]
     return f"large {name}" if kind == "shape" else name
+
+
+def bar_width(f: DocFeatures, row: int) -> int:
+    """Slots taken by the bar in row 0 (top) or 1 (bottom): 3 in the wide row, 2 in the other."""
+    return 3 if f.wide == row else 2
 
 
 def doc_describe(f: DocFeatures) -> list[tuple[str, str, str]]:
@@ -211,7 +234,14 @@ def doc_describe(f: DocFeatures) -> list[tuple[str, str, str]]:
         out.append((f"{pos}-{pos + bits - 1}", label, values[name]))
         pos += bits
     out.append(("49-108", "Characters", " ".join([f.monogram] + f.char_groups)))
-    out.append(("109-255", "Glyphs", ", ".join(f"{n[g >> 4]} {SYMBOLS[g & 15]}" for g in f.glyphs)))
+    glyph = lambda g: f"{n[g >> 4]} {SYMBOLS[g & 15]}"
+    out.append(("109-115", "Mark", glyph(f.glyphs[0])))
+    out.append(("116-116", "Wide bar row", ("top", "bottom")[f.wide]))
+    for i, (pos, style, color, color2, level, cap) in enumerate(f.bars):
+        out.append((f"{117 + i * BAR_BITS}-{116 + (i + 1) * BAR_BITS}", ("Top bar", "Bottom bar")[i],
+                    f"{bar_width(f, i)} wide after {pos} glyphs, {BAR_STYLES[style]}, {n[color]} and {n[color2]}, "
+                    f"level {level + 1}, {BAR_CAPS[cap]} ends"))
+    out.append(("151-255", "Glyphs", ", ".join(glyph(g) for g in f.glyphs[1:])))
     return out
 
 
@@ -389,6 +419,119 @@ def _draw_glyph(ctx: Canvas, sheet: Sheet, style: int, g: int, x: float, y: floa
         draw_symbol(ctx, shape, x, y, (1.9 if name == "round tiles" else 2.1) * k, sheet.bg)
 
 
+def _bar_path(ctx: Canvas, x, y, w, h, cap) -> None:
+    r = min(h, w) / 2 if cap else min(.5, h / 2)
+    ctx.begin_path()
+    ctx.move_to(x + r, y)
+    ctx.line_to(x + w - r, y)
+    ctx.arc(x + w - r, y + r, r, -math.pi / 2, 0)
+    ctx.line_to(x + w, y + h - r)
+    ctx.arc(x + w - r, y + h - r, r, 0, math.pi / 2)
+    ctx.line_to(x + r, y + h)
+    ctx.arc(x + r, y + h - r, r, math.pi / 2, math.pi)
+    ctx.line_to(x, y + r)
+    ctx.arc(x + r, y + r, r, math.pi, 1.5 * math.pi)
+    ctx.close_path()
+
+
+def _draw_bar(ctx: Canvas, sheet: Sheet, bar, x: float, cy: float, w: float) -> None:
+    """A horizontal bar w wide, centered on cy. `level` (0-15) sets where its two colors meet,
+    or which of 4 segments are filled."""
+    _pos, style, color, color2, level, cap = bar
+    c1, c2, name = sheet.palette[color][1], sheet.palette[color2][1], BAR_STYLES[style]
+    h = 5.2
+    y = cy - h / 2
+    xs = x + 1.2 + (level + .5) / 16 * (w - 2.4)  # where the two parts meet
+    ctx.save()
+    if name == "progress":
+        ctx.save()
+        _bar_path(ctx, x, y, w, h, cap)
+        ctx.clip()
+        ctx.fill_style = c1
+        ctx.fill_rect(x, y, xs - x, h)
+        ctx.restore()
+        _bar_path(ctx, x + .25, y + .25, w - .5, h - .5, cap)
+        ctx.line_width, ctx.stroke_style = .5, c2
+        ctx.stroke()
+    elif name in ("two-tone", "striped", "marker"):
+        _bar_path(ctx, x, y, w, h, cap)
+        ctx.clip()
+        if name == "two-tone":
+            ctx.fill_style = c1
+            ctx.fill_rect(x, y, xs - .25 - x, h)
+            ctx.fill_style = c2
+            ctx.fill_rect(xs + .25, y, x + w - xs - .25, h)
+        elif name == "striped":
+            ctx.fill_style = c2
+            ctx.fill_rect(xs, y, x + w - xs, h)
+            ctx.begin_path()
+            ctx.rect(x, y, xs - x, h)
+            ctx.clip()
+            _hatch(ctx, x, y, xs, y + h, c1, 1.5, .95)
+        else:
+            ctx.fill_style = c1
+            ctx.fill_rect(x, y, w, h)
+            ctx.fill_style = sheet.bg
+            ctx.fill_rect(xs - 1.5, y, 3, h)
+            ctx.fill_style = c2
+            ctx.fill_rect(xs - .95, y, 1.9, h)
+    elif name == "slider":
+        ctx.begin_path()
+        ctx.move_to(x + .7, cy)
+        ctx.line_to(x + w - .7, cy)
+        ctx.line_width, ctx.stroke_style, ctx.line_cap = 1.3, c2, "round" if cap else "butt"
+        ctx.stroke()
+        xk = x + 2.5 + (level + .5) / 16 * (w - 5)
+        ctx.begin_path()
+        if cap:
+            ctx.arc(xk, cy, 2.5, 0, TAU)
+        else:
+            ctx.rect(xk - 2.2, cy - 2.5, 4.4, 5)
+        ctx.fill_style = c1
+        ctx.fill()
+        ctx.line_width, ctx.stroke_style = .45, sheet.bg
+        ctx.stroke()
+    elif name == "segments":
+        seg = (w + .7) / 4
+        for k in range(4):
+            _bar_path(ctx, x + k * seg + .25, y + .25, seg - 1.2, h - .5, cap)
+            on = level >> (3 - k) & 1
+            if on:
+                ctx.fill_style = c1
+                ctx.fill()
+            ctx.line_width, ctx.stroke_style = .5, c2
+            ctx.stroke()
+            if not on:  # an empty segment keeps a dot of the first color
+                ctx.begin_path()
+                ctx.arc(x + k * seg + .25 + (seg - 1.2) / 2, cy, .75, 0, TAU)
+                ctx.fill_style = c1
+                ctx.fill()
+    elif name == "dashed":
+        ctx.line_width, ctx.line_cap = 2.2, "round" if cap else "butt"
+        ctx.begin_path()
+        ctx.move_to(x + 1.1, cy)
+        xd = x + 2.2 + (level + .5) / 16 * (w - 6.4)  # leaves room for at least one dash after it
+        ctx.line_to(xd, cy)
+        ctx.stroke_style = c1
+        ctx.stroke()
+        ctx.begin_path()
+        px = xd + 2.2
+        while px <= x + w - 1.1:  # dots (round ends) or short dashes (square ends)
+            ctx.move_to(px - (0 if cap else .5), cy)
+            ctx.line_to(px + (.01 if cap else .5), cy)
+            px += 2.9
+        ctx.stroke_style = c2
+        ctx.stroke()
+    else:  # offset pair
+        _bar_path(ctx, x, y, xs - x, 2.3, cap)
+        ctx.fill_style = c1
+        ctx.fill()
+        _bar_path(ctx, xs, y + 2.9, x + w - xs, 2.3, cap)
+        ctx.fill_style = c2
+        ctx.fill()
+    ctx.restore()
+
+
 def draw_document(ctx: Canvas, f: DocFeatures, checksum_hex: str = "", theme: Sheet | None = None) -> None:
     """Draw one Document badge in 128 x 64 units at the origin of ctx's current transform.
     `checksum_hex` is the 64-digit checksum part printed for cross-checking (left out when empty)."""
@@ -471,10 +614,18 @@ def draw_document(ctx: Canvas, f: DocFeatures, checksum_hex: str = "", theme: Sh
     ctx.fill_text(" ".join(f.char_groups), L, 43.8)
     _draw_glyph(ctx, sheet, f.gstyle, f.glyphs[0], R - 3.9, 41.4, 1.2)
     line(L, 46.8, R, 46.8)
-    # two rows of glyphs
+    # two rows of 10 slots: glyphs, with one bar mixed into each row
     pitch = BLOCK_W / GLYPH_COLS
-    for i, g in enumerate(f.glyphs[1:]):
-        _draw_glyph(ctx, sheet, f.gstyle, g, L + pitch * (i % GLYPH_COLS + .5), 50.5 + 6.6 * (i // GLYPH_COLS))
+    rest = iter(f.glyphs[1:])
+    for row in range(2):
+        y, width, slot = 50.5 + 6.6 * row, bar_width(f, row), 0
+        for i in range(GLYPH_COLS - width + 1):
+            if i == f.bars[row][0]:
+                _draw_bar(ctx, sheet, f.bars[row], L + pitch * slot + .45, y, pitch * width - .9)
+                slot += width
+            if i < GLYPH_COLS - width:
+                _draw_glyph(ctx, sheet, f.gstyle, next(rest), L + pitch * (slot + .5), y)
+                slot += 1
 
     outline_path(ctx, f.outline, f.side)
     ctx.line_width, ctx.stroke_style = 1.1, ink
@@ -530,4 +681,4 @@ def draw_document_pair(ctx: Canvas, parts: list[DocFeatures], checksum_hex: tupl
 
 __all__ = ["DocFeatures", "Sheet", "SHEETS", "DOC_FIELDS", "doc_mix", "doc_decode", "doc_encode", "doc_describe",
            "doc_with_changes", "draw_document", "draw_document_badge", "draw_document_pair", "DOC_SUBJECTS", "DOC_SUBJECT_KINDS", "OUTLINES", "MOTIFS", "CODE_WORDS",
-           "GLYPH_STYLES"]
+           "GLYPH_STYLES", "BAR_STYLES", "bar_width"]
