@@ -900,3 +900,88 @@ def _emoji(name):
 KINDS.update({"flag": (FLAGS, _flag), "holiday": (HOLIDAYS, _holiday), "game": (GAME_ICONS, _game), "tool": (TOOLS, _tool),
               "piece": (PIECES, _piece), "sign": (SIGNS, _sign), "clothing": (CLOTHING, _clothing),
               "character": (CHARACTERS, _character), "emoji": (EMOJIS, _emoji)})
+
+
+# ---------- engineering symbols (used by the Document style) ----------
+ENGINEERING = ("gear", "gear pair", "gate valve", "globe valve", "hex bolt", "hex nut", "resistor", "capacitor",
+               "coil spring", "I-beam", "pressure gauge", "ball bearing", "piston", "pump", "diode", "battery", "LED")
+
+
+def _hole(cx, cy, r, n=28):
+    return _r([(cx + r * math.cos(-k * TAU / n), cy + r * math.sin(-k * TAU / n)) for k in range(n)])
+
+
+def _gear(cx, cy, n, root, tip, hole, rot=0.0):
+    pts = []
+    for k in range(n):
+        a = rot + k * TAU / n
+        w = TAU / n
+        for da, r in ((-.27 * w, root), (-.15 * w, tip), (.15 * w, tip), (.27 * w, root)):
+            pts.append((cx + r * math.cos(a + da), cy + r * math.sin(a + da)))
+    return ("multi", [_r(pts), _hole(cx, cy, hole)])
+
+
+def _engineering(name):
+    lead = 1.3
+    if name == "gear":
+        return icon([B(*_gear(0, CY, 10, 10.6, 14.2, 4.6), True)])
+    if name == "gear pair":
+        return icon([B(*_gear(-4.6, 23, 9, 8.2, 11.2, 3)), B(*_gear(8.6, 38.2, 6, 4.8, 7.4, 2, rot=.5))])
+    if name in ("gate valve", "globe valve"):
+        bow = [B("poly", [(-13.6, 23), (0, 31), (-13.6, 39)], True), B("poly", [(13.6, 23), (0, 31), (13.6, 39)], True)]
+        pipes = [([(-16.4, 31), (-13.6, 31)], 1.6), ([(13.6, 31), (16.4, 31)], 1.6), ([(0, 31), (0, 17)], 1.4)]
+        if name == "gate valve":
+            return icon(bow, solid=[("rr", (-9, 12.6, 18, 3.4, 1.4)), ("circle", (0, 31, 1.6))], lines=pipes)
+        return icon(bow + [B("halfellipse", (0, 19, 8, 8))], solid=[("circle", (0, 31, 4))], lines=pipes)
+    if name == "hex bolt":
+        threads = [([(-4.6, y), (4.6, y + 1.8)], .7) for y in (27, 30.4, 33.8, 37.2, 40.6)]
+        return icon([B("poly", [(-4.6, 18), (4.6, 18), (4.6, 44.4), (3, 46.4), (-3, 46.4), (-4.6, 44.4)]),
+                     B("poly", [(-10.4, 10.6), (-9, 9), (9, 9), (10.4, 10.6), (10.4, 18), (-10.4, 18)], True)],
+                    front=threads + [([(x, 9), (x, 18)], .7) for x in (-4.4, 4.4)])
+    if name == "hex nut":
+        return icon([B("multi", [reg(6, 14.4, rot=0), _hole(0, CY, 6.4)], True)],
+                    front=[(arc_pts(0, CY, 8.6, 8.6, -2.6, -.5, 14), .8), (arc_pts(0, CY, 11.4, 11.4, .6, 2.5, 14), .7)])
+    if name == "resistor":
+        return icon([B("rr", (-10.4, 21.4, 20.8, 13.2, 4.6), True)],
+                    solid=[("rect", (x, 21.4, w, 13.2)) for x, w in ((-6.4, 2.2), (-2.4, 2.2), (1.6, 2.2), (6.4, 1.4))],
+                    lines=[([(-16.4, 28), (-10, 28)], lead), ([(10, 28), (16.4, 28)], lead)])
+    if name == "capacitor":
+        return icon([B("rr", (-7.6, 9, 15.2, 25, 2.6), True)], solid=[("rect", (2.2, 9.6, 3.4, 23.8))],
+                    lines=[([(-3.6, 34), (-3.6, 47.4)], lead), ([(3.6, 34), (3.6, 43.6)], lead)],
+                    front=[([(-7.6, 13), (7.6, 13)], .6)])
+    if name == "coil spring":
+        zig = [(0, 13)] + [(8.6 if k % 2 else -8.6, 15.6 + k * 3.7) for k in range(8)] + [(0, 43)]
+        return icon([B("rr", (-11.6, 9, 23.2, 4, 1.2), True), B("rr", (-11.6, 43, 23.2, 4, 1.2), True)], lines=[(_r(zig), 1.7)])
+    if name == "I-beam":
+        return icon([B("poly", [(-13, 11), (13, 11), (13, 16.6), (2.8, 16.6), (2.8, 39.4), (13, 39.4), (13, 45), (-13, 45),
+                                (-13, 39.4), (-2.8, 39.4), (-2.8, 16.6), (-13, 16.6)], True)])
+    if name == "pressure gauge":
+        ticks = [([(11 * math.cos(a), 25 + 11 * math.sin(a)), (8.4 * math.cos(a), 25 + 8.4 * math.sin(a))], .8)
+                 for a in (math.pi * (.8 + k * .28) for k in range(6))]
+        return icon([B("rect", (-2.8, 37, 5.6, 7)), B("circle", (0, 25, 13.6), True)],
+                    solid=[("rr", (-6.6, 43.6, 13.2, 3.4, 1)), ("circle", (0, 25, 2))],
+                    front=[(_r(p), w) for p, w in ticks] + [([(0, 25), (6.6, 18.4)], 1.5)])
+    if name == "ball bearing":
+        balls = [("circle", (round(9.9 * math.cos(k * TAU / 8), 2), round(CY + 9.9 * math.sin(k * TAU / 8), 2), 2.3)) for k in range(8)]
+        return icon([B("multi", [_hole(0, CY, 14.4, 40)[::-1], _hole(0, CY, 5.4)], True)], solid=balls)
+    if name == "piston":
+        return icon([B("poly", [(-2.4, 22), (2.4, 22), (3.4, 37), (-3.4, 37)]), B(*ring(0, 41, 6.2, 2.6)),
+                     B("rr", (-10.6, 9, 21.2, 14, 2), True)],
+                    solid=[("circle", (0, 19.4, 1.8))], front=[([(-10.6, y), (10.6, y)], .7) for y in (12, 14.6)])
+    if name == "pump":
+        return icon([B("circle", (0, 30, 12.4), True)], solid=[("poly", [(-5.4, 22.6), (8.4, 30), (-5.4, 37.4)])],
+                    lines=[([(0, 18), (0, 10.6), (15.4, 10.6)], 2), ([(-16.4, 30), (-12, 30)], 2)])
+    if name == "diode":
+        return icon([B("poly", [(-8.6, 18), (7, 28), (-8.6, 38)], True)], solid=[("rect", (7, 18, 2.8, 20))],
+                    lines=[([(-16.4, 28), (-8, 28)], lead), ([(9, 28), (16.4, 28)], lead)])
+    if name == "battery":
+        return icon([B("rr", (-3.2, 8.6, 6.4, 5, 1)), B("rr", (-8.6, 12.6, 17.2, 34, 2.6), True)],
+                    solid=[("rect", (-8.2, 14.6, 16.4, 7.4))],
+                    front=[([(-3.2, 33.6), (3.2, 33.6)], 1.3), ([(0, 30.4), (0, 36.8)], 1.3)])
+    # LED
+    return icon([B("halfellipse", (0, 25, 8.4, 12), True), B("rr", (-10, 25, 20, 4.2, 1))],
+                lines=[([(-3.8, 29), (-3.8, 47.4)], lead), ([(3.8, 29), (3.8, 43)], lead)],
+                front=[([(11, 14.6), (14.6, 11)], 1), ([(12.6, 20.6), (16.4, 19)], 1), ([(7, 10.4), (9, 6.6)], 1)])
+
+
+KINDS["engineering"] = (ENGINEERING, _engineering)

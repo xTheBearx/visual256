@@ -20,9 +20,10 @@ def render(f, hx="ab" * 32) -> str:
 
 
 def test_layout_adds_up_to_256_bits():
-    assert sum(n for _, n, _, _ in doc.DOC_FIELDS) + 2 * 3 + 12 * 5 + doc.STRIP_ROWS * doc.STRIP_COLS == 256
+    assert sum(n for _, n, _, _ in doc.DOC_FIELDS) + 12 * 5 + doc.N_GLYPHS * 7 == 256
     assert len(doc.DOC_SUBJECTS) == 128 and len(set(doc.DOC_SUBJECTS)) == 128
-    assert len(doc.SHEETS) == len(doc.OUTLINES) == len(doc.MOTIFS) == len(doc.PATTERNS) == 8
+    assert len(doc.SHEETS) == 16 and len(doc.OUTLINES) == len(doc.MOTIFS) == 8 and len(doc.GLYPH_STYLES) == 4
+    assert sum(k == "engineering" for k, _ in doc.DOC_SUBJECTS) == 17
     assert len(doc.CODE_WORDS) == 16 and len({w[0] for w in doc.CODE_WORDS}) == 16
 
 
@@ -54,12 +55,13 @@ def test_every_subject_outline_motif_and_sheet_renders():
     f = doc.doc_decode(bits_for(2))
     seen = set()
     for s in range(128):
-        seen.add(render(doc.doc_with_changes(f, subject=s, theme=s % 8, key=(s // 8) % 8, side=s % 2)))
+        seen.add(render(doc.doc_with_changes(f, subject=s, theme=s % 16, key=(s // 16) % 8, side=s % 2)))
     assert len(seen) == 128
-    for field, n in (("outline", 8), ("motif", 8), ("theme", 8), ("key", 8), ("side", 2), ("code", 16)):
-        for theme in (0, 7):  # a color sheet and the Mono sheet
-            g = doc.doc_with_changes(f, theme=theme) if field != "theme" else f
-            assert len({render(doc.doc_with_changes(g, **{field: v})) for v in range(n)}) == n, field
+    for field, n in (("outline", 8), ("motif", 8), ("theme", 16), ("key", 8), ("side", 2), ("code", 16), ("gstyle", 4)):
+        assert len({render(doc.doc_with_changes(f, **{field: v})) for v in range(n)}) == n, field
+    for style in range(4):  # all 128 glyph values look different in every glyph style
+        g = doc.doc_with_changes(f, gstyle=style)
+        assert len({render(doc.doc_with_changes(g, glyphs=(v,) + g.glyphs[1:])) for v in range(128)}) == 128
 
 
 def test_describe_covers_all_bits_in_order():
@@ -74,9 +76,7 @@ def test_describe_covers_all_bits_in_order():
 
 def test_palettes_are_distinct_and_readable():
     for sheet in doc.SHEETS:
-        assert len(sheet.names) == 8 and len(set(sheet.names)) == 8
-        if sheet.patterns:
-            continue
+        assert len(set(sheet.names)) == 8
         colors = [c for _, c in sheet.palette]
         labs = [lab(c) for c in colors]
         closest = min(delta_e(labs[i], labs[j]) for i in range(8) for j in range(i))
@@ -86,11 +86,10 @@ def test_palettes_are_distinct_and_readable():
             assert (hi + .05) / (lo + .05) >= 2, (sheet.name, c)
 
 
-def test_mono_sheet_uses_only_black_white_and_one_grey():
-    f = doc.doc_decode(bits_for(4))
-    for key in range(8):
-        svg = render(doc.doc_with_changes(f, theme=7, key=key, swatches=(key, 7 - key)))
-        assert set(re.findall(r"#[0-9A-Fa-f]{6}", svg)) <= {"#FFFFFF", "#000000", "#E2E2E2"}
+def test_sheets_are_told_apart_by_their_paper_color():
+    labs = [lab(s.bg) for s in doc.SHEETS]
+    assert len({s.name for s in doc.SHEETS}) == 16
+    assert min(delta_e(labs[i], labs[j]) for i in range(16) for j in range(i)) >= 11
 
 
 def test_badge_api_and_checksum_digits():
@@ -98,7 +97,7 @@ def test_badge_api_and_checksum_digits():
     svg = b.svg()
     assert 'width="256"' in svg and 'height="128"' in svg
     assert "filter" not in svg and "Gradient" not in svg  # flat: no glow, no gradients
-    assert b.describe()[0][0] == ("0-2", "Theme", doc.SHEETS[b.features[0].theme].name)
+    assert b.describe()[0][0] == ("0-3", "Theme", doc.SHEETS[b.features[0].theme].name)
     assert b.svg() != Badge.from_text("hellp", style="document").svg()
     pair = Badge.from_text("hello", "sha512", "document")
     assert len(pair.features) == 2 and pair.svg(300).startswith("<svg")
@@ -108,4 +107,4 @@ def test_badge_api_and_checksum_digits():
 def test_cli_style_option(tmp_path, capsys):
     from visual256.cli import main
     assert main(["--text", "hello", "--style", "document", "--format", "describe,svg", "-o", str(tmp_path / "b")]) == 0
-    assert "Data strip" in capsys.readouterr().out and (tmp_path / "b.svg").exists()
+    assert "Glyphs" in capsys.readouterr().out and (tmp_path / "b.svg").exists()

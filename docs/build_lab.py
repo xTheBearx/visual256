@@ -51,9 +51,9 @@ def doc_json() -> str:
     out = {
         "fields": [list(f) for f in document.DOC_FIELDS],
         "sheets": [{"id": s.id, "name": s.name, "bg": s.bg, "ink": s.ink, "rule": s.rule, "grid": s.grid,
-                    "patterns": s.patterns, "palette": [list(p) for p in s.palette]} for s in document.SHEETS],
+                    "palette": [list(p) for p in s.palette]} for s in document.SHEETS],
         "outlines": list(document.OUTLINES), "motifs": list(document.MOTIFS), "codeWords": list(document.CODE_WORDS),
-        "patterns": list(document.PATTERNS), "subjects": [list(x) for x in document.DOC_SUBJECTS],
+        "glyphStyles": list(document.GLYPH_STYLES), "subjects": [list(x) for x in document.DOC_SUBJECTS],
     }
     return json.dumps(out, separators=(",", ":"))
 

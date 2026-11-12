@@ -217,7 +217,7 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
   <section>
     <div class="sec-head">
       <h2>Document style</h2>
-      <p class="note">The same input as a Document badge: flat color for engineering documents, with its own bits (<code>visual256/document/0.1</code>), so it is unrelated to the Netrunner ID above. At a glance it varies by sheet, subject, key color, outline, background motif and side. The hex digits under the handle are the first and last 8 of the checksum itself.</p>
+      <p class="note">The same input as a Document badge: flat color for engineering documents, with its own bits (<code>visual256/document/0.1</code>), so it is unrelated to the Netrunner ID above. At a glance it varies by sheet, subject, key color, outline, background motif and side; 21 colored glyphs carry the detail. The badge is a fingerprint: it cannot be turned back into the checksum. The hex digits under the handle are the first and last 8 of the checksum itself.</p>
     </div>
     <div class="panel">
       <div class="hero">
@@ -231,12 +231,14 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
         </div>
       </div>
     </div>
-    <div class="sec-head"><h3>Eight sheets</h3><p class="note">Bits 0–2. The Mono sheet prints in black and white: its key color and swatches become fill patterns.</p></div>
+    <div class="sec-head"><h3>Sixteen sheets</h3><p class="note">Bits 0–3. Each sheet has its own paper color, ink and 8-color palette.</p></div>
     <div class="panel"><div class="layouts" id="docsheets"></div></div>
-    <div class="sec-head"><h3>Eight outlines</h3><p class="note">Bits 6–8.</p></div>
+    <div class="sec-head"><h3>Eight outlines</h3><p class="note">Bits 7–9.</p></div>
     <div class="panel"><div class="layouts" id="docoutlines"></div></div>
-    <div class="sec-head"><h3>Eight background motifs</h3><p class="note">Bits 9–11, in a pale tint of the key color.</p></div>
+    <div class="sec-head"><h3>Eight background motifs</h3><p class="note">Bits 10–12, in a pale tint of the key color.</p></div>
     <div class="panel"><div class="layouts" id="docmotifs"></div></div>
+    <div class="sec-head"><h3>Four glyph styles</h3><p class="note">Bits 25–26. Each of the 21 glyphs is 1 of 16 shapes in 1 of 8 colors.</p></div>
+    <div class="panel"><div class="layouts" id="docgstyles"></div></div>
   </section>
 
   <section class="panel spoken">
@@ -1388,25 +1390,22 @@ const DOC_MIX_TAG = 'visual256/document/0.1';
 function docDecode(b){
   const d = {}; let pos = 0;
   for(const [k, n] of DOC.fields){ d[k] = readBits(b, pos, n); pos += n; }
-  d.swatches = [0,1].map(i => readBits(b, 46+3*i, 3));
-  d.chars = Array.from({length:12}, (_, i) => readBits(b, 52+5*i, 5));
-  d.strip = Array.from({length:144}, (_, i) => readBits(b, 112+i, 1));
+  d.chars = Array.from({length:12}, (_, i) => readBits(b, 49+5*i, 5));
+  d.glyphs = Array.from({length:21}, (_, i) => readBits(b, 109+7*i, 7));
   return d;
 }
-const docNames = sh => sh.patterns ? DOC.patterns : sh.palette.map(p => p[0]);
+const docNames = sh => sh.palette.map(p => p[0]);
 const docMonogram = d => d.chars.slice(0,2).map(v => B32[v]).join('');
 const docGroups = d => [d.chars.slice(2,7), d.chars.slice(7)].map(g => g.map(v => B32[v]).join(''));
 const docSubjectName = i => { const [k, n] = DOC.subjects[i]; return k === 'shape' ? 'large ' + n : n; };
-function docStripHex(d){ let h = ''; for(let i=0;i<144;i+=4) h += (d.strip[i]*8 + d.strip[i+1]*4 + d.strip[i+2]*2 + d.strip[i+3]).toString(16).toUpperCase(); return h; }
 function docDescribe(d){
   const sh = DOC.sheets[d.theme], n = docNames(sh);
-  const v = { theme:sh.name, key:n[d.key], outline:DOC.outlines[d.outline], motif:DOC.motifs[d.motif], side:['left','right'][d.side], subject:docSubjectName(d.subject), code:DOC.codeWords[d.code],
+  const v = { theme:sh.name, key:n[d.key], outline:DOC.outlines[d.outline], motif:DOC.motifs[d.motif], side:['left','right'][d.side], subject:docSubjectName(d.subject), code:DOC.codeWords[d.code], gstyle:DOC.glyphStyles[d.gstyle],
     word1:`${BIP39[d.word1]} (#${d.word1+1})`, word2:`${BIP39[d.word2]} (#${d.word2+1})` };
   const out = []; let pos = 0;
   for(const [k, bits, label, what] of DOC.fields){ out.push([`${pos}-${pos+bits-1}`, label, v[k], what]); pos += bits; }
-  out.push(['46-51', 'Swatches', d.swatches.map(c => n[c]).join(', '), '2 palette entries, 3 bits each']);
-  out.push(['52-111', 'Characters', [docMonogram(d), ...docGroups(d)].join(' '), 'a 2-character monogram, then two groups of 5']);
-  out.push(['112-255', 'Data strip (hex)', docStripHex(d), '3 rows of 48 cells; a set bit is an inked cell']);
+  out.push(['49-108', 'Characters', [docMonogram(d), ...docGroups(d)].join(' '), 'a 2-character monogram, then two groups of 5']);
+  out.push(['109-255', 'Glyphs', d.glyphs.map(g => `${n[g >> 4]} ${SYM[g & 15]}`).join(', '), '21 glyphs: 1 of 8 colors and 1 of 16 shapes each']);
   return out;
 }
 const DX0 = 1, DY0 = 1, DX1 = 127, DY1 = 63, DSW = 55, DBW = 65, DCUT = 5.5, DROUND = 8, DNOTCH = 3;
@@ -1432,22 +1431,10 @@ function docOutline(ctx, kind, side){
   if(rnd[0]) ctx.arc(DX0 + r, DY0 + r, r, PI, 1.5*PI);
   ctx.closePath();
 }
-function docHatch(ctx, pattern, x0, y0, x1, y1, color, step, width){
-  step = step || 1.7; width = width || .42;
-  const name = DOC.patterns[pattern]; if(name === 'blank') return;
-  ctx.fillStyle = ctx.strokeStyle = color;
-  if(name === 'solid'){ ctx.fillRect(x0, y0, x1-x0, y1-y0); return; }
-  ctx.lineWidth = width; ctx.lineCap = 'butt';
-  if(name === 'dots'){
-    ctx.beginPath();
-    for(let j = Math.floor(y0/step); j*step <= y1+step; j++) for(let i = Math.floor(x0/step); i*step <= x1+step; i++){ const cx = (i + (j % 2 ? .5 : 0))*step; ctx.moveTo(cx+.45, j*step); ctx.arc(cx, j*step, .45, 0, TAU); }
-    ctx.fill(); return;
-  }
+function docHatch(ctx, x0, y0, x1, y1, color, step, width){
+  ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = 'butt';
   const h = y1 - y0, d = step*1.3; ctx.beginPath();
-  if(name === 'horizontal lines' || name === 'cross hatch') for(let j = Math.ceil(y0/step); j*step <= y1; j++){ ctx.moveTo(x0, j*step); ctx.lineTo(x1, j*step); }
-  if(name === 'vertical lines' || name === 'cross hatch') for(let i = Math.ceil(x0/step); i*step <= x1; i++){ ctx.moveTo(i*step, y0); ctx.lineTo(i*step, y1); }
-  if(name === 'diagonal hatch') for(let k = Math.ceil((x0+y0)/d); k*d <= x1+y1; k++){ ctx.moveTo(k*d - y0, y0); ctx.lineTo(k*d - y0 - h, y1); }
-  if(name === 'back hatch') for(let k = Math.ceil((x0-y1)/d); k*d <= x1-y0; k++){ ctx.moveTo(k*d + y0, y0); ctx.lineTo(k*d + y0 + h, y1); }
+  for(let k = Math.ceil((x0+y0)/d); k*d <= x1+y1; k++){ ctx.moveTo(k*d - y0, y0); ctx.lineTo(k*d - y0 - h, y1); }
   ctx.stroke();
 }
 function docMotif(ctx, d, tint, cx){
@@ -1459,25 +1446,15 @@ function docMotif(ctx, d, tint, cx){
   else if(name === 'corner block'){ ctx.beginPath(); poly(ctx, [[cx-m*28,64],[cx-m*28,12],[cx+m*24,64]]); ctx.fill(); }
   else if(name === 'horizontal band') ctx.fillRect(x0, 21, DSW, 23);
   else if(name === 'rings'){ ctx.strokeStyle = tint; ctx.lineWidth = 2.6; for(const r of [9,16.5,24]){ ctx.beginPath(); ctx.arc(cx, 32.5, r, 0, TAU); ctx.stroke(); } }
-  else if(name === 'hatched panel') docHatch(ctx, 2, x0, 0, x0 + DSW, 64, tint, 3.4, 1.3);
+  else if(name === 'hatched panel') docHatch(ctx, x0, 0, x0 + DSW, 64, tint, 3.4, 1.3);
   ctx.restore();
 }
-function docPaint(ctx, sh, index, path, box){
-  path();
-  if(!sh.patterns){ ctx.fillStyle = sh.palette[index][1]; ctx.fill(); return; }
-  ctx.fillStyle = sh.bg; ctx.fill(); ctx.save(); ctx.clip(); docHatch(ctx, index, ...box, sh.ink); ctx.restore();
-}
 function docSubject(ctx, d, sh, cx){
-  const [kind, name] = DOC.subjects[d.subject], sp = ICONS[kind].specs[name], ink = sh.ink;
-  const solidInk = sh.patterns ? DOC.patterns[d.key] === 'solid' : sh.palette[d.key][1] === ink;
-  const over = solidInk && sp.body.length ? sh.bg : ink;
+  const [kind, name] = DOC.subjects[d.subject], sp = ICONS[kind].specs[name], ink = sh.ink, key = sh.palette[d.key][1];
+  const over = key === ink && sp.body.length ? sh.bg : ink;
   ctx.save(); ctx.translate(cx, 33.2); ctx.scale(1.27, 1.27); ctx.translate(0, -28); ctx.lineCap = ctx.lineJoin = 'round';
   strokes(ctx, sp.lines, ink);
-  for(const [k, a] of sp.body){
-    const path = () => { ctx.beginPath(); plantShape(ctx, k, a); };
-    docPaint(ctx, sh, d.key, path, shapeBox(k, a));
-    path(); ctx.lineWidth = .8; ctx.strokeStyle = ink; ctx.stroke();
-  }
+  for(const [k, a] of sp.body){ ctx.beginPath(); plantShape(ctx, k, a); ctx.fillStyle = key; ctx.fill(); ctx.lineWidth = .8; ctx.strokeStyle = ink; ctx.stroke(); }
   if(sp.solid.length){
     ctx.beginPath(); for(const [k, a] of sp.solid) plantShape(ctx, k, a);
     ctx.fillStyle = over; ctx.fill();
@@ -1486,10 +1463,19 @@ function docSubject(ctx, d, sh, cx){
   strokes(ctx, sp.front || [], over);
   ctx.restore();
 }
+function docGlyphMark(ctx, sh, style, g, x, y, k){
+  k = k || 1;
+  const color = sh.palette[g >> 4][1], shape = g & 15, name = DOC.glyphStyles[style];
+  if(name === 'plain'){ drawSymbol(ctx, shape, x, y, 2.75*k, color); return; }
+  ctx.beginPath();
+  if(name === 'round tiles') ctx.arc(x, y, 3.05*k, 0, TAU); else ctx.rect(x - 2.9*k, y - 2.9*k, 5.8*k, 5.8*k);
+  if(name === 'framed'){ ctx.lineWidth = .5*k; ctx.strokeStyle = color; ctx.stroke(); drawSymbol(ctx, shape, x, y, 2*k, color); }
+  else { ctx.fillStyle = color; ctx.fill(); drawSymbol(ctx, shape, x, y, (name === 'round tiles' ? 1.9 : 2.1)*k, sh.bg); }
+}
 /* one Document badge in 128 x 64 units; hex is the checksum part printed for cross-checking */
 function drawDocument(ctx, d, hex){
   const sh = DOC.sheets[d.theme], bg = sh.bg, ink = sh.ink, rule = sh.rule;
-  const key = sh.patterns ? ink : sh.palette[d.key][1], tint = sh.patterns ? '#E2E2E2' : docMix(bg, key, .17);
+  const key = sh.palette[d.key][1], tint = docMix(bg, key, .17);
   const [cx, div, L] = docGeom(d.side), R = L + DBW;
   ctx.save(); ctx.lineJoin = 'round';
   ctx.save(); docOutline(ctx, d.outline, d.side); ctx.fillStyle = bg; ctx.fill(); ctx.clip();
@@ -1522,15 +1508,10 @@ function drawDocument(ctx, d, hex){
   ctx.fillStyle = ink; setFont(ctx, 'mono', 4.1); ctx.textAlign = 'right'; ctx.fillText(DOC.codeWords[d.code], R, 32.6);
   line(L, 36, R, 36);
   setFont(ctx, 'mono', 5.8); ctx.textAlign = 'left'; ctx.fillText(docGroups(d).join(' '), L, 43.8);
-  d.swatches.forEach((c, i) => {
-    const x = R - 13.4 + i*7.4, y = 38.4, s = 6, path = () => { ctx.beginPath(); ctx.rect(x, y, s, s); };
-    docPaint(ctx, sh, c, path, [x, y, x+s, y+s]);
-    path(); ctx.lineWidth = .35; ctx.strokeStyle = ink; ctx.stroke();
-  });
+  docGlyphMark(ctx, sh, d.gstyle, d.glyphs[0], R - 3.9, 41.4, 1.2);
   line(L, 46.8, R, 46.8);
-  const cw = DBW/48; ctx.fillStyle = ink; ctx.beginPath();
-  d.strip.forEach((bit, i) => { if(bit) ctx.rect(L + (i % 48)*cw, 48.6 + Math.floor(i/48)*4.2, cw + .02, 3.4); });
-  ctx.fill();
+  const pitch = DBW/10;
+  d.glyphs.slice(1).forEach((g, i) => docGlyphMark(ctx, sh, d.gstyle, g, L + pitch*(i % 10 + .5), 50.5 + 6.6*Math.floor(i/10)));
   docOutline(ctx, d.outline, d.side); ctx.lineWidth = 1.1; ctx.strokeStyle = ink; ctx.stroke();
   ctx.restore();
 }
@@ -1571,7 +1552,7 @@ function renderDocument(){
     $(host).innerHTML = names.map((name, i) => `<figure class="${i === d[key] ? 'real' : ''}"><canvas></canvas><figcaption><strong>${i} · ${esc(name)}</strong>${i === d[key] ? '<br>This hash' : '<br>Preview'}</figcaption></figure>`).join('');
     $(host).querySelectorAll('canvas').forEach((cv, i) => paint(cv, docGlyph(mixed[0], hexes[0], {[key]: i}, .45), 230));
   };
-  grid('#docsheets', DOC.sheets.map(sh => sh.name), 'theme'); grid('#docoutlines', DOC.outlines, 'outline'); grid('#docmotifs', DOC.motifs, 'motif');
+  grid('#docsheets', DOC.sheets.map(sh => sh.name), 'theme'); grid('#docoutlines', DOC.outlines, 'outline'); grid('#docmotifs', DOC.motifs, 'motif'); grid('#docgstyles', DOC.glyphStyles, 'gstyle');
 }
 
 /* ---------- page state and rendering ---------- */
