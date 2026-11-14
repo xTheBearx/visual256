@@ -232,23 +232,23 @@ status words. Ask for it with `--style document` or `Badge.from_file(path, style
 What you see at a glance, largest first:
 
 - **Sheet** (16), each with its own paper color: Drawing sheet, Blueprint, Whiteprint, Graph paper, Manila, Slate, Hi-vis, Redline, Forest, Plum, Safety orange, Sky, Rose, Mint, Teal, Lilac.
-- **Subject** (128): one large flat silhouette, on the left or the right half. The first 17 are
-  engineering symbols.
-- **Key color** (8 per sheet): fills the subject and the monogram box and tints the background motif.
-- **Outline** (8): square, rounded, top-right and bottom-left cut, top-left and bottom-right cut, all four cut, side notches, rounded outer end, top and bottom notches.
-- **Background motif** (8): panel, diagonal band, disc, corner block, none, horizontal band, rings, hatched panel.
-- **Handle and monogram**: two BIP-39 words and two large characters.
-- **Glyphs** (16): one larger mark and 15 in two rows, each 1 of 16 shapes
-  (circle, square, triangle, diamond, star, plus, saltire, heart, crescent, sun, drop, bolt, hourglass, ring, arrow, clover) in 1 of 8 colors. The whole set is drawn in one of 4 styles:
-  plain, square tiles, round tiles, framed.
-- **Bars** (2): each glyph row also holds one horizontal bar, 3 glyphs wide in one row and 2 wide
-  in the other, at one of 8 places. A bar has 1 of 8 styles (progress, two-tone, slider, striped, segments, dashed, offset pair, marker), two
-  colors, round or square ends, and a level from 1 to 16 that sets where its two colors meet (in
-  the segments style, which of 4 segments are filled).
+- **Subject** (128): one large flat silhouette, on the left or the right half, filled with 1 of 8
+  key colors. The first 17 are engineering symbols.
+- **Background motif** (8, in a pale tint of 1 of 8 colors): panel, diagonal band, disc, corner block, vertical band, horizontal band, rings, hatched panel.
+- **Outline** (8): square, rounded, top-right and bottom-left cut, top-left and bottom-right cut, all four cut, side notches, rounded outer end, top and bottom notches. The frame line has 1 of 8 colors and 1 of 4
+  styles (thin, thick, dashed, dash-dot).
+- **Handle and monogram**: two BIP-39 words, and two large characters in a box with 1 of 4 shapes
+  (square, rounded, octagon, oval) and 1 of 8 colors.
+- **Spine**: 12 color bands between the subject and the text, like the bands on a resistor.
+- **Glyphs** (6): one row of large glyphs. Each is 1 of 16 shapes
+  (circle, square, triangle, diamond, star, plus, saltire, heart, crescent, sun, drop, bolt, hourglass, ring, arrow, clover) with 1 of 4 fills (solid, outline, half, striped) on 1 of 4 backings
+  (square tile, round tile, square frame, ring), in two colors. On a tile the glyph is paper-colored, the tile takes
+  the backing color and its edge takes the glyph color.
 
 Below the handle are the first and last 8 hex digits of the checksum itself, so the badge can be
-checked against a written checksum, then the code word and 10 more characters. The hex digits are
-the only part that is not drawn from the badge bits.
+checked against a written checksum, and the code word on a colored chip. Under that are 10 more
+characters on two colored chips and a small mark glyph. The hex digits are the only part that is
+not drawn from the badge bits.
 
 The badge is a fingerprint, not a way to carry the checksum. Its bits are
 `document.doc_mix(checksum)`: SHA-256 of `"visual256/document/0.1"`, the part index and the whole
@@ -259,21 +259,25 @@ All 256 badge bits are drawn, most significant bit first, and
 | Bits | Width | Feature | Controls |
 |---|---|---|---|
 | 0–3 | 4 | Theme | 16 sheets: paper, ink and the 8-color palette |
-| 4–6 | 3 | Key color | subject, monogram box and background motif |
+| 4–6 | 3 | Key color | fills the subject |
 | 7–9 | 3 | Outline | 8 badge outlines |
-| 10–12 | 3 | Background motif | 8 large shapes behind the subject, in a pale tint of the key color |
-| 13–13 | 1 | Subject side | subject on the left or on the right |
-| 14–20 | 7 | Subject | 128 subjects in 11 kinds (listed below) |
-| 21–24 | 4 | Code word | one of 16 spelling-alphabet words |
-| 25–26 | 2 | Glyph style | plain, square tiles, round tiles or framed |
-| 27–37 | 11 | Handle word 1 | BIP-39 word, 1 of 2048 |
-| 38–48 | 11 | Handle word 2 | BIP-39 word, 1 of 2048 |
-| 49–108 | 60 | Characters | 12 characters, 5 bits each: the 2-character monogram, then two groups of 5 |
-| 109–115 | 7 | Mark | the larger glyph: 1 of 8 palette colors (3 bits), then 1 of 16 shapes (4 bits) |
-| 116 | 1 | Wide bar row | which row holds the 3-wide bar; the other holds the 2-wide bar |
-| 117–133 | 17 | Top bar | position (3), style (3), color (3), second color (3), level (4), ends (1) |
-| 134–150 | 17 | Bottom bar | the same fields |
-| 151–255 | 105 | Glyphs | 15 glyphs, 7 bits each, filling both rows around the bars |
+| 10–12 | 3 | Background motif | 8 large shapes behind the subject |
+| 13–15 | 3 | Motif color | the motif is a pale tint of this color |
+| 16–16 | 1 | Subject side | subject on the left or on the right |
+| 17–23 | 7 | Subject | 128 subjects in 11 kinds (listed below) |
+| 24–26 | 3 | Frame color | the badge outline |
+| 27–28 | 2 | Frame style | thin, thick, dashed or dash-dot |
+| 29–32 | 4 | Code word | one of 16 spelling-alphabet words |
+| 33–35 | 3 | Code chip color | chip behind the code word |
+| 36–37 | 2 | Monogram box | square, rounded, octagon or oval |
+| 38–40 | 3 | Monogram color | fills the monogram box |
+| 41–51 | 11 | Handle word 1 | BIP-39 word, 1 of 2048 |
+| 52–62 | 11 | Handle word 2 | BIP-39 word, 1 of 2048 |
+| 63–122 | 60 | Characters | 12 characters, 5 bits each: the 2-character monogram, then two groups of 5 |
+| 123–128 | 6 | Character chips | chip color of each character group, 3 bits each |
+| 129–135 | 7 | Mark | small glyph beside the characters: 1 of 8 colors (3 bits), then 1 of 16 shapes (4 bits) |
+| 136–171 | 36 | Spine | 12 color bands between subject and text, 3 bits each |
+| 172–255 | 84 | Glyphs | 6 large glyphs, 14 bits each: backing (2), backing color (3), fill (2), glyph color (3), shape (4) |
 
 Subjects, in order: **engineering** (17): gear, gear pair, gate valve, globe valve, hex bolt, hex nut, resistor, capacitor, coil spring, I-beam, pressure gauge, ball bearing, piston, pump, diode, battery, LED; **tool** (12): hammer, wrench, screwdriver, saw, scissors, paintbrush, light bulb, pliers, axe, magnet, drill, ruler; **shape** (11): circle, square, triangle, diamond, star, hexagon, heart, plus, arrow, ring, chevron; **sign** (11): stop sign, yield sign, traffic light, warning sign, one-way sign, railroad crossing, no entry, speed limit, traffic cone, parking sign, curve ahead; **instrument** (11): guitar, drum, trumpet, saxophone, harp, xylophone, maracas, tambourine, accordion, handbell, metronome; **computer** (11): floppy disk, monitor, computer mouse, power button, wifi, cursor, folder, game controller, padlock, hourglass, magnifier; **insignia** (10): winged orb, triple chevron, ringed star, crossed blades, banded shield, crown, trident, atom, anchor, laurel; **piece** (11): pawn, rook, knight, bishop, king, die, puzzle piece, playing card, domino, meeple, dartboard; **space** (10): ringed planet, crescent moon, comet, spiral galaxy, astronaut helmet, satellite, telescope, constellation, asteroid, lunar lander; **weather** (10): sun, rain cloud, thunderstorm, snowflake, rainbow, tornado, umbrella, thermometer, windsock, snowman; **flag** (14): waving flag, pennant, swallowtail, checkered flag, pirate flag, hanging banner, signal flag, cross flag, striped flag, crossed flags, golf flag, bunting, tattered flag, summit flag.
 
@@ -297,7 +301,7 @@ the checksum; the first four letters of each word are enough.
 [`docs/netrunner-lab.html`](docs/netrunner-lab.html) is a self-contained page that draws the same
 badges in the browser, with every layout, display and theme side by side, a one-bit-flip test and
 a readout of every feature, plus a section that draws the Document badge of the same input with
-its readout, sheets, outlines, motifs, glyph styles and bar styles. It is built from `docs/lab-template.html` by `python docs/build_lab.py`,
+its readout, sheets, outlines, motifs, glyph backings and glyph fills. It is built from `docs/lab-template.html` by `python docs/build_lab.py`,
 which injects the theme collection and word list from the package. Its drawing code mirrors
 `src/visual256/draw.py` and `src/visual256/document.py`; change both together.
 

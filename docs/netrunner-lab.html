@@ -217,7 +217,7 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
   <section>
     <div class="sec-head">
       <h2>Document style</h2>
-      <p class="note">The same input as a Document badge: flat color for engineering documents, with its own bits (<code>visual256/document/0.1</code>), so it is unrelated to the Netrunner ID above. At a glance it varies by sheet, subject, key color, outline, background motif and side; 16 colored glyphs and 2 bars carry the detail. The badge is a fingerprint: it cannot be turned back into the checksum. The hex digits under the handle are the first and last 8 of the checksum itself.</p>
+      <p class="note">The same input as a Document badge: flat color for engineering documents, with its own bits (<code>visual256/document/0.1</code>), so it is unrelated to the Netrunner ID above. At a glance it varies by sheet, subject, key color, outline, frame, background motif and side; a color spine, colored chips and one row of 6 large glyphs carry the rest. The badge is a fingerprint: it cannot be turned back into the checksum. The hex digits under the handle are the first and last 8 of the checksum itself.</p>
     </div>
     <div class="panel">
       <div class="hero">
@@ -233,14 +233,14 @@ code{font:500 .84em var(--mono);background:var(--paper);padding:1px 5px;border-r
     </div>
     <div class="sec-head"><h3>Sixteen sheets</h3><p class="note">Bits 0–3. Each sheet has its own paper color, ink and 8-color palette.</p></div>
     <div class="panel"><div class="layouts" id="docsheets"></div></div>
-    <div class="sec-head"><h3>Eight outlines</h3><p class="note">Bits 7–9.</p></div>
+    <div class="sec-head"><h3>Eight outlines</h3><p class="note">Bits 7–9. The frame line also takes 1 of 8 colors and 1 of 4 styles.</p></div>
     <div class="panel"><div class="layouts" id="docoutlines"></div></div>
-    <div class="sec-head"><h3>Eight background motifs</h3><p class="note">Bits 10–12, in a pale tint of the key color.</p></div>
+    <div class="sec-head"><h3>Eight background motifs</h3><p class="note">Bits 10–12, in a pale tint of the motif color (bits 13–15).</p></div>
     <div class="panel"><div class="layouts" id="docmotifs"></div></div>
-    <div class="sec-head"><h3>Four glyph styles</h3><p class="note">Bits 25–26. Each of the 16 glyphs is 1 of 16 shapes in 1 of 8 colors.</p></div>
-    <div class="panel"><div class="layouts" id="docgstyles"></div></div>
-    <div class="sec-head"><h3>Eight bar styles</h3><p class="note">Each glyph row holds one bar, 3 glyphs wide in one row and 2 wide in the other. These previews force each style onto both bars.</p></div>
-    <div class="panel"><div class="layouts" id="docbars"></div></div>
+    <div class="sec-head"><h3>Four glyph backings</h3><p class="note">Each of the 6 large glyphs has its own backing, backing color, fill, glyph color and shape (14 bits). These previews force each backing onto all six.</p></div>
+    <div class="panel"><div class="layouts" id="docbackings"></div></div>
+    <div class="sec-head"><h3>Four glyph fills</h3><p class="note">These previews force each fill onto all six glyphs.</p></div>
+    <div class="panel"><div class="layouts" id="docfills"></div></div>
   </section>
 
   <section class="panel spoken">
@@ -1387,35 +1387,36 @@ function paint(cv, src, cssW, forceDpr){
 }
 
 /* ---------- Document style (mirrors src/visual256/document.py; change both together) ---------- */
-const DOC = {"fields":[["theme",4,"Theme","16 sheets: paper, ink and the 8-color palette"],["key",3,"Key color","subject, monogram box and background motif"],["outline",3,"Outline","8 badge outlines"],["motif",3,"Background motif","8 large shapes behind the subject, in a pale tint of the key color"],["side",1,"Subject side","subject on the left or on the right"],["subject",7,"Subject","128 subjects in 11 kinds (listed below)"],["code",4,"Code word","one of 16 spelling-alphabet words"],["gstyle",2,"Glyph style","plain, square tiles, round tiles or framed"],["word1",11,"Handle word 1","BIP-39 word, 1 of 2048"],["word2",11,"Handle word 2","BIP-39 word, 1 of 2048"]],"sheets":[{"id":"drawing","name":"Drawing sheet","bg":"#FFFFFF","ink":"#14171A","rule":"#14171A","grid":null,"palette":[["Red","#C1272D"],["Orange","#D55E00"],["Ochre","#A87900"],["Green","#2E7D32"],["Teal","#00838F"],["Blue","#1565C0"],["Purple","#6A1B9A"],["Magenta","#AD1457"]]},{"id":"blueprint","name":"Blueprint","bg":"#123E6E","ink":"#EEF5FF","rule":"#9DBDE2","grid":"#1D4F86","palette":[["Coral","#FF7B7B"],["Orange","#FFA94D"],["Yellow","#FFE066"],["Green","#8CE99A"],["Cyan","#66D9E8"],["Blue","#8EC5FF"],["Violet","#C0A8FF"],["Pink","#F9A0C4"]]},{"id":"whiteprint","name":"Whiteprint","bg":"#D6E2FA","ink":"#1B3C8C","rule":"#1B3C8C","grid":null,"palette":[["Navy","#1B3C8C"],["Azure","#0277BD"],["Teal","#00838F"],["Violet","#7B2FBF"],["Red","#C1272D"],["Orange","#D55E00"],["Green","#2E7D32"],["Magenta","#AD1457"]]},{"id":"graph","name":"Graph paper","bg":"#E2F2CC","ink":"#1C2A20","rule":"#3E6B4A","grid":"#C0DBA6","palette":[["Red","#C1272D"],["Orange","#D55E00"],["Ochre","#A87900"],["Green","#2E7D32"],["Teal","#00838F"],["Blue","#1565C0"],["Purple","#6A1B9A"],["Magenta","#AD1457"]]},{"id":"manila","name":"Manila","bg":"#EAD9AE","ink":"#35260F","rule":"#6B5326","grid":null,"palette":[["Brick","#9C1F1F"],["Rust","#B34700"],["Olive","#6E5200"],["Green","#1F5F2A"],["Teal","#00606A"],["Blue","#0F4C92"],["Purple","#531680"],["Wine","#8B0F45"]]},{"id":"slate","name":"Slate","bg":"#242930","ink":"#E8EBEF","rule":"#8A93A0","grid":null,"palette":[["Coral","#FF7B7B"],["Orange","#FFA94D"],["Yellow","#FFE066"],["Green","#8CE99A"],["Cyan","#66D9E8"],["Blue","#8EC5FF"],["Violet","#C0A8FF"],["Pink","#F9A0C4"]]},{"id":"hivis","name":"Hi-vis","bg":"#FFD500","ink":"#111111","rule":"#111111","grid":null,"palette":[["Black","#111111"],["Red","#A8001C"],["Blue","#0B3C8F"],["Green","#14531B"],["Purple","#45107A"],["Brown","#5A3A22"],["Teal","#00595E"],["Grey","#5C6470"]]},{"id":"redline","name":"Redline","bg":"#6E1620","ink":"#FFF1EC","rule":"#E3A29B","grid":null,"palette":[["Coral","#FF7B7B"],["Orange","#FFA94D"],["Yellow","#FFE066"],["Green","#8CE99A"],["Cyan","#66D9E8"],["Blue","#8EC5FF"],["Violet","#C0A8FF"],["Pink","#F9A0C4"]]},{"id":"forest","name":"Forest","bg":"#14452C","ink":"#F0FAEF","rule":"#9CCBA9","grid":null,"palette":[["Coral","#FF7B7B"],["Orange","#FFA94D"],["Yellow","#FFE066"],["Green","#8CE99A"],["Cyan","#66D9E8"],["Blue","#8EC5FF"],["Violet","#C0A8FF"],["Pink","#F9A0C4"]]},{"id":"plum","name":"Plum","bg":"#42205F","ink":"#F6EEFF","rule":"#BFA3DB","grid":null,"palette":[["Coral","#FF7B7B"],["Orange","#FFA94D"],["Yellow","#FFE066"],["Green","#8CE99A"],["Cyan","#66D9E8"],["Blue","#8EC5FF"],["Violet","#C0A8FF"],["Pink","#F9A0C4"]]},{"id":"orange","name":"Safety orange","bg":"#FF7A1A","ink":"#111111","rule":"#111111","grid":null,"palette":[["Black","#111111"],["Navy","#0B3C8F"],["Green","#0F4A1E"],["Purple","#5E1590"],["Maroon","#6E0A1E"],["Brown","#4A2C12"],["White","#FFFFFF"],["Teal","#004A52"]]},{"id":"sky","name":"Sky","bg":"#9FD8F5","ink":"#0E2A3D","rule":"#3D6F8E","grid":null,"palette":[["Brick","#9C1F1F"],["Rust","#B34700"],["Olive","#6E5200"],["Green","#1F5F2A"],["Teal","#00606A"],["Blue","#0F4C92"],["Purple","#531680"],["Wine","#8B0F45"]]},{"id":"rose","name":"Rose","bg":"#F7BFCD","ink":"#3A1420","rule":"#9A5566","grid":null,"palette":[["Brick","#9C1F1F"],["Rust","#B34700"],["Olive","#6E5200"],["Green","#1F5F2A"],["Teal","#00606A"],["Blue","#0F4C92"],["Purple","#531680"],["Wine","#8B0F45"]]},{"id":"mint","name":"Mint","bg":"#9FE0C0","ink":"#10301F","rule":"#4C8565","grid":null,"palette":[["Brick","#9C1F1F"],["Rust","#B34700"],["Olive","#6E5200"],["Green","#1F5F2A"],["Teal","#00606A"],["Blue","#0F4C92"],["Purple","#531680"],["Wine","#8B0F45"]]},{"id":"teal","name":"Teal","bg":"#0B5560","ink":"#EAFBFB","rule":"#8FC9CF","grid":"#136673","palette":[["Coral","#FF7B7B"],["Orange","#FFA94D"],["Yellow","#FFE066"],["Green","#8CE99A"],["Cyan","#66D9E8"],["Blue","#8EC5FF"],["Violet","#C0A8FF"],["Pink","#F9A0C4"]]},{"id":"lilac","name":"Lilac","bg":"#CDBBEE","ink":"#261540","rule":"#7A62A6","grid":null,"palette":[["Brick","#9C1F1F"],["Rust","#B34700"],["Olive","#6E5200"],["Green","#1F5F2A"],["Teal","#00606A"],["Blue","#0F4C92"],["Purple","#531680"],["Wine","#8B0F45"]]}],"outlines":["square","rounded","top-right and bottom-left cut","top-left and bottom-right cut","all four cut","side notches","rounded outer end","top and bottom notches"],"motifs":["panel","diagonal band","disc","corner block","none","horizontal band","rings","hatched panel"],"codeWords":["ALFA","BRAVO","CHARLIE","DELTA","ECHO","FOXTROT","GOLF","HOTEL","INDIA","JULIETT","KILO","LIMA","MIKE","NOVEMBER","OSCAR","PAPA"],"glyphStyles":["plain","square tiles","round tiles","framed"],"barStyles":["progress","two-tone","slider","striped","segments","dashed","offset pair","marker"],"barFields":[["pos",3],["style",3],["color",3],["color2",3],["level",4],["cap",1]],"subjects":[["engineering","gear"],["engineering","gear pair"],["engineering","gate valve"],["engineering","globe valve"],["engineering","hex bolt"],["engineering","hex nut"],["engineering","resistor"],["engineering","capacitor"],["engineering","coil spring"],["engineering","I-beam"],["engineering","pressure gauge"],["engineering","ball bearing"],["engineering","piston"],["engineering","pump"],["engineering","diode"],["engineering","battery"],["engineering","LED"],["tool","hammer"],["tool","wrench"],["tool","screwdriver"],["tool","saw"],["tool","scissors"],["tool","paintbrush"],["tool","light bulb"],["tool","pliers"],["tool","axe"],["tool","magnet"],["tool","drill"],["tool","ruler"],["shape","circle"],["shape","square"],["shape","triangle"],["shape","diamond"],["shape","star"],["shape","hexagon"],["shape","heart"],["shape","plus"],["shape","arrow"],["shape","ring"],["shape","chevron"],["sign","stop sign"],["sign","yield sign"],["sign","traffic light"],["sign","warning sign"],["sign","one-way sign"],["sign","railroad crossing"],["sign","no entry"],["sign","speed limit"],["sign","traffic cone"],["sign","parking sign"],["sign","curve ahead"],["instrument","guitar"],["instrument","drum"],["instrument","trumpet"],["instrument","saxophone"],["instrument","harp"],["instrument","xylophone"],["instrument","maracas"],["instrument","tambourine"],["instrument","accordion"],["instrument","handbell"],["instrument","metronome"],["computer","floppy disk"],["computer","monitor"],["computer","computer mouse"],["computer","power button"],["computer","wifi"],["computer","cursor"],["computer","folder"],["computer","game controller"],["computer","padlock"],["computer","hourglass"],["computer","magnifier"],["insignia","winged orb"],["insignia","triple chevron"],["insignia","ringed star"],["insignia","crossed blades"],["insignia","banded shield"],["insignia","crown"],["insignia","trident"],["insignia","atom"],["insignia","anchor"],["insignia","laurel"],["piece","pawn"],["piece","rook"],["piece","knight"],["piece","bishop"],["piece","king"],["piece","die"],["piece","puzzle piece"],["piece","playing card"],["piece","domino"],["piece","meeple"],["piece","dartboard"],["space","ringed planet"],["space","crescent moon"],["space","comet"],["space","spiral galaxy"],["space","astronaut helmet"],["space","satellite"],["space","telescope"],["space","constellation"],["space","asteroid"],["space","lunar lander"],["weather","sun"],["weather","rain cloud"],["weather","thunderstorm"],["weather","snowflake"],["weather","rainbow"],["weather","tornado"],["weather","umbrella"],["weather","thermometer"],["weather","windsock"],["weather","snowman"],["flag","waving flag"],["flag","pennant"],["flag","swallowtail"],["flag","checkered flag"],["flag","pirate flag"],["flag","hanging banner"],["flag","signal flag"],["flag","cross flag"],["flag","striped flag"],["flag","crossed flags"],["flag","golf flag"],["flag","bunting"],["flag","tattered flag"],["flag","summit flag"]]};
+const DOC = {"fields":[["theme",4,"Theme","16 sheets: paper, ink and the 8-color palette"],["key",3,"Key color","fills the subject"],["outline",3,"Outline","8 badge outlines"],["motif",3,"Background motif","8 large shapes behind the subject"],["mtint",3,"Motif color","the motif is a pale tint of this color"],["side",1,"Subject side","subject on the left or on the right"],["subject",7,"Subject","128 subjects in 11 kinds (listed below)"],["fcolor",3,"Frame color","the badge outline"],["fstyle",2,"Frame style","thin, thick, dashed or dash-dot"],["code",4,"Code word","one of 16 spelling-alphabet words"],["ccolor",3,"Code chip color","chip behind the code word"],["bshape",2,"Monogram box","square, rounded, octagon or oval"],["bcolor",3,"Monogram color","fills the monogram box"],["word1",11,"Handle word 1","BIP-39 word, 1 of 2048"],["word2",11,"Handle word 2","BIP-39 word, 1 of 2048"]],"sheets":[{"id":"drawing","name":"Drawing sheet","bg":"#FFFFFF","ink":"#14171A","rule":"#14171A","grid":null,"palette":[["Red","#C1272D"],["Orange","#D55E00"],["Ochre","#A87900"],["Green","#2E7D32"],["Teal","#00838F"],["Blue","#1565C0"],["Purple","#6A1B9A"],["Magenta","#AD1457"]]},{"id":"blueprint","name":"Blueprint","bg":"#123E6E","ink":"#EEF5FF","rule":"#9DBDE2","grid":"#1D4F86","palette":[["Coral","#FF7B7B"],["Orange","#FFA94D"],["Yellow","#FFE066"],["Green","#8CE99A"],["Cyan","#66D9E8"],["Blue","#8EC5FF"],["Violet","#C0A8FF"],["Pink","#F9A0C4"]]},{"id":"whiteprint","name":"Whiteprint","bg":"#D6E2FA","ink":"#1B3C8C","rule":"#1B3C8C","grid":null,"palette":[["Navy","#1B3C8C"],["Azure","#0277BD"],["Teal","#00838F"],["Violet","#7B2FBF"],["Red","#C1272D"],["Orange","#D55E00"],["Green","#2E7D32"],["Magenta","#AD1457"]]},{"id":"graph","name":"Graph paper","bg":"#E2F2CC","ink":"#1C2A20","rule":"#3E6B4A","grid":"#C0DBA6","palette":[["Red","#C1272D"],["Orange","#D55E00"],["Ochre","#A87900"],["Green","#2E7D32"],["Teal","#00838F"],["Blue","#1565C0"],["Purple","#6A1B9A"],["Magenta","#AD1457"]]},{"id":"manila","name":"Manila","bg":"#EAD9AE","ink":"#35260F","rule":"#6B5326","grid":null,"palette":[["Brick","#9C1F1F"],["Rust","#B34700"],["Olive","#6E5200"],["Green","#1F5F2A"],["Teal","#00606A"],["Blue","#0F4C92"],["Purple","#531680"],["Wine","#8B0F45"]]},{"id":"slate","name":"Slate","bg":"#242930","ink":"#E8EBEF","rule":"#8A93A0","grid":null,"palette":[["Coral","#FF7B7B"],["Orange","#FFA94D"],["Yellow","#FFE066"],["Green","#8CE99A"],["Cyan","#66D9E8"],["Blue","#8EC5FF"],["Violet","#C0A8FF"],["Pink","#F9A0C4"]]},{"id":"hivis","name":"Hi-vis","bg":"#FFD500","ink":"#111111","rule":"#111111","grid":null,"palette":[["Black","#111111"],["Red","#A8001C"],["Blue","#0B3C8F"],["Green","#14531B"],["Purple","#45107A"],["Brown","#5A3A22"],["Teal","#00595E"],["Grey","#5C6470"]]},{"id":"redline","name":"Redline","bg":"#6E1620","ink":"#FFF1EC","rule":"#E3A29B","grid":null,"palette":[["Coral","#FF7B7B"],["Orange","#FFA94D"],["Yellow","#FFE066"],["Green","#8CE99A"],["Cyan","#66D9E8"],["Blue","#8EC5FF"],["Violet","#C0A8FF"],["Pink","#F9A0C4"]]},{"id":"forest","name":"Forest","bg":"#14452C","ink":"#F0FAEF","rule":"#9CCBA9","grid":null,"palette":[["Coral","#FF7B7B"],["Orange","#FFA94D"],["Yellow","#FFE066"],["Green","#8CE99A"],["Cyan","#66D9E8"],["Blue","#8EC5FF"],["Violet","#C0A8FF"],["Pink","#F9A0C4"]]},{"id":"plum","name":"Plum","bg":"#42205F","ink":"#F6EEFF","rule":"#BFA3DB","grid":null,"palette":[["Coral","#FF7B7B"],["Orange","#FFA94D"],["Yellow","#FFE066"],["Green","#8CE99A"],["Cyan","#66D9E8"],["Blue","#8EC5FF"],["Violet","#C0A8FF"],["Pink","#F9A0C4"]]},{"id":"orange","name":"Safety orange","bg":"#FF7A1A","ink":"#111111","rule":"#111111","grid":null,"palette":[["Black","#111111"],["Navy","#0B3C8F"],["Green","#0F4A1E"],["Purple","#5E1590"],["Maroon","#6E0A1E"],["Brown","#4A2C12"],["White","#FFFFFF"],["Teal","#004A52"]]},{"id":"sky","name":"Sky","bg":"#9FD8F5","ink":"#0E2A3D","rule":"#3D6F8E","grid":null,"palette":[["Brick","#9C1F1F"],["Rust","#B34700"],["Olive","#6E5200"],["Green","#1F5F2A"],["Teal","#00606A"],["Blue","#0F4C92"],["Purple","#531680"],["Wine","#8B0F45"]]},{"id":"rose","name":"Rose","bg":"#F7BFCD","ink":"#3A1420","rule":"#9A5566","grid":null,"palette":[["Brick","#9C1F1F"],["Rust","#B34700"],["Olive","#6E5200"],["Green","#1F5F2A"],["Teal","#00606A"],["Blue","#0F4C92"],["Purple","#531680"],["Wine","#8B0F45"]]},{"id":"mint","name":"Mint","bg":"#9FE0C0","ink":"#10301F","rule":"#4C8565","grid":null,"palette":[["Brick","#9C1F1F"],["Rust","#B34700"],["Olive","#6E5200"],["Green","#1F5F2A"],["Teal","#00606A"],["Blue","#0F4C92"],["Purple","#531680"],["Wine","#8B0F45"]]},{"id":"teal","name":"Teal","bg":"#0B5560","ink":"#EAFBFB","rule":"#8FC9CF","grid":"#136673","palette":[["Coral","#FF7B7B"],["Orange","#FFA94D"],["Yellow","#FFE066"],["Green","#8CE99A"],["Cyan","#66D9E8"],["Blue","#8EC5FF"],["Violet","#C0A8FF"],["Pink","#F9A0C4"]]},{"id":"lilac","name":"Lilac","bg":"#CDBBEE","ink":"#261540","rule":"#7A62A6","grid":null,"palette":[["Brick","#9C1F1F"],["Rust","#B34700"],["Olive","#6E5200"],["Green","#1F5F2A"],["Teal","#00606A"],["Blue","#0F4C92"],["Purple","#531680"],["Wine","#8B0F45"]]}],"outlines":["square","rounded","top-right and bottom-left cut","top-left and bottom-right cut","all four cut","side notches","rounded outer end","top and bottom notches"],"motifs":["panel","diagonal band","disc","corner block","vertical band","horizontal band","rings","hatched panel"],"codeWords":["ALFA","BRAVO","CHARLIE","DELTA","ECHO","FOXTROT","GOLF","HOTEL","INDIA","JULIETT","KILO","LIMA","MIKE","NOVEMBER","OSCAR","PAPA"],"frameStyles":["thin","thick","dashed","dash-dot"],"boxShapes":["square","rounded","octagon","oval"],"backings":["square tile","round tile","square frame","ring"],"glyphFills":["solid","outline","half","striped"],"subjects":[["engineering","gear"],["engineering","gear pair"],["engineering","gate valve"],["engineering","globe valve"],["engineering","hex bolt"],["engineering","hex nut"],["engineering","resistor"],["engineering","capacitor"],["engineering","coil spring"],["engineering","I-beam"],["engineering","pressure gauge"],["engineering","ball bearing"],["engineering","piston"],["engineering","pump"],["engineering","diode"],["engineering","battery"],["engineering","LED"],["tool","hammer"],["tool","wrench"],["tool","screwdriver"],["tool","saw"],["tool","scissors"],["tool","paintbrush"],["tool","light bulb"],["tool","pliers"],["tool","axe"],["tool","magnet"],["tool","drill"],["tool","ruler"],["shape","circle"],["shape","square"],["shape","triangle"],["shape","diamond"],["shape","star"],["shape","hexagon"],["shape","heart"],["shape","plus"],["shape","arrow"],["shape","ring"],["shape","chevron"],["sign","stop sign"],["sign","yield sign"],["sign","traffic light"],["sign","warning sign"],["sign","one-way sign"],["sign","railroad crossing"],["sign","no entry"],["sign","speed limit"],["sign","traffic cone"],["sign","parking sign"],["sign","curve ahead"],["instrument","guitar"],["instrument","drum"],["instrument","trumpet"],["instrument","saxophone"],["instrument","harp"],["instrument","xylophone"],["instrument","maracas"],["instrument","tambourine"],["instrument","accordion"],["instrument","handbell"],["instrument","metronome"],["computer","floppy disk"],["computer","monitor"],["computer","computer mouse"],["computer","power button"],["computer","wifi"],["computer","cursor"],["computer","folder"],["computer","game controller"],["computer","padlock"],["computer","hourglass"],["computer","magnifier"],["insignia","winged orb"],["insignia","triple chevron"],["insignia","ringed star"],["insignia","crossed blades"],["insignia","banded shield"],["insignia","crown"],["insignia","trident"],["insignia","atom"],["insignia","anchor"],["insignia","laurel"],["piece","pawn"],["piece","rook"],["piece","knight"],["piece","bishop"],["piece","king"],["piece","die"],["piece","puzzle piece"],["piece","playing card"],["piece","domino"],["piece","meeple"],["piece","dartboard"],["space","ringed planet"],["space","crescent moon"],["space","comet"],["space","spiral galaxy"],["space","astronaut helmet"],["space","satellite"],["space","telescope"],["space","constellation"],["space","asteroid"],["space","lunar lander"],["weather","sun"],["weather","rain cloud"],["weather","thunderstorm"],["weather","snowflake"],["weather","rainbow"],["weather","tornado"],["weather","umbrella"],["weather","thermometer"],["weather","windsock"],["weather","snowman"],["flag","waving flag"],["flag","pennant"],["flag","swallowtail"],["flag","checkered flag"],["flag","pirate flag"],["flag","hanging banner"],["flag","signal flag"],["flag","cross flag"],["flag","striped flag"],["flag","crossed flags"],["flag","golf flag"],["flag","bunting"],["flag","tattered flag"],["flag","summit flag"]]};
 const DOC_MIX_TAG = 'visual256/document/0.1';
 function docDecode(b){
   const d = {}; let pos = 0;
   for(const [k, n] of DOC.fields){ d[k] = readBits(b, pos, n); pos += n; }
-  d.chars = Array.from({length:12}, (_, i) => readBits(b, 49+5*i, 5));
-  d.wide = readBits(b, 116, 1);
-  d.bars = [0,1].map(i => { let p = 117 + 17*i; return DOC.barFields.map(([, n]) => { const v = readBits(b, p, n); p += n; return v; }); });
-  d.glyphs = [readBits(b, 109, 7), ...Array.from({length:15}, (_, i) => readBits(b, 151+7*i, 7))];
+  d.chars = Array.from({length:12}, (_, i) => readBits(b, 63+5*i, 5));
+  d.chips = [0,1].map(i => readBits(b, 123+3*i, 3));
+  d.mark = readBits(b, 129, 7);
+  d.spine = Array.from({length:12}, (_, i) => readBits(b, 136+3*i, 3));
+  d.glyphs = Array.from({length:6}, (_, i) => readBits(b, 172+14*i, 14));
   return d;
 }
+const docGlyphParts = g => [g >> 12, (g >> 9) & 7, (g >> 7) & 3, (g >> 4) & 7, g & 15];  // backing, backing color, fill, glyph color, shape
 const docNames = sh => sh.palette.map(p => p[0]);
 const docMonogram = d => d.chars.slice(0,2).map(v => B32[v]).join('');
 const docGroups = d => [d.chars.slice(2,7), d.chars.slice(7)].map(g => g.map(v => B32[v]).join(''));
 const docSubjectName = i => { const [k, n] = DOC.subjects[i]; return k === 'shape' ? 'large ' + n : n; };
-const docBarWidth = (d, row) => d.wide === row ? 3 : 2;
 function docDescribe(d){
   const sh = DOC.sheets[d.theme], n = docNames(sh);
-  const v = { theme:sh.name, key:n[d.key], outline:DOC.outlines[d.outline], motif:DOC.motifs[d.motif], side:['left','right'][d.side], subject:docSubjectName(d.subject), code:DOC.codeWords[d.code], gstyle:DOC.glyphStyles[d.gstyle],
+  const v = { theme:sh.name, key:n[d.key], outline:DOC.outlines[d.outline], motif:DOC.motifs[d.motif], mtint:n[d.mtint], side:['left','right'][d.side], subject:docSubjectName(d.subject),
+    fcolor:n[d.fcolor], fstyle:DOC.frameStyles[d.fstyle], code:DOC.codeWords[d.code], ccolor:n[d.ccolor], bshape:DOC.boxShapes[d.bshape], bcolor:n[d.bcolor],
     word1:`${BIP39[d.word1]} (#${d.word1+1})`, word2:`${BIP39[d.word2]} (#${d.word2+1})` };
   const out = []; let pos = 0;
   for(const [k, bits, label, what] of DOC.fields){ out.push([`${pos}-${pos+bits-1}`, label, v[k], what]); pos += bits; }
-  out.push(['49-108', 'Characters', [docMonogram(d), ...docGroups(d)].join(' '), 'a 2-character monogram, then two groups of 5']);
-  const gl = g => `${n[g >> 4]} ${SYM[g & 15]}`;
-  out.push(['109-115', 'Mark', gl(d.glyphs[0]), 'the larger glyph: 1 of 8 colors and 1 of 16 shapes']);
-  out.push(['116-116', 'Wide bar row', ['top','bottom'][d.wide], 'which row holds the 3-wide bar']);
-  d.bars.forEach(([pos, style, color, color2, level, cap], i) => out.push([`${117+17*i}-${133+17*i}`, ['Top bar','Bottom bar'][i],
-    `${docBarWidth(d, i)} wide after ${pos} glyphs, ${DOC.barStyles[style]}, ${n[color]} and ${n[color2]}, level ${level+1}, ${['square','round'][cap]} ends`, 'position, style, two colors, level and ends']));
-  out.push(['151-255', 'Glyphs', d.glyphs.slice(1).map(gl).join(', '), '15 glyphs filling both rows around the bars']);
+  out.push(['63-122', 'Characters', [docMonogram(d), ...docGroups(d)].join(' '), 'a 2-character monogram, then two groups of 5']);
+  out.push(['123-128', 'Character chips', d.chips.map(c => n[c]).join(', '), 'chip color of each character group']);
+  out.push(['129-135', 'Mark', `${n[d.mark >> 4]} ${SYM[d.mark & 15]}`, 'small glyph beside the characters']);
+  out.push(['136-171', 'Spine', d.spine.map(c => n[c]).join(', '), '12 color bands between subject and text']);
+  d.glyphs.forEach((g, i) => { const [back, c2, fill, c1, shape] = docGlyphParts(g);
+    out.push([`${172+14*i}-${185+14*i}`, `Glyph ${i+1}`, `${DOC.glyphFills[fill]} ${n[c1]} ${SYM[shape]} on a ${n[c2]} ${DOC.backings[back]}`, 'backing, backing color, fill, glyph color and shape']); });
   return out;
 }
 const DX0 = 1, DY0 = 1, DX1 = 127, DY1 = 63, DSW = 55, DBW = 65, DCUT = 5.5, DROUND = 8, DNOTCH = 3;
@@ -1454,6 +1455,7 @@ function docMotif(ctx, d, tint, cx){
   else if(name === 'diagonal band'){ ctx.beginPath(); poly(ctx, [[cx-m*22,64],[cx+m*4,64],[cx+m*22,0],[cx-m*4,0]]); ctx.fill(); }
   else if(name === 'disc'){ ctx.beginPath(); ctx.arc(cx, 32.5, 24.5, 0, TAU); ctx.fill(); }
   else if(name === 'corner block'){ ctx.beginPath(); poly(ctx, [[cx-m*28,64],[cx-m*28,12],[cx+m*24,64]]); ctx.fill(); }
+  else if(name === 'vertical band') ctx.fillRect(cx - 10, 0, 20, 64);
   else if(name === 'horizontal band') ctx.fillRect(x0, 21, DSW, 23);
   else if(name === 'rings'){ ctx.strokeStyle = tint; ctx.lineWidth = 2.6; for(const r of [9,16.5,24]){ ctx.beginPath(); ctx.arc(cx, 32.5, r, 0, TAU); ctx.stroke(); } }
   else if(name === 'hatched panel') docHatch(ctx, x0, 0, x0 + DSW, 64, tint, 3.4, 1.3);
@@ -1473,62 +1475,46 @@ function docSubject(ctx, d, sh, cx){
   strokes(ctx, sp.front || [], over);
   ctx.restore();
 }
-function docGlyphMark(ctx, sh, style, g, x, y, k){
-  k = k || 1;
-  const color = sh.palette[g >> 4][1], shape = g & 15, name = DOC.glyphStyles[style];
-  if(name === 'plain'){ drawSymbol(ctx, shape, x, y, 2.75*k, color); return; }
-  ctx.beginPath();
-  if(name === 'round tiles') ctx.arc(x, y, 3.05*k, 0, TAU); else ctx.rect(x - 2.9*k, y - 2.9*k, 5.8*k, 5.8*k);
-  if(name === 'framed'){ ctx.lineWidth = .5*k; ctx.strokeStyle = color; ctx.stroke(); drawSymbol(ctx, shape, x, y, 2*k, color); }
-  else { ctx.fillStyle = color; ctx.fill(); drawSymbol(ctx, shape, x, y, (name === 'round tiles' ? 1.9 : 2.1)*k, sh.bg); }
-}
-function docBarPath(ctx, x, y, w, h, cap){
-  const r = cap ? Math.min(h, w)/2 : Math.min(.5, h/2), PI = Math.PI;
+function docRR(ctx, x, y, w, h, r){
+  r = Math.min(r, w/2, h/2); const PI = Math.PI;
   ctx.beginPath(); ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y); ctx.arc(x+w-r, y+r, r, -PI/2, 0); ctx.lineTo(x+w, y+h-r); ctx.arc(x+w-r, y+h-r, r, 0, PI/2);
   ctx.lineTo(x+r, y+h); ctx.arc(x+r, y+h-r, r, PI/2, PI); ctx.lineTo(x, y+r); ctx.arc(x+r, y+r, r, PI, 1.5*PI); ctx.closePath();
 }
-function docBar(ctx, sh, bar, x, cy, w){
-  const [, style, color, color2, level, cap] = bar, c1 = sh.palette[color][1], c2 = sh.palette[color2][1], name = DOC.barStyles[style];
-  const h = 5.2, y = cy - h/2, xs = x + 1.2 + (level + .5)/16*(w - 2.4);
-  ctx.save();
-  if(name === 'progress'){
-    ctx.save(); docBarPath(ctx, x, y, w, h, cap); ctx.clip(); ctx.fillStyle = c1; ctx.fillRect(x, y, xs - x, h); ctx.restore();
-    docBarPath(ctx, x+.25, y+.25, w-.5, h-.5, cap); ctx.lineWidth = .5; ctx.strokeStyle = c2; ctx.stroke();
-  } else if(name === 'two-tone' || name === 'striped' || name === 'marker'){
-    docBarPath(ctx, x, y, w, h, cap); ctx.clip();
-    if(name === 'two-tone'){ ctx.fillStyle = c1; ctx.fillRect(x, y, xs - .25 - x, h); ctx.fillStyle = c2; ctx.fillRect(xs + .25, y, x + w - xs - .25, h); }
-    else if(name === 'striped'){ ctx.fillStyle = c2; ctx.fillRect(xs, y, x + w - xs, h); ctx.beginPath(); ctx.rect(x, y, xs - x, h); ctx.clip(); docHatch(ctx, x, y, xs, y + h, c1, 1.5, .95); }
-    else { ctx.fillStyle = c1; ctx.fillRect(x, y, w, h); ctx.fillStyle = sh.bg; ctx.fillRect(xs - 1.5, y, 3, h); ctx.fillStyle = c2; ctx.fillRect(xs - .95, y, 1.9, h); }
-  } else if(name === 'slider'){
-    ctx.beginPath(); ctx.moveTo(x + .7, cy); ctx.lineTo(x + w - .7, cy); ctx.lineWidth = 1.3; ctx.strokeStyle = c2; ctx.lineCap = cap ? 'round' : 'butt'; ctx.stroke();
-    const xk = x + 2.5 + (level + .5)/16*(w - 5);
-    ctx.beginPath(); if(cap) ctx.arc(xk, cy, 2.5, 0, TAU); else ctx.rect(xk - 2.2, cy - 2.5, 4.4, 5);
-    ctx.fillStyle = c1; ctx.fill(); ctx.lineWidth = .45; ctx.strokeStyle = sh.bg; ctx.stroke();
-  } else if(name === 'segments'){
-    const seg = (w + .7)/4;
-    for(let k=0;k<4;k++){
-      const on = level >> (3-k) & 1;
-      docBarPath(ctx, x + k*seg + .25, y + .25, seg - 1.2, h - .5, cap);
-      if(on){ ctx.fillStyle = c1; ctx.fill(); }
-      ctx.lineWidth = .5; ctx.strokeStyle = c2; ctx.stroke();
-      if(!on){ ctx.beginPath(); ctx.arc(x + k*seg + .25 + (seg - 1.2)/2, cy, .75, 0, TAU); ctx.fillStyle = c1; ctx.fill(); }
+const docOn = (sh, color) => docContrast(sh.bg, color) >= docContrast(sh.ink, color) ? sh.bg : sh.ink;  // paper or ink, whichever reads better
+function docBigGlyph(ctx, sh, g, x, y){
+  const [back, c2i, fill, c1i, shape] = docGlyphParts(g), c1 = sh.palette[c1i][1], c2 = sh.palette[c2i][1];
+  const backing = DOC.backings[back], pattern = DOC.glyphFills[fill], filled = backing === 'square tile' || backing === 'round tile';
+  ctx.beginPath();
+  if(backing === 'square tile') ctx.rect(x - 4.7, y - 4.7, 9.4, 9.4);
+  else if(backing === 'round tile') ctx.arc(x, y, 4.9, 0, TAU);
+  else if(backing === 'square frame') ctx.rect(x - 4.35, y - 4.35, 8.7, 8.7);
+  else ctx.arc(x, y, 4.55, 0, TAU);
+  if(filled){ ctx.fillStyle = c2; ctx.fill(); ctx.lineWidth = 1; ctx.strokeStyle = c1; ctx.stroke(); }
+  else { ctx.lineWidth = .7; ctx.strokeStyle = c2; ctx.stroke(); }
+  ctx.save(); ctx.translate(x, y); ctx.scale(3, 3); symPath(ctx, shape);
+  ctx.fillStyle = ctx.strokeStyle = filled ? sh.bg : c1; ctx.lineJoin = 'round'; ctx.lineWidth = .2;
+  if(pattern === 'solid') ctx.fill();
+  else {
+    ctx.stroke();
+    if(pattern !== 'outline'){
+      ctx.clip();
+      if(pattern === 'half') ctx.fillRect(-1.3, 0, 2.6, 1.3);
+      else for(let k=-3;k<4;k++) ctx.fillRect(-1.3, k*.46 - .1, 2.6, .2);
     }
-  } else if(name === 'dashed'){
-    ctx.lineWidth = 2.2; ctx.lineCap = cap ? 'round' : 'butt';
-    const xd = x + 2.2 + (level + .5)/16*(w - 6.4);
-    ctx.beginPath(); ctx.moveTo(x + 1.1, cy); ctx.lineTo(xd, cy); ctx.strokeStyle = c1; ctx.stroke();
-    ctx.beginPath(); for(let px = xd + 2.2; px <= x + w - 1.1; px += 2.9){ ctx.moveTo(px - (cap ? 0 : .5), cy); ctx.lineTo(px + (cap ? .01 : .5), cy); }
-    ctx.strokeStyle = c2; ctx.stroke();
-  } else {
-    docBarPath(ctx, x, y, xs - x, 2.3, cap); ctx.fillStyle = c1; ctx.fill();
-    docBarPath(ctx, xs, y + 2.9, x + w - xs, 2.3, cap); ctx.fillStyle = c2; ctx.fill();
   }
   ctx.restore();
 }
+function docBoxPath(ctx, shape, x, y, w, h){
+  const name = DOC.boxShapes[shape];
+  if(name === 'oval'){ ctx.beginPath(); ctx.ellipse(x + w/2, y + h/2, w/2 + .6, h/2, 0, 0, TAU); }
+  else if(name === 'octagon'){ const c = 4.2; ctx.beginPath(); poly(ctx, [[x+c,y],[x+w-c,y],[x+w,y+c],[x+w,y+h-c],[x+w-c,y+h],[x+c,y+h],[x,y+h-c],[x,y+c]]); }
+  else docRR(ctx, x, y, w, h, name === 'rounded' ? 4.2 : 0);
+}
+const DOC_FRAME_LINES = [[.9, []], [1.9, []], [1.2, [3.2, 1.7]], [1.2, [4.2, 1.5, 1.1, 1.5]]];
 /* one Document badge in 128 x 64 units; hex is the checksum part printed for cross-checking */
 function drawDocument(ctx, d, hex){
-  const sh = DOC.sheets[d.theme], bg = sh.bg, ink = sh.ink, rule = sh.rule;
-  const key = sh.palette[d.key][1], tint = docMix(bg, key, .17);
+  const sh = DOC.sheets[d.theme], bg = sh.bg, ink = sh.ink, rule = sh.rule, pal = sh.palette.map(p => p[1]);
+  const tint = docMix(bg, pal[d.mtint], .24);
   const [cx, div, L] = docGeom(d.side), R = L + DBW;
   ctx.save(); ctx.lineJoin = 'round';
   ctx.save(); docOutline(ctx, d.outline, d.side); ctx.fillStyle = bg; ctx.fill(); ctx.clip();
@@ -1537,16 +1523,17 @@ function drawDocument(ctx, d, hex){
   ctx.restore();
   docSubject(ctx, d, sh, cx);
   const line = (xa, ya, xb, yb) => { ctx.beginPath(); ctx.moveTo(xa, ya); ctx.lineTo(xb, yb); ctx.lineWidth = .35; ctx.strokeStyle = rule; ctx.stroke(); };
-  line(div, 6, div, 58);
+  const band = 52/12;
+  d.spine.forEach((c, i) => { ctx.fillStyle = pal[c]; ctx.fillRect(div + (d.side ? .5 : -1.7) - .5, 6 + i*band, 2.2, band - .5); });
   const w1 = BIP39[d.word1].toUpperCase(), w2 = BIP39[d.word2].toUpperCase();
   let size = 8.6; setFont(ctx, 'cyber', size);
   const widest = Math.max(ctx.measureText(w1).width, ctx.measureText(w2).width);
   if(widest > 43.5){ size *= 43.5/widest; setFont(ctx, 'cyber', size); }
   ctx.fillStyle = ink; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
   ctx.fillText(w1, L, 12.4); ctx.fillText(w2, L, 21.6);
-  ctx.fillStyle = key; ctx.fillRect(R - 18, 5.2, 18, 17.6);
-  ctx.fillStyle = docContrast(bg, key) >= docContrast(ink, key) ? bg : ink;
-  setFont(ctx, 'mono', 11.6); ctx.textAlign = 'center'; ctx.fillText(docMonogram(d), R - 9, 18.2);
+  const box = pal[d.bcolor], oval = DOC.boxShapes[d.bshape] === 'oval';
+  docBoxPath(ctx, d.bshape, R - 18, 5.2, 18, 17.6); ctx.fillStyle = box; ctx.fill();
+  ctx.fillStyle = docOn(sh, box); setFont(ctx, 'mono', oval ? 10.6 : 11.6); ctx.textAlign = 'center'; ctx.fillText(docMonogram(d), R - 9, oval ? 17.8 : 18.2);
   line(L, 25.4, R, 25.4);
   ctx.fillStyle = ink;
   if(hex){
@@ -1556,22 +1543,21 @@ function drawDocument(ctx, d, hex){
     const x = L + ctx.measureText(first).width;
     for(let k=0;k<3;k++) ctx.fillRect(x + .75 + k*1.05, 32, .55, .6);
     ctx.fillText(last, x + 4.2, 32.6);
-    line(R - 21.6, 25.4, R - 21.6, 36);
   }
-  ctx.fillStyle = ink; setFont(ctx, 'mono', 4.1); ctx.textAlign = 'right'; ctx.fillText(DOC.codeWords[d.code], R, 32.6);
+  const chip = pal[d.ccolor];
+  docRR(ctx, R - 20.6, 27.3, 20.6, 6.8, 1.2); ctx.fillStyle = chip; ctx.fill();
+  ctx.fillStyle = docOn(sh, chip); setFont(ctx, 'mono', 3.9); ctx.textAlign = 'center'; ctx.fillText(DOC.codeWords[d.code], R - 10.3, 32.1);
   line(L, 36, R, 36);
-  setFont(ctx, 'mono', 5.8); ctx.textAlign = 'left'; ctx.fillText(docGroups(d).join(' '), L, 43.8);
-  docGlyphMark(ctx, sh, d.gstyle, d.glyphs[0], R - 3.9, 41.4, 1.2);
+  setFont(ctx, 'mono', 5.4);
+  docGroups(d).forEach((group, i) => { const x = L + i*21.6, c = pal[d.chips[i]];
+    docRR(ctx, x, 38, 20.4, 6.8, 1.2); ctx.fillStyle = c; ctx.fill(); ctx.fillStyle = docOn(sh, c); ctx.fillText(group, x + 10.2, 43.4); });
+  drawSymbol(ctx, d.mark & 15, R - 4.6, 41.4, 3.5, pal[d.mark >> 4]);
   line(L, 46.8, R, 46.8);
-  const pitch = DBW/10; let gi = 1;
-  for(let row=0;row<2;row++){
-    const y = 50.5 + 6.6*row, width = docBarWidth(d, row); let slot = 0;
-    for(let i=0;i<=10-width;i++){
-      if(i === d.bars[row][0]){ docBar(ctx, sh, d.bars[row], L + pitch*slot + .45, y, pitch*width - .9); slot += width; }
-      if(i < 10-width){ docGlyphMark(ctx, sh, d.gstyle, d.glyphs[gi++], L + pitch*(slot + .5), y); slot++; }
-    }
-  }
-  docOutline(ctx, d.outline, d.side); ctx.lineWidth = 1.1; ctx.strokeStyle = ink; ctx.stroke();
+  const pitch = DBW/6;
+  d.glyphs.forEach((g, i) => docBigGlyph(ctx, sh, g, L + pitch*(i + .5), 53.9));
+  docOutline(ctx, d.outline, d.side);
+  const [fw, dash] = DOC_FRAME_LINES[d.fstyle];
+  ctx.lineWidth = fw; ctx.strokeStyle = pal[d.fcolor]; ctx.lineCap = 'butt'; ctx.setLineDash(dash); ctx.stroke(); ctx.setLineDash([]);
   ctx.restore();
 }
 function docGlyph(bits, hex, over, k){
@@ -1611,10 +1597,13 @@ function renderDocument(){
     $(host).innerHTML = names.map((name, i) => `<figure class="${i === d[key] ? 'real' : ''}"><canvas></canvas><figcaption><strong>${i} · ${esc(name)}</strong>${i === d[key] ? '<br>This hash' : '<br>Preview'}</figcaption></figure>`).join('');
     $(host).querySelectorAll('canvas').forEach((cv, i) => paint(cv, docGlyph(mixed[0], hexes[0], {[key]: i}, .45), 230));
   };
-  grid('#docsheets', DOC.sheets.map(sh => sh.name), 'theme'); grid('#docoutlines', DOC.outlines, 'outline'); grid('#docmotifs', DOC.motifs, 'motif'); grid('#docgstyles', DOC.glyphStyles, 'gstyle');
-  const real = d.bars.map(b => b[1]);
-  $('#docbars').innerHTML = DOC.barStyles.map((name, i) => `<figure class="${real.includes(i) ? 'real' : ''}"><canvas></canvas><figcaption><strong>${i} · ${esc(name)}</strong>${real.includes(i) ? '<br>On this badge' : '<br>Preview'}</figcaption></figure>`).join('');
-  $('#docbars').querySelectorAll('canvas').forEach((cv, i) => paint(cv, docGlyph(mixed[0], hexes[0], {bars: d.bars.map(b => [b[0], i, ...b.slice(2)])}, .45), 230));
+  grid('#docsheets', DOC.sheets.map(sh => sh.name), 'theme'); grid('#docoutlines', DOC.outlines, 'outline'); grid('#docmotifs', DOC.motifs, 'motif'); 
+  const force = (host, names, part, shift) => {
+    const real = d.glyphs.map(g => docGlyphParts(g)[part]);
+    $(host).innerHTML = names.map((name, i) => `<figure class="${real.includes(i) ? 'real' : ''}"><canvas></canvas><figcaption><strong>${i} · ${esc(name)}</strong>${real.includes(i) ? '<br>On this badge' : '<br>Preview'}</figcaption></figure>`).join('');
+    $(host).querySelectorAll('canvas').forEach((cv, i) => paint(cv, docGlyph(mixed[0], hexes[0], {glyphs: d.glyphs.map(g => (g & ~(3 << shift)) | (i << shift))}, .45), 230));
+  };
+  force('#docbackings', DOC.backings, 0, 12); force('#docfills', DOC.glyphFills, 2, 7);
 }
 
 /* ---------- page state and rendering ---------- */
